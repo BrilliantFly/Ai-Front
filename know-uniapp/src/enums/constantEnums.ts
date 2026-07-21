@@ -1,0 +1,12 @@
+// 本地缓冲key
+
+//token
+export const TOKEN_KEY = 'token'
+export const TOKEN_NAME = 'tokenName'
+
+// 搜索历史记录
+export const HISTORY = 'history'
+
+export const BACK_URL = 'back_url'
+
+export const PAY_STATUS_EVENT = 'event:payStatus'
