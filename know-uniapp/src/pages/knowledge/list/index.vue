@@ -38,7 +38,7 @@
             <text class="kb-desc">{{ item.description || '暂无描述' }}</text>
             <view class="kb-meta">
               <text class="kb-stats">{{ item.docCount || 0 }}篇文档</text>
-              <text class="kb-visibility">{{ item.visibility === 'public' ? '公开' : '私密' }}</text>
+              <text class="kb-visibility">{{ item.visibility === 1 ? '公开' : '私密' }}</text>
             </view>
           </view>
         </view>
@@ -90,10 +90,10 @@
           <view class="fgs-full">
             <text class="fg-label">👁️ 可见性</text>
             <view class="toggle-row">
-              <view class="toggle-opt" :class="{ active: form.visibility === 'private' }" @tap="form.visibility = 'private'">
+              <view class="toggle-opt" :class="{ active: form.visibility === 0 }" @tap="form.visibility = 0">
                 🔒 私密
               </view>
-              <view class="toggle-opt" :class="{ active: form.visibility === 'public' }" @tap="form.visibility = 'public'">
+              <view class="toggle-opt" :class="{ active: form.visibility === 1 }" @tap="form.visibility = 1">
                 🌐 公开
               </view>
             </view>
@@ -133,7 +133,7 @@ const form = ref({
   name: '',
   description: '',
   icon: '📚',
-  visibility: 'private' as 'public' | 'private'
+  visibility: 0 as 0 | 1
 })
 
 const iconOptions = ['📚', '📖', '💡', '🔧', '🎯', '💻', '🧠', '📝', '🎨', '🔬', '📊', '🌍']
@@ -164,7 +164,7 @@ const goToDetail = (id: number) => {
 
 const openCreateDialog = () => {
   editingKb.value = null
-  form.value = { name: '', description: '', icon: '📚', visibility: 'private' }
+  form.value = { name: '', description: '', icon: '📚', visibility: 0 }
   showDialog.value = true
 }
 
@@ -183,7 +183,7 @@ const showCardActions = (item: any) => {
           name: item.name || '',
           description: item.description || '',
           icon: item.icon || '📚',
-          visibility: item.visibility || 'private'
+          visibility: item.visibility ?? 0
         }
         showDialog.value = true
       } else if (res.tapIndex === 1) {
