@@ -320,6 +320,46 @@ const MENU_PRESETS: Record<string, PresetConfig> = {
         'linear-gradient(135deg,#dbeafe,#bfdbfe)',
         '/static/images/home/data.svg',
         ['quick', 'recommend']
+    ),
+    knowledge: buildPreset(
+        '📚',
+        'premium-icon-g9',
+        '知识库',
+        '分类整理你的笔记、文档与灵感',
+        '知识',
+        'linear-gradient(135deg,#e0f2fe,#bae6fd)',
+        '/static/images/home/data.svg',
+        ['quick']
+    ),
+    kb: buildPreset(
+        '📚',
+        'premium-icon-g9',
+        '知识库',
+        '分类整理你的笔记、文档与灵感',
+        '知识',
+        'linear-gradient(135deg,#e0f2fe,#bae6fd)',
+        '/static/images/home/data.svg',
+        ['quick']
+    ),
+    memo: buildPreset(
+        '✏️',
+        'premium-icon-g3',
+        '快速小记',
+        '随时记录灵感与待办事项',
+        '笔记',
+        'linear-gradient(135deg,#fce7f3,#fbcfe8)',
+        '/static/images/home/habit.svg',
+        ['quick']
+    ),
+    'doc-edit': buildPreset(
+        '📝',
+        'premium-icon-g2',
+        '文档编辑',
+        '富文本编辑器，轻松创建与排版',
+        '编辑',
+        'linear-gradient(135deg,#d1fae5,#a7f3d0)',
+        '/static/images/home/schedule.svg',
+        ['tool']
     )
 }
 
@@ -350,6 +390,10 @@ const inferPresetCode = (item: RawHomeMenu) => {
     if (code.includes('collection') || code.includes('favorite') || path.includes('/collection'))
         return 'collection'
     if (code.includes('news') || code.includes('article') || path.includes('/news')) return 'news'
+    if (code.includes('knowledge') || code.includes('kb') || path.includes('/knowledge')) return 'knowledge'
+    if (code.includes('memo') || code.includes('quick-note') || path.includes('/memo')) return 'memo'
+    if (code.includes('doc-edit') || code.includes('document-edit') || path.includes('/document-edit'))
+        return 'doc-edit'
     if (code.includes('data') || code.includes('analysis')) return 'data'
     if (
         code.includes('finance') ||
@@ -369,6 +413,9 @@ const inferPresetCode = (item: RawHomeMenu) => {
     if (name.includes('客服') || name.includes('支持') || name.includes('服务')) return 'service'
     if (name.includes('收藏')) return 'collection'
     if (name.includes('资讯') || name.includes('文章') || name.includes('内容')) return 'news'
+    if (name.includes('知识库') || name.includes('知识')) return 'knowledge'
+    if (name.includes('小记') || name.includes('笔记')) return 'memo'
+    if (name.includes('文档') || name.includes('编辑')) return 'doc-edit'
     if (name.includes('数据') || name.includes('分析')) return 'data'
     if (name.includes('财务') || name.includes('钱包') || name.includes('充值')) return 'finance'
     if (name.includes('甘特')) return 'gantt'
