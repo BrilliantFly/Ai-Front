@@ -36,6 +36,12 @@
             }
         },
         {
+            "path": "pages/knowledge/document-view/index",
+            "style": {
+                "navigationStyle": "custom"
+            }
+        },
+        {
             "path": "pages/knowledge/memo/index",
             "style": {
                 "navigationStyle": "custom"

@@ -176,7 +176,7 @@ const flatDirs = computed(() => {
 const goBack = () => uni.navigateBack()
 
 const goToDocument = (id: number) => {
-  router.navigateTo(`/pages/knowledge/document-edit/index?id=${id}`)
+  router.navigateTo(`/pages/knowledge/document-view/index?id=${id}`)
 }
 
 const handleCreateDoc = () => {
@@ -302,9 +302,13 @@ const toggleDir = (dirId: number) => {
 
 const showDocActions = (doc: any) => {
   uni.showActionSheet({
-    itemList: ['删除文档'],
+    itemList: ['编辑文档', '删除文档'],
     success: (res) => {
       if (res.tapIndex === 0) {
+        // 编辑文档
+        router.navigateTo(`/pages/knowledge/document-edit/index?id=${doc.id}`)
+      } else if (res.tapIndex === 1) {
+        // 删除文档
         uni.showModal({
           title: '删除文档',
           content: `确定要删除「${doc.title}」吗？`,
