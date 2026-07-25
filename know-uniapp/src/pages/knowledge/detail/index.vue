@@ -30,7 +30,7 @@
       </view>
     </view>
 
-    <!-- 目录区域 -->
+    <!-- 目录区域（多级树） -->
     <view class="section">
       <view class="section-header">
         <text class="section-title">📁 目录</text>
@@ -39,21 +39,23 @@
         </view>
       </view>
       <view class="dir-list">
-        <template v-if="directories.length > 0">
-          <DirTreeNode
-            v-for="dir in directories"
-            :key="dir.id"
-            :dir="dir"
-            :depth="0"
-            :expanded-dirs="expandedDirs"
-            :documents="documents"
-            @toggle="toggleDir"
-            @add-child="openAddDirDialog"
-            @edit="editDir"
-            @delete-dir="deleteDir"
-            @view-doc="goToDocument"
-            @delete-doc="showDocActions"
-          />
+        <template v-if="flatDirs.length > 0">
+          <view v-for="item in flatDirs" :key="item.dir.id" class="dir-item">
+            <view
+              class="dir-row"
+              :style="{ paddingLeft: (item.depth * 40 + 32) + 'rpx' }"
+              @tap="toggleDir(item.dir.id)"
+              @longpress="editDir(item.dir)"
+            >
+              <text v-if="item.hasChildren" class="dir-arrow" :class="{ expanded: expandedDirs.includes(item.dir.id) }">›</text>
+              <text v-else class="dir-arrow-placeholder"></text>
+              <text class="dir-icon">📁</text>
+              <text class="dir-name">{{ item.dir.name }}</text>
+              <view class="dir-action-btn" @tap.stop="openAddDirDialog(item.dir.id)">
+                <text class="action-icon">+</text>
+              </view>
+            </view>
+          </view>
         </template>
         <view class="empty-dir" v-else>
           <text class="empty-hint">暂无目录，点击 + 添加</text>
@@ -61,20 +63,20 @@
       </view>
     </view>
 
-    <!-- 文档区域（未分组文档） -->
+    <!-- 文档区域 -->
     <view class="section">
       <view class="section-header">
         <text class="section-title">📝 文档</text>
       </view>
       <view class="doc-list">
-        <view class="doc-item" v-for="doc in ungroupedDocs" :key="doc.id" @tap="goToDocument(doc.id)" @longpress="showDocActions(doc)">
+        <view class="doc-item" v-for="doc in documents" :key="doc.id" @tap="goToDocument(doc.id)" @longpress="showDocActions(doc)">
           <view class="doc-icon-box">📄</view>
           <view class="doc-body">
             <text class="doc-title">{{ doc.title }}</text>
             <text class="doc-sub">{{ formatTime(doc.createTime) }}</text>
           </view>
         </view>
-        <view class="empty-dir" v-if="ungroupedDocs.length === 0">
+        <view class="empty-dir" v-if="documents.length === 0">
           <text class="empty-hint">暂无文档</text>
         </view>
       </view>
@@ -85,7 +87,7 @@
       <text class="fab-icon">+</text>
     </view>
 
-    <!-- 目录名称输入弹窗 -->
+    <!-- 目录弹窗 -->
     <view class="modal-overlay" :class="{ active: showDirModal }" @tap="closeDirModal">
       <view class="modal" @tap.stop>
         <view class="modal-handle"></view>
@@ -116,83 +118,6 @@
   </view>
 </template>
 
-<!-- 递归目录树节点组件 -->
-<script lang="ts">
-import { defineComponent, PropType } from 'vue'
-
-const DirTreeNode = defineComponent({
-  name: 'DirTreeNode',
-  props: {
-    dir: { type: Object as PropType<any>, required: true },
-    depth: { type: Number, default: 0 },
-    expandedDirs: { type: Array as PropType<number[]>, default: () => [] },
-    documents: { type: Array as PropType<any[]>, default: () => [] }
-  },
-  emits: ['toggle', 'add-child', 'edit', 'delete-dir', 'view-doc', 'delete-doc'],
-  computed: {
-    isExpanded(): boolean {
-      return (this.expandedDirs as number[]).includes(this.dir.id)
-    },
-    childDirs(): any[] {
-      return this.dir.children || []
-    },
-    childDocs(): any[] {
-      return (this.documents as any[]).filter((d: any) => d.directoryId === this.dir.id)
-    },
-    hasChildren(): boolean {
-      return this.childDirs.length > 0 || this.childDocs.length > 0
-    },
-    indentStyle(): string {
-      return `padding-left: ${this.depth * 40}rpx`
-    }
-  },
-  template: `
-    <view class="tree-node">
-      <view class="dir-row" :style="indentStyle" @tap="$emit('toggle', dir.id)" @longpress.stop="$emit('edit', dir)">
-        <text v-if="hasChildren" class="dir-arrow" :class="{ expanded: isExpanded }">›</text>
-        <text v-else class="dir-arrow-placeholder"></text>
-        <text class="dir-icon">📁</text>
-        <text class="dir-name">{{ dir.name }}</text>
-        <view class="dir-actions">
-          <view class="dir-action-btn" @tap.stop="$emit('add-child', dir.id)">
-            <text class="action-icon">+</text>
-          </view>
-        </view>
-      </view>
-      <view v-if="isExpanded" class="dir-children">
-        <DirTreeNode
-          v-for="child in childDirs"
-          :key="child.id"
-          :dir="child"
-          :depth="depth + 1"
-          :expanded-dirs="expandedDirs"
-          :documents="documents"
-          @toggle="$emit('toggle', $event)"
-          @add-child="$emit('add-child', $event)"
-          @edit="$emit('edit', $event)"
-          @delete-dir="$emit('delete-dir', $event)"
-          @view-doc="$emit('view-doc', $event)"
-          @delete-doc="$emit('delete-doc', $event)"
-        />
-        <view
-          v-for="doc in childDocs"
-          :key="doc.id"
-          class="doc-child"
-          :style="'padding-left: ' + ((depth + 1) * 40 + 60) + 'rpx'"
-          @tap="$emit('view-doc', doc.id)"
-          @longpress.stop="$emit('delete-doc', doc)"
-        >
-          <text class="child-icon">📄</text>
-          <text class="child-name">{{ doc.title }}</text>
-        </view>
-      </view>
-    </view>
-  `
-})
-
-export default DirTreeNode
-</script>
-
 <script setup lang="ts">
 import { ref, computed } from 'vue'
 import { onLoad } from '@dcloudio/uni-app'
@@ -203,7 +128,7 @@ const router = useRouter()
 
 const kbId = ref(0)
 const kbInfo = ref<any>({})
-const directories = ref<any[]>([])
+const treeData = ref<any[]>([])
 const documents = ref<any[]>([])
 const expandedDirs = ref<number[]>([])
 
@@ -212,7 +137,6 @@ const showDirModal = ref(false)
 const editingDir = ref<any>(null)
 const dirForm = ref({ name: '', parentId: 0 })
 const parentDirName = ref('')
-const allFlatDirs = ref<any[]>([])
 
 const loadData = async () => {
   try {
@@ -220,10 +144,7 @@ const loadData = async () => {
     kbInfo.value = kbRes?.data || kbRes || {}
 
     const dirRes = await getDirectoryTree(kbId.value)
-    directories.value = dirRes?.data || dirRes || []
-
-    // 扁平化用于选择父目录
-    allFlatDirs.value = flattenDirs(directories.value)
+    treeData.value = dirRes?.data || dirRes || []
 
     const docRes = await getDocumentList({
       knowledgeBaseId: kbId.value,
@@ -236,20 +157,20 @@ const loadData = async () => {
   }
 }
 
-// 递归扁平化目录树
-const flattenDirs = (dirs: any[], result: any[] = []): any[] => {
-  for (const d of dirs) {
-    result.push(d)
-    if (d.children && d.children.length > 0) {
-      flattenDirs(d.children, result)
+// 将树形数据扁平化为带深度的列表（仅展开的节点显示子节点）
+const flatDirs = computed(() => {
+  const result: any[] = []
+  const walk = (dirs: any[], depth: number) => {
+    for (const dir of dirs) {
+      const hasChildren = (dir.children && dir.children.length > 0)
+      result.push({ dir, depth, hasChildren })
+      if (hasChildren && expandedDirs.value.includes(dir.id)) {
+        walk(dir.children, depth + 1)
+      }
     }
   }
+  walk(treeData.value, 0)
   return result
-}
-
-// 未分组文档（parentId 为 null 或 0 的文档）
-const ungroupedDocs = computed(() => {
-  return documents.value.filter(d => !d.directoryId || d.directoryId === 0)
 })
 
 const goBack = () => uni.navigateBack()
@@ -298,8 +219,19 @@ const confirmDeleteKB = () => {
 const openAddDirDialog = (parentId: number) => {
   editingDir.value = null
   dirForm.value = { name: '', parentId }
-  parentDirName.value = parentId === 0 ? '' : (allFlatDirs.value.find(d => d.id === parentId)?.name || '根目录')
+  parentDirName.value = parentId === 0 ? '' : findDirName(treeData.value, parentId)
   showDirModal.value = true
+}
+
+const findDirName = (dirs: any[], id: number): string => {
+  for (const d of dirs) {
+    if (d.id === id) return d.name
+    if (d.children && d.children.length > 0) {
+      const found = findDirName(d.children, id)
+      if (found) return found
+    }
+  }
+  return ''
 }
 
 const editDir = (dir: any) => {
@@ -317,9 +249,8 @@ const closeDirModal = () => {
 }
 
 const showParentDirPicker = () => {
-  const options = ['根目录（无父级）', ...allFlatDirs.value.map(d => {
-    const indent = '  '.repeat(d.parentId === 0 ? 0 : 1)
-    return `${indent}${d.name}`
+  const options = ['根目录（无父级）', ...flatDirs.value.map(item => {
+    return '  '.repeat(item.depth) + item.dir.name
   })]
   uni.showActionSheet({
     itemList: options,
@@ -328,9 +259,9 @@ const showParentDirPicker = () => {
         dirForm.value.parentId = 0
         parentDirName.value = ''
       } else {
-        const selected = allFlatDirs.value[res.tapIndex - 1]
-        dirForm.value.parentId = selected.id
-        parentDirName.value = selected.name
+        const selected = flatDirs.value[res.tapIndex - 1]
+        dirForm.value.parentId = selected.dir.id
+        parentDirName.value = selected.dir.name
       }
     }
   })
@@ -360,26 +291,15 @@ const handleSaveDir = async () => {
   }
 }
 
-const deleteDir = (dir: any) => {
-  uni.showModal({
-    title: '删除目录',
-    content: `确定要删除目录「${dir.name}」吗？子目录和文档将一并删除。`,
-    confirmColor: '#ef4444',
-    success: async (r) => {
-      if (r.confirm) {
-        try {
-          await deleteDirectory(dir.id)
-          uni.showToast({ title: '已删除', icon: 'success' })
-          loadData()
-        } catch (e) {
-          console.error('删除目录失败', e)
-        }
-      }
-    }
-  })
+const toggleDir = (dirId: number) => {
+  const index = expandedDirs.value.indexOf(dirId)
+  if (index > -1) {
+    expandedDirs.value.splice(index, 1)
+  } else {
+    expandedDirs.value.push(dirId)
+  }
 }
 
-// 文档删除
 const showDocActions = (doc: any) => {
   uni.showActionSheet({
     itemList: ['删除文档'],
@@ -406,15 +326,6 @@ const showDocActions = (doc: any) => {
   })
 }
 
-const toggleDir = (dirId: number) => {
-  const index = expandedDirs.value.indexOf(dirId)
-  if (index > -1) {
-    expandedDirs.value.splice(index, 1)
-  } else {
-    expandedDirs.value.push(dirId)
-  }
-}
-
 const formatDate = (timestamp: number) => {
   if (!timestamp) return ''
   const date = new Date(timestamp)
@@ -426,7 +337,6 @@ const formatTime = (timestamp: number) => {
   const date = new Date(timestamp)
   const now = new Date()
   const diff = now.getTime() - date.getTime()
-
   if (diff < 60 * 60 * 1000) return '刚刚'
   if (diff < 24 * 60 * 60 * 1000) return `${Math.floor(diff / (60 * 60 * 1000))}小时前`
   if (diff < 7 * 24 * 60 * 60 * 1000) return `${Math.floor(diff / (24 * 60 * 60 * 1000))}天前`
@@ -449,28 +359,19 @@ onLoad((options) => {
 }
 
 .header {
-  position: sticky;
-  top: 0;
-  z-index: 100;
-  background: var(--color-surface, rgba(255, 255, 255, 0.92));
-  backdrop-filter: blur(24rpx);
-  padding: 24rpx 16rpx;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
+  position: sticky; top: 0; z-index: 100;
+  background: var(--color-surface, rgba(255,255,255,0.92)); backdrop-filter: blur(24rpx);
+  padding: 24rpx 16rpx; display: flex; align-items: center; justify-content: space-between;
   border-bottom: 1rpx solid var(--color-border-light, rgba(0,0,0,0.06));
 
   .header-left { display: flex; align-items: center; gap: 8rpx; flex: 1; min-width: 0; }
   .header-right { display: flex; align-items: center; gap: 4rpx; }
-
   .back-btn {
     width: 72rpx; height: 72rpx; display: flex; align-items: center; justify-content: center; border-radius: 16rpx;
     &:active { background: var(--color-surface-soft, rgba(0,0,0,0.04)); }
     .back-icon { font-size: 48rpx; color: var(--color-text, #1F2329); }
   }
-
   .header-title { font-size: 34rpx; font-weight: 600; color: var(--color-text, #1F2329); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-
   .icon-btn {
     width: 72rpx; height: 72rpx; display: flex; align-items: center; justify-content: center; border-radius: 16rpx;
     &:active { background: var(--color-surface-soft, rgba(0,0,0,0.04)); }
@@ -488,7 +389,6 @@ onLoad((options) => {
 .kb-info {
   padding: 32rpx; background: var(--color-surface, #fff); margin: 0 32rpx; border-radius: 24rpx;
   box-shadow: var(--shadow-sm, 0 2rpx 6rpx rgba(0,0,0,0.04)); position: relative; margin-top: -16rpx;
-
   .kb-name { font-size: 40rpx; font-weight: 700; color: var(--color-text, #1F2329); margin-bottom: 8rpx; display: block; }
   .kb-desc { font-size: 28rpx; color: var(--color-text-secondary, #646A73); line-height: 1.5; margin-bottom: 24rpx; display: block; }
   .kb-meta { display: flex; flex-wrap: wrap; gap: 12rpx 32rpx; }
@@ -511,47 +411,35 @@ onLoad((options) => {
   }
 }
 
-/* 目录树 */
 .dir-list { padding-bottom: 8rpx; }
 
-:deep(.tree-node) {
+.dir-item {
   border-bottom: 1rpx solid var(--color-border-light, #F1F5F2);
   &:last-child { border-bottom: none; }
 }
 
-:deep(.dir-row) {
+.dir-row {
   display: flex; align-items: center; gap: 12rpx; padding: 20rpx 32rpx;
   &:active { background: var(--color-surface-soft, #F8FAF9); }
 }
 
-:deep(.dir-arrow) {
+.dir-arrow {
   font-size: 28rpx; color: var(--color-text-tertiary, #8F959E); width: 32rpx; text-align: center;
   transition: transform 0.2s; transform: rotate(-90deg);
   &.expanded { transform: rotate(0deg); }
 }
 
-:deep(.dir-arrow-placeholder) { width: 32rpx; }
+.dir-arrow-placeholder { width: 32rpx; }
 
-:deep(.dir-icon) { font-size: 36rpx; }
+.dir-icon { font-size: 36rpx; }
 
-:deep(.dir-name) { flex: 1; font-size: 28rpx; font-weight: 500; color: var(--color-text, #1F2329); }
+.dir-name { flex: 1; font-size: 28rpx; font-weight: 500; color: var(--color-text, #1F2329); }
 
-:deep(.dir-actions) { display: flex; align-items: center; }
-
-:deep(.dir-action-btn) {
+.dir-action-btn {
   width: 44rpx; height: 44rpx; display: flex; align-items: center; justify-content: center;
   border-radius: 10rpx; background: var(--color-primary-soft, #E8F8EF);
   &:active { opacity: 0.7; }
   .action-icon { font-size: 28rpx; color: var(--color-primary, #25B864); font-weight: 700; }
-}
-
-:deep(.dir-children) { padding-left: 0; }
-
-:deep(.doc-child) {
-  display: flex; align-items: center; gap: 12rpx; padding: 16rpx 32rpx;
-  &:active { background: var(--color-surface-soft, #F8FAF9); }
-  .child-icon { font-size: 32rpx; }
-  .child-name { font-size: 26rpx; color: var(--color-text-secondary, #646A73); }
 }
 
 .empty-dir {
@@ -559,7 +447,6 @@ onLoad((options) => {
   .empty-hint { font-size: 26rpx; color: var(--color-text-tertiary, #8F959E); }
 }
 
-/* 文档列表 */
 .doc-list {
   .doc-item {
     display: flex; align-items: center; padding: 28rpx 32rpx;
@@ -590,31 +477,17 @@ onLoad((options) => {
   display: none; align-items: flex-end; justify-content: center; z-index: 200;
   &.active { display: flex; }
 }
-
 .modal {
   background: var(--color-surface, #fff); width: 100%; max-width: 750rpx; border-radius: 32rpx 32rpx 0 0;
   padding: 24rpx 32rpx 48rpx; max-height: 80vh; overflow-y: auto;
 }
-
 .modal-handle { width: 64rpx; height: 8rpx; background: var(--color-border, #E8E9EB); border-radius: 4rpx; margin: 0 auto 24rpx; }
-
 .modal-title { font-size: 34rpx; font-weight: 700; color: var(--color-text, #1F2329); display: block; margin-bottom: 32rpx; text-align: center; }
-
-.form-card {
-  background: var(--color-surface-soft, #F8FAF9); border-radius: 24rpx; padding: 24rpx;
-  border: 1rpx solid var(--color-border-light, #E8E9EB); margin-bottom: 32rpx;
-}
-
+.form-card { background: var(--color-surface-soft, #F8FAF9); border-radius: 24rpx; padding: 24rpx; border: 1rpx solid var(--color-border-light, #E8E9EB); margin-bottom: 32rpx; }
 .fgs-full { margin-bottom: 20rpx; &:last-child { margin-bottom: 0; } }
-
 .fg-label { font-size: 26rpx; font-weight: 700; color: var(--color-text, #1F2329); margin-bottom: 12rpx; display: block; }
 .required { color: #ef4444; }
-
-.fg-input-wrap {
-  background: var(--color-surface, #fff); border: 1rpx solid var(--color-border-light, #E8E9EB); border-radius: 18rpx; padding: 0 24rpx;
-  &:focus-within { border-color: var(--color-primary, #25B864); }
-}
-
+.fg-input-wrap { background: var(--color-surface, #fff); border: 1rpx solid var(--color-border-light, #E8E9EB); border-radius: 18rpx; padding: 0 24rpx; &:focus-within { border-color: var(--color-primary, #25B864); } }
 .fg-input { height: 82rpx; font-size: 30rpx; color: var(--color-text, #1F2329); }
 .field-placeholder { color: var(--color-text-tertiary, #C0C4CC); }
 
@@ -628,19 +501,6 @@ onLoad((options) => {
 }
 
 .form-actions { display: flex; gap: 20rpx; }
-
-.btn-secondary {
-  flex: 1; height: 88rpx; display: flex; align-items: center; justify-content: center;
-  background: var(--color-surface-soft, #F1F5F2); border-radius: 20rpx; font-size: 30rpx; font-weight: 600;
-  color: var(--color-text-secondary, #646A73);
-  &:active { opacity: 0.8; }
-}
-
-.btn-primary {
-  flex: 1.2; height: 88rpx; display: flex; align-items: center; justify-content: center;
-  background: var(--gradient-primary, linear-gradient(135deg, var(--color-primary, #25B864), #1DA05A));
-  border-radius: 20rpx; box-shadow: 0 8rpx 24rpx rgba(37, 184, 100, 0.3);
-  &:active { opacity: 0.9; transform: scale(0.98); }
-  .btn-text { font-size: 30rpx; font-weight: 600; color: var(--color-btn-text, #fff); }
-}
+.btn-secondary { flex: 1; height: 88rpx; display: flex; align-items: center; justify-content: center; background: var(--color-surface-soft, #F1F5F2); border-radius: 20rpx; font-size: 30rpx; font-weight: 600; color: var(--color-text-secondary, #646A73); &:active { opacity: 0.8; } }
+.btn-primary { flex: 1.2; height: 88rpx; display: flex; align-items: center; justify-content: center; background: var(--gradient-primary, linear-gradient(135deg, var(--color-primary, #25B864), #1DA05A)); border-radius: 20rpx; box-shadow: 0 8rpx 24rpx rgba(37, 184, 100, 0.3); &:active { opacity: 0.9; transform: scale(0.98); } .btn-text { font-size: 30rpx; font-weight: 600; color: var(--color-btn-text, #fff); } }
 </style>
