@@ -12,6 +12,36 @@
             }
         },
         {
+            "path": "pages/knowledge/home/index",
+            "style": {
+                "navigationStyle": "custom"
+            }
+        },
+        {
+            "path": "pages/knowledge/list/index",
+            "style": {
+                "navigationStyle": "custom"
+            }
+        },
+        {
+            "path": "pages/knowledge/detail/index",
+            "style": {
+                "navigationStyle": "custom"
+            }
+        },
+        {
+            "path": "pages/knowledge/document-edit/index",
+            "style": {
+                "navigationStyle": "custom"
+            }
+        },
+        {
+            "path": "pages/knowledge/memo/index",
+            "style": {
+                "navigationStyle": "custom"
+            }
+        },
+        {
             "path": "pages/index/index-v1",
             "style": {
                 // #ifndef H5
@@ -393,16 +423,28 @@
         "iconWidth": "20px",
         "list": [
             {
-                "iconPath": "static/images/tabbar/home.png",
-                "selectedIconPath": "static/images/tabbar/home_s.png",
-                "pagePath": "pages/index/index",
-                "text": "首页"
+                "iconPath": "static/images/tabbar/workspace.png",
+                "selectedIconPath": "static/images/tabbar/workspace_s.png",
+                "pagePath": "pages/knowledge/home/index",
+                "text": "工作台"
             },
             {
-                "iconPath": "static/images/tabbar/news.png",
-                "selectedIconPath": "static/images/tabbar/news_s.png",
-                "pagePath": "pages/news/news",
-                "text": "文章"
+                "iconPath": "static/images/tabbar/memo.png",
+                "selectedIconPath": "static/images/tabbar/memo_s.png",
+                "pagePath": "pages/knowledge/memo/index",
+                "text": "小记"
+            },
+            {
+                "iconPath": "static/images/tabbar/create.png",
+                "selectedIconPath": "static/images/tabbar/create_s.png",
+                "pagePath": "pages/index/index",
+                "text": "新建"
+            },
+            {
+                "iconPath": "static/images/tabbar/knowledge.png",
+                "selectedIconPath": "static/images/tabbar/knowledge_s.png",
+                "pagePath": "pages/knowledge/list/index",
+                "text": "知识库"
             },
             {
                 "iconPath": "static/images/tabbar/user.png",
