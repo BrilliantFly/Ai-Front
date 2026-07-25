@@ -878,9 +878,18 @@ const goNotice = () => {
     uni.showToast({ title: '暂无更多公告', icon: 'none' })
 }
 
+const TABBAR_PAGES = [
+    '/pages/index/index',
+    '/pages/user/user',
+    '/pages/news/news',
+    '/pages/knowledge/home/index',
+    '/pages/knowledge/list/index',
+    '/pages/knowledge/memo/index'
+]
+
 const goLink = (path?: string) => {
     if (!path) return
-    if (['/pages/index/index', '/pages/user/user', '/pages/news/news'].includes(path)) {
+    if (TABBAR_PAGES.includes(path)) {
         router.switchTab(path)
         return
     }
