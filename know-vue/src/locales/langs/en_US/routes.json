@@ -70,5 +70,12 @@
     "vue": "Vue Doc",
     "pinia": "Pinia Doc",
     "antd": "Ant Design Doc"
+  },
+  "knowledge": {
+    "name": "Knowledge",
+    "base": "Knowledge Base",
+    "document": "Document Management",
+    "quicknote": "Quick Notes",
+    "tag": "Tag Management"
   }
 }

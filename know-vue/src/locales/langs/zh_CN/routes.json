@@ -70,5 +70,12 @@
     "vue": "Vue文档",
     "pinia": "Pinia文档",
     "antd": "Antd文档"
+  },
+  "knowledge": {
+    "name": "知识管理",
+    "base": "知识库",
+    "document": "文档管理",
+    "quicknote": "快捷笔记",
+    "tag": "标签管理"
   }
 }
