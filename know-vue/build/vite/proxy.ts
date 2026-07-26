@@ -18,17 +18,17 @@ export function createProxy(list: ProxyList = []) {
   ret['/login'] = {
     target: 'http://localhost:8082',
     changeOrigin: true,
-    rewrite: path => path
+    rewrite: path => path.replace(/^\/login/, '/api/login/account')
   }
   ret['/logout'] = {
     target: 'http://localhost:8082',
     changeOrigin: true,
-    rewrite: path => path
+    rewrite: path => path.replace(/^\/logout/, '/api/login/logout')
   }
   ret['/getUserInfo'] = {
     target: 'http://localhost:8082',
     changeOrigin: true,
-    rewrite: path => path
+    rewrite: path => path.replace(/^\/getUserInfo/, '/api/login/getUserInfo')
   }
   
   // 系统管理 /system/* - 保持原路径
