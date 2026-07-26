@@ -64,10 +64,16 @@ export function updateQuickNote(data: any) {
 export function deleteQuickNote(id: number) {
   return request.delete({ url: `/knowledge/quick-note/${id}` })
 }
+export function toggleArchiveQuickNote(id: number) {
+  return request.put({ url: `/knowledge/quick-note/${id}/archive` })
+}
 
 // ========== 标签API ==========
 export function getTagList(data: Record<string, any>) {
   return request.get({ url: '/knowledge/tag/page', data })
+}
+export function getTagAll() {
+  return request.get({ url: '/knowledge/tag/page', data: { pageNum: 1, pageSize: 200 } })
 }
 export function addTag(data: any) {
   return request.post({ url: '/knowledge/tag', data })
@@ -80,8 +86,8 @@ export function deleteTag(id: number) {
 }
 
 // ========== 评论API ==========
-export function getCommentList(documentId: number) {
-  return request.get({ url: '/knowledge/comment/list', data: { documentId } })
+export function getCommentList(params: Record<string, any>) {
+  return request.get({ url: '/knowledge/comment/list', data: params })
 }
 export function addComment(data: any) {
   return request.post({ url: '/knowledge/comment', data })

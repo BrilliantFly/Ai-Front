@@ -30,7 +30,7 @@
       </view>
     </view>
 
-    <!-- 目录区域（多级树） -->
+    <!-- 目录树（包含文档） -->
     <view class="section">
       <view class="section-header">
         <text class="section-title">📁 目录</text>
@@ -39,23 +39,51 @@
         </view>
       </view>
       <view class="dir-list">
-        <template v-if="flatDirs.length > 0">
-          <view v-for="item in flatDirs" :key="item.dir.id" class="dir-item">
-            <view
-              class="dir-row"
-              :style="{ paddingLeft: (item.depth * 40 + 32) + 'rpx' }"
-              @tap="toggleDir(item.dir.id)"
-              @longpress="editDir(item.dir)"
-            >
-              <text v-if="item.hasChildren" class="dir-arrow" :class="{ expanded: expandedDirs.includes(item.dir.id) }">›</text>
-              <text v-else class="dir-arrow-placeholder"></text>
-              <text class="dir-icon">📁</text>
-              <text class="dir-name">{{ item.dir.name }}</text>
-              <view class="dir-action-btn" @tap.stop="openAddDirDialog(item.dir.id)">
-                <text class="action-icon">+</text>
+        <template v-if="flatTree.length > 0">
+          <view v-for="item in flatTree" :key="item.type + '-' + (item.type === 'dir' ? item.dir.id : item.doc.id)">
+            <!-- 目录行 -->
+            <view v-if="item.type === 'dir'" class="dir-item">
+              <view
+                class="dir-row"
+                :style="{ paddingLeft: (item.depth * 40 + 32) + 'rpx' }"
+                @tap="toggleDir(item.dir.id)"
+                @longpress="editDir(item.dir)"
+              >
+                <text v-if="item.hasChildren" class="dir-arrow" :class="{ expanded: item.expanded }">›</text>
+                <text v-else class="dir-arrow" :class="{ expanded: item.expanded }">›</text>
+                <text class="dir-icon" :class="{ 'dir-icon-leaf': !item.hasChildren }">{{ item.expanded && !item.hasChildren ? '📂' : '📁' }}</text>
+                <text class="dir-name">{{ item.dir.name }}</text>
+                <view class="dir-action-btn" @tap.stop="openAddDirDialog(item.dir.id)">
+                  <text class="action-icon">+</text>
+                </view>
+              </view>
+            </view>
+            <!-- 文档行（叶子目录下的文档） -->
+            <view v-else class="doc-row-in-tree" @tap="goToDocument(item.doc.id)" @longpress="showDocActions(item.doc)">
+              <view class="doc-indent" :style="{ paddingLeft: (item.depth * 40 + 72) + 'rpx' }">
+                <text class="doc-file-icon">📄</text>
+                <view class="doc-info">
+                  <text class="doc-title">{{ item.doc.title }}</text>
+                  <text class="doc-time">{{ formatTime(item.doc.createTime) }}</text>
+                </view>
               </view>
             </view>
           </view>
+          <!-- 未分类文档 -->
+          <template v-if="uncategorizedDocs.length > 0">
+            <view class="divider-row">
+              <text class="divider-text">📝 未分类文档</text>
+            </view>
+            <view v-for="doc in uncategorizedDocs" :key="'uncat-' + doc.id" class="doc-row-in-tree" @tap="goToDocument(doc.id)" @longpress="showDocActions(doc)">
+              <view class="doc-indent" :style="{ paddingLeft: '72rpx' }">
+                <text class="doc-file-icon">📄</text>
+                <view class="doc-info">
+                  <text class="doc-title">{{ doc.title }}</text>
+                  <text class="doc-time">{{ formatTime(doc.createTime) }}</text>
+                </view>
+              </view>
+            </view>
+          </template>
         </template>
         <view class="empty-dir" v-else>
           <text class="empty-hint">暂无目录，点击 + 添加</text>
@@ -63,10 +91,10 @@
       </view>
     </view>
 
-    <!-- 文档区域 -->
-    <view class="section">
+    <!-- 所有文档列表 -->
+    <view class="section" v-if="documents.length > 0">
       <view class="section-header">
-        <text class="section-title">📝 文档</text>
+        <text class="section-title">📝 所有文档</text>
       </view>
       <view class="doc-list">
         <view class="doc-item" v-for="doc in documents" :key="doc.id" @tap="goToDocument(doc.id)" @longpress="showDocActions(doc)">
@@ -76,8 +104,11 @@
             <text class="doc-sub">{{ formatTime(doc.createTime) }}</text>
           </view>
         </view>
-        <view class="empty-dir" v-if="documents.length === 0">
-          <text class="empty-hint">暂无文档</text>
+        <!-- 加载更多 -->
+        <view class="load-more" v-if="documents.length > 0">
+          <text class="load-more-text" v-if="docLoading">加载中...</text>
+          <text class="load-more-text" v-else-if="!docHasMore">— 已加载全部文档 —</text>
+          <text class="load-more-text" v-else @tap="handleLoadMore">点击加载更多</text>
         </view>
       </view>
     </view>
@@ -120,7 +151,7 @@
 
 <script setup lang="ts">
 import { ref, computed } from 'vue'
-import { onLoad } from '@dcloudio/uni-app'
+import { onLoad, onPullDownRefresh, onReachBottom } from '@dcloudio/uni-app'
 import { useRouter } from 'uniapp-router-next'
 import { getKnowledgeBase, getDirectoryTree, getDocumentList, addDirectory, updateDirectory, deleteDirectory, deleteDocument, deleteKnowledgeBase } from '@/api/knowledge'
 
@@ -132,12 +163,23 @@ const treeData = ref<any[]>([])
 const documents = ref<any[]>([])
 const expandedDirs = ref<number[]>([])
 
+// 文档分页状态
+const docPageNum = ref(1)
+const docPageSize = ref(6)
+const docTotal = ref(0)
+const docLoading = ref(false)
+
+const docHasMore = computed(() => {
+  return documents.value.length < docTotal.value
+})
+
 // 目录弹窗
 const showDirModal = ref(false)
 const editingDir = ref<any>(null)
 const dirForm = ref({ name: '', parentId: 0 })
 const parentDirName = ref('')
 
+// 初始/刷新加载（重置分页）
 const loadData = async () => {
   try {
     const kbRes = await getKnowledgeBase(kbId.value)
@@ -146,26 +188,114 @@ const loadData = async () => {
     const dirRes = await getDirectoryTree(kbId.value)
     treeData.value = dirRes?.data || dirRes || []
 
-    const docRes = await getDocumentList({
-      knowledgeBaseId: kbId.value,
-      pageNum: 1,
-      pageSize: 200
-    })
-    documents.value = docRes?.data?.records || docRes?.records || []
+    await loadDocuments(false)
   } catch (e) {
     console.error('加载数据失败', e)
   }
 }
 
-// 将树形数据扁平化为带深度的列表（仅展开的节点显示子节点）
-const flatDirs = computed(() => {
+// 文档分页加载
+const loadDocuments = async (append: boolean) => {
+  if (docLoading.value) return
+  docLoading.value = true
+  try {
+    if (!append) docPageNum.value = 1
+
+    const docRes = await getDocumentList({
+      knowledgeBaseId: kbId.value,
+      pageNum: docPageNum.value,
+      pageSize: docPageSize.value
+    })
+    const records = docRes?.data?.records || docRes?.records || []
+    docTotal.value = docRes?.data?.total || docRes?.total || 0
+
+    if (append) {
+      documents.value = [...documents.value, ...records]
+    } else {
+      documents.value = records
+    }
+  } catch (e) {
+    console.error('加载文档失败', e)
+  } finally {
+    docLoading.value = false
+  }
+}
+
+// 下拉刷新
+onPullDownRefresh(() => {
+  const p = []
+  // 并行请求知识库信息 + 目录树
+  p.push(getKnowledgeBase(kbId.value).then(res => {
+    kbInfo.value = res?.data || res || {}
+  }).catch(e => console.error('刷新知识库失败', e)))
+  p.push(getDirectoryTree(kbId.value).then(res => {
+    treeData.value = res?.data || res || []
+  }).catch(e => console.error('刷新目录失败', e)))
+  // 重置文档分页
+  docPageNum.value = 1
+  p.push(getDocumentList({
+    knowledgeBaseId: kbId.value,
+    pageNum: 1,
+    pageSize: docPageSize.value
+  }).then(res => {
+    documents.value = res?.data?.records || res?.records || []
+    docTotal.value = res?.data?.total || res?.total || 0
+  }).catch(e => console.error('刷新文档失败', e)))
+
+  Promise.all(p).finally(() => {
+    uni.stopPullDownRefresh()
+  })
+})
+
+// 上拉加载更多
+onReachBottom(() => {
+  if (docHasMore.value && !docLoading.value) {
+    docPageNum.value++
+    loadDocuments(true)
+  }
+})
+
+// 点击加载更多（兜底）
+const handleLoadMore = () => {
+  if (docHasMore.value && !docLoading.value) {
+    docPageNum.value++
+    loadDocuments(true)
+  }
+}
+
+// 按 directoryId 分组文档
+const docMap = computed(() => {
+  const map: Record<number, any[]> = {}
+  for (const doc of documents.value) {
+    const dirId = doc.directoryId || 0
+    if (!map[dirId]) map[dirId] = []
+    map[dirId].push(doc)
+  }
+  return map
+})
+
+// 没有分到任何目录的文档
+const uncategorizedDocs = computed(() => {
+  return docMap.value[0] || []
+})
+
+// 树形目录扁平化为带深度的列表（含文档条目），默认全部收起
+const flatTree = computed(() => {
   const result: any[] = []
   const walk = (dirs: any[], depth: number) => {
     for (const dir of dirs) {
-      const hasChildren = (dir.children && dir.children.length > 0)
-      result.push({ dir, depth, hasChildren })
-      if (hasChildren && expandedDirs.value.includes(dir.id)) {
+      const hasChildren = dir.children && dir.children.length > 0
+      const isExpanded = expandedDirs.value.includes(dir.id)
+      result.push({ type: 'dir', dir, depth, hasChildren, expanded: isExpanded })
+
+      if (hasChildren && isExpanded) {
         walk(dir.children, depth + 1)
+      } else if (!hasChildren && isExpanded) {
+        // 叶子目录展开 → 显示其下的文档
+        const docs = docMap.value[dir.id] || []
+        for (const doc of docs) {
+          result.push({ type: 'doc', doc, depth: depth + 1 })
+        }
       }
     }
   }
@@ -249,7 +379,8 @@ const closeDirModal = () => {
 }
 
 const showParentDirPicker = () => {
-  const options = ['根目录（无父级）', ...flatDirs.value.map(item => {
+  const dirItems = flatTree.value.filter(item => item.type === 'dir')
+  const options = ['根目录（无父级）', ...dirItems.map(item => {
     return '  '.repeat(item.depth) + item.dir.name
   })]
   uni.showActionSheet({
@@ -259,7 +390,7 @@ const showParentDirPicker = () => {
         dirForm.value.parentId = 0
         parentDirName.value = ''
       } else {
-        const selected = flatDirs.value[res.tapIndex - 1]
+        const selected = dirItems[res.tapIndex - 1]
         dirForm.value.parentId = selected.dir.id
         parentDirName.value = selected.dir.name
       }
@@ -305,10 +436,8 @@ const showDocActions = (doc: any) => {
     itemList: ['编辑文档', '删除文档'],
     success: (res) => {
       if (res.tapIndex === 0) {
-        // 编辑文档
         router.navigateTo(`/pages/knowledge/document-edit/index?id=${doc.id}`)
       } else if (res.tapIndex === 1) {
-        // 删除文档
         uni.showModal({
           title: '删除文档',
           content: `确定要删除「${doc.title}」吗？`,
@@ -318,7 +447,9 @@ const showDocActions = (doc: any) => {
               try {
                 await deleteDocument(doc.id)
                 uni.showToast({ title: '已删除', icon: 'success' })
-                loadData()
+                // 删除后重新加载（重置分页）
+                docPageNum.value = 1
+                loadDocuments(false)
               } catch (e) {
                 console.error('删除文档失败', e)
               }
@@ -419,7 +550,6 @@ onLoad((options) => {
 
 .dir-item {
   border-bottom: 1rpx solid var(--color-border-light, #F1F5F2);
-  &:last-child { border-bottom: none; }
 }
 
 .dir-row {
@@ -433,8 +563,6 @@ onLoad((options) => {
   &.expanded { transform: rotate(0deg); }
 }
 
-.dir-arrow-placeholder { width: 32rpx; }
-
 .dir-icon { font-size: 36rpx; }
 
 .dir-name { flex: 1; font-size: 28rpx; font-weight: 500; color: var(--color-text, #1F2329); }
@@ -446,11 +574,50 @@ onLoad((options) => {
   .action-icon { font-size: 28rpx; color: var(--color-primary, #25B864); font-weight: 700; }
 }
 
+/* 树内文档行 */
+.doc-row-in-tree {
+  border-bottom: 1rpx solid var(--color-border-light, #F1F5F2);
+  &:last-child { border-bottom: none; }
+  &:active { background: var(--color-surface-soft, #F8FAF9); }
+}
+
+.doc-indent {
+  display: flex; align-items: center; gap: 12rpx; padding: 20rpx 32rpx;
+}
+
+.doc-file-icon {
+  font-size: 32rpx; flex-shrink: 0;
+}
+
+.doc-info {
+  flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2rpx;
+}
+
+.doc-title {
+  font-size: 28rpx; font-weight: 400; color: var(--color-text, #1F2329);
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+
+.doc-time {
+  font-size: 22rpx; color: var(--color-text-tertiary, #8F959E);
+}
+
+/* 分隔行（未分类文档标题） */
+.divider-row {
+  padding: 16rpx 32rpx; background: var(--color-surface-soft, #F8FAF9);
+  border-bottom: 1rpx solid var(--color-border-light, #F1F5F2);
+}
+
+.divider-text {
+  font-size: 24rpx; font-weight: 500; color: var(--color-text-secondary, #646A73);
+}
+
 .empty-dir {
   padding: 40rpx 32rpx; text-align: center;
   .empty-hint { font-size: 26rpx; color: var(--color-text-tertiary, #8F959E); }
 }
 
+/* 底部文档列表 */
 .doc-list {
   .doc-item {
     display: flex; align-items: center; padding: 28rpx 32rpx;
@@ -465,6 +632,15 @@ onLoad((options) => {
   .doc-body { flex: 1; min-width: 0; }
   .doc-title { font-size: 30rpx; font-weight: 500; color: var(--color-text, #1F2329); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; display: block; }
   .doc-sub { font-size: 24rpx; color: var(--color-text-tertiary, #8F959E); margin-top: 4rpx; display: block; }
+}
+
+/* 加载更多 */
+.load-more {
+  padding: 32rpx; text-align: center;
+  .load-more-text {
+    font-size: 24rpx; color: var(--color-text-tertiary, #8F959E);
+    &[v-if]:last-child { color: var(--color-primary, #25B864); }
+  }
 }
 
 .fab {

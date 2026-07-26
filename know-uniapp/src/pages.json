@@ -26,7 +26,9 @@
         {
             "path": "pages/knowledge/detail/index",
             "style": {
-                "navigationStyle": "custom"
+                "navigationStyle": "custom",
+                "enablePullDownRefresh": true,
+                "backgroundColor": "#F8FAF9"
             }
         },
         {

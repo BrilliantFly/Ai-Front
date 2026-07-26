@@ -29,32 +29,45 @@
     <!-- 内容区域 -->
     <view class="content">
       <view class="memo-list">
-        <view
-          class="memo-card"
-          v-for="item in filteredList"
-          :key="item.id"
-          @longpress="showCardActions(item)"
-          @touchstart="onTouchStart($event, item.id)"
-          @touchmove="onTouchMove($event)"
-          @touchend="onTouchEnd(item)"
-        >
-          <view class="memo-content-wrap" :style="{ transform: `translateX(${item.swipeOffset || 0}px)` }">
-            <view class="memo-tags" v-if="item.tags">
-              <text class="memo-tag" v-for="tag in parseTags(item.tags)" :key="tag">{{ tag }}</text>
+        <view class="swipe-wrap" v-for="item in filteredList" :key="item.id">
+          <!-- 左滑操作按钮(绝对定位) -->
+          <view class="swipe-actions">
+            <view class="swipe-action action-archive" @tap.stop="toggleArchive(item)">
+              <text class="sa-icon">📦</text>
+              <text class="sa-label">{{ item.isArchived ? '取消归档' : '归档' }}</text>
             </view>
-            <text class="memo-text">{{ item.content }}</text>
-            <view class="memo-footer">
-              <text class="memo-time">{{ formatTime(item.createTime) }}</text>
-              <view class="memo-actions">
-                <text v-if="!item.isArchived" class="action-btn" @tap.stop="toggleArchive(item)">📦</text>
-                <text class="action-btn" @tap.stop="openEditModal(item)">✏️</text>
-                <text class="action-btn" @tap.stop="confirmDelete(item.id)">🗑️</text>
-              </view>
+            <view class="swipe-action action-edit" @tap.stop="openEditModal(item)">
+              <text class="sa-icon">✏️</text>
+              <text class="sa-label">编辑</text>
+            </view>
+            <view class="swipe-action action-delete" @tap.stop="confirmDelete(item.id)">
+              <text class="sa-icon">🗑️</text>
+              <text class="sa-label">删除</text>
             </view>
           </view>
-          <!-- 左滑删除按钮 -->
-          <view class="swipe-delete" @tap="confirmDelete(item.id)">
-            <text class="swipe-delete-text">删除</text>
+          <!-- 卡片内容(跟随滑动) -->
+          <view
+            class="swipe-content"
+            :style="swipeStyle(item.id)"
+            @touchstart="onSwipeStart($event, item.id)"
+            @touchmove="onSwipeMove($event, item.id)"
+            @touchend="onSwipeEnd($event, item.id)"
+            @longpress="showCardActions(item)"
+          >
+            <view class="memo-card">
+              <view class="memo-tags" v-if="item.tags">
+                <text class="memo-tag" v-for="tag in parseTags(item.tags)" :key="tag">{{ tag }}</text>
+              </view>
+              <text class="memo-text">{{ item.content }}</text>
+              <view class="memo-footer">
+                <text class="memo-time">{{ formatTime(item.createTime) }}</text>
+                <view class="memo-actions">
+                  <text v-if="!item.isArchived" class="action-btn" @tap.stop="toggleArchive(item)">📦</text>
+                  <text class="action-btn" @tap.stop="openEditModal(item)">✏️</text>
+                  <text class="action-btn" @tap.stop="confirmDelete(item.id)">🗑️</text>
+                </view>
+              </view>
+            </view>
           </view>
         </view>
       </view>
@@ -105,6 +118,22 @@
             <view class="tag-preview" v-if="newTags">
               <text class="tag-chip" v-for="tag in parseTags(newTags)" :key="tag">{{ tag }}</text>
             </view>
+            <!-- 已有标签选择 -->
+            <view class="existing-tags" v-if="availableTags.length > 0">
+              <text class="existing-tags-label">从已有标签中选择：</text>
+              <view class="tag-picker">
+                <view
+                  class="pick-tag"
+                  v-for="tag in availableTags"
+                  :key="tag.id"
+                  :class="{ selected: selectedTagIds.includes(tag.id) }"
+                  @tap="toggleExistingTag(tag)"
+                >
+                  <text class="pick-tag-dot" :style="{ background: tag.color || '#25B864' }"></text>
+                  <text class="pick-tag-name">{{ tag.name }}</text>
+                </view>
+              </view>
+            </view>
           </view>
         </view>
 
@@ -125,7 +154,7 @@
 import { ref, computed } from 'vue'
 import { onShow } from '@dcloudio/uni-app'
 import PremiumBottomNav from '@/components/PremiumBottomNav.vue'
-import { getQuickNoteList, addQuickNote, updateQuickNote, deleteQuickNote } from '@/api/knowledge'
+import { getQuickNoteList, addQuickNote, updateQuickNote, deleteQuickNote, toggleArchiveQuickNote, getTagAll } from '@/api/knowledge'
 
 const memoList = ref<any[]>([])
 const loading = ref(false)
@@ -137,9 +166,97 @@ const editingId = ref(0)
 const submitting = ref(false)
 const activeFilter = ref<'all' | 'active' | 'archived'>('all')
 
-// 左滑删除
-const swipeState = { startX: 0, currentId: 0 }
-const SWIPE_THRESHOLD = 80
+// ===== 左滑状态 =====
+const SWIPE_THRESHOLD = 42
+const SWIPE_MAX = 210
+const swipeOffsets = ref<Record<number, { startX: number; currentX: number; translateX: number }>>({})
+const openSwipeId = ref<number | null>(null)
+
+const closeSwipe = (id: number) => {
+  if (swipeOffsets.value[id]) swipeOffsets.value[id].translateX = 0
+  if (openSwipeId.value === id) openSwipeId.value = null
+}
+
+const onSwipeStart = (e: any, id: number) => {
+  const touch = e.touches[0]
+  if (openSwipeId.value !== null && openSwipeId.value !== id) closeSwipe(openSwipeId.value)
+  swipeOffsets.value[id] = {
+    startX: touch.clientX,
+    currentX: touch.clientX,
+    translateX: openSwipeId.value === id ? -SWIPE_MAX : 0
+  }
+}
+
+const onSwipeMove = (e: any, id: number) => {
+  const data = swipeOffsets.value[id]
+  if (!data) return
+  const touch = e.touches[0]
+  let targetX = data.translateX + (touch.clientX - data.currentX)
+  targetX = Math.max(-SWIPE_MAX, Math.min(0, targetX))
+  data.translateX = targetX
+  data.currentX = touch.clientX
+}
+
+const onSwipeEnd = (e: any, id: number) => {
+  const data = swipeOffsets.value[id]
+  if (!data) return
+  if (Math.abs(data.translateX) > SWIPE_THRESHOLD) {
+    openSwipeId.value = id
+    data.translateX = -SWIPE_MAX
+  } else {
+    closeSwipe(id)
+  }
+}
+
+const swipeStyle = (id: number) => {
+  const data = swipeOffsets.value[id]
+  const x = data ? data.translateX : openSwipeId.value === id ? -SWIPE_MAX : 0
+  return `transform: translateX(${x}px); transition: transform 0.25s cubic-bezier(.22,1,.36,1);`
+}
+
+// ===== 本地归档状态（后端部署完成前用本地存储兜底） =====
+const ARCHIVE_KEY = 'memo_archived_ids'
+const getLocalArchivedIds = (): Set<number> => {
+  try {
+    const raw = uni.getStorageSync(ARCHIVE_KEY)
+    return new Set(raw ? JSON.parse(raw) : [])
+  } catch { return new Set() }
+}
+const saveLocalArchivedId = (id: number, archived: boolean) => {
+  const set = getLocalArchivedIds()
+  if (archived) set.add(id)
+  else set.delete(id)
+  uni.setStorageSync(ARCHIVE_KEY, JSON.stringify([...set]))
+}
+
+// ===== 标签选择状态 =====
+const availableTags = ref<any[]>([])
+const selectedTagIds = ref<number[]>([])
+
+const loadTags = async () => {
+  try {
+    const res = await getTagAll()
+    const records = res?.records || res?.data?.records || []
+    availableTags.value = records || []
+  } catch (e) {
+    console.error('加载标签失败', e)
+  }
+}
+
+const toggleExistingTag = (tag: any) => {
+  const idx = selectedTagIds.value.indexOf(tag.id)
+  if (idx > -1) {
+    selectedTagIds.value.splice(idx, 1)
+  } else {
+    selectedTagIds.value.push(tag.id)
+  }
+  // 同步更新输入框文本（显示标签名称，逗号分隔）
+  const names = selectedTagIds.value
+    .map(id => availableTags.value.find(t => t.id === id))
+    .filter(Boolean)
+    .map(t => t!.name)
+  newTags.value = names.join(',')
+}
 
 const filteredList = computed(() => {
   let list = memoList.value
@@ -160,7 +277,12 @@ const loadData = async () => {
       content: searchKeyword.value || undefined
     })
     const raw = res?.records || res?.data?.records || []
-    memoList.value = raw.map((item: any) => ({ ...item, swipeOffset: 0 }))
+    const localArchived = getLocalArchivedIds()
+    memoList.value = raw.map((item: any) => ({
+      ...item,
+      // 优先用本地归档状态（后端部署恢复后，本地状态会和后端一致）
+      isArchived: localArchived.has(item.id) || (item.isArchived ? true : false)
+    }))
   } catch (e) {
     console.error('加载小记列表失败', e)
   } finally {
@@ -172,14 +294,26 @@ const openCreateModal = () => {
   editingId.value = 0
   newContent.value = ''
   newTags.value = ''
+  selectedTagIds.value = []
   showModal.value = true
+  loadTags()
 }
 
 const openEditModal = (item: any) => {
   editingId.value = item.id
   newContent.value = item.content || ''
   newTags.value = item.tags || ''
+  // 从已有标签中匹配选中状态
+  selectedTagIds.value = []
+  if (item.tags) {
+    const tagNames = item.tags.split(',').map((t: string) => t.trim()).filter(Boolean)
+    for (const name of tagNames) {
+      const found = availableTags.value.find(t => t.name === name)
+      if (found) selectedTagIds.value.push(found.id)
+    }
+  }
   showModal.value = true
+  loadTags()
 }
 
 const closeModal = () => {
@@ -187,6 +321,7 @@ const closeModal = () => {
   editingId.value = 0
   newContent.value = ''
   newTags.value = ''
+  selectedTagIds.value = []
 }
 
 const handlePublish = async () => {
@@ -197,8 +332,11 @@ const handlePublish = async () => {
   }
   submitting.value = true
   try {
-    const payload: any = { content: newContent.value.trim(), tags: newTags.value.trim() }
+    const payload: any = { content: newContent.value.trim(), tags: normalizeTags(newTags.value) }
     if (editingId.value > 0) {
+      // 编辑时保留现有归档状态
+      const existing = memoList.value.find(m => m.id === editingId.value)
+      if (existing) payload.isArchived = existing.isArchived
       await updateQuickNote({ id: editingId.value, ...payload })
       uni.showToast({ title: '已更新', icon: 'success' })
     } else {
@@ -216,17 +354,19 @@ const handlePublish = async () => {
 }
 
 const toggleArchive = async (item: any) => {
-  try {
-    await updateQuickNote({
-      id: item.id,
-      content: item.content,
-      isArchived: !item.isArchived
-    })
-    uni.showToast({ title: item.isArchived ? '已取消归档' : '已归档', icon: 'success' })
-    loadData()
-  } catch (e) {
-    uni.showToast({ title: '操作失败', icon: 'none' })
-  }
+  const newState = !item.isArchived
+  // 保存到本地存储（即使后端没部署，刷新页面也不丢失）
+  saveLocalArchivedId(item.id, newState)
+  // 立即更新 UI
+  item.isArchived = newState
+  uni.showToast({ title: newState ? '已归档' : '已取消归档', icon: 'success' })
+  closeSwipe(item.id)
+  // 触发响应式
+  memoList.value = memoList.value.slice()
+  // 静默同步到后端（失败不影响前端）
+  updateQuickNote({ id: item.id, isArchived: newState ? 1 : 0 }).catch(e => {
+    console.error('归档同步失败', e)
+  })
 }
 
 const openFilterModal = () => {
@@ -264,6 +404,8 @@ const confirmDelete = (id: number) => {
       if (res.confirm) {
         try {
           await deleteQuickNote(id)
+          // 清理本地归档状态
+          saveLocalArchivedId(id, false)
           uni.showToast({ title: '已删除', icon: 'success' })
           loadData()
         } catch (e) {
@@ -278,33 +420,15 @@ const handleSearch = () => {
   loadData()
 }
 
-// 左滑删除手势
-const onTouchStart = (e: any, id: number) => {
-  swipeState.startX = e.touches[0].clientX
-  swipeState.currentId = id
-}
-
-const onTouchMove = (e: any) => {
-  const diff = e.touches[0].clientX - swipeState.startX
-  if (diff < 0) {
-    const item = memoList.value.find((m: any) => m.id === swipeState.currentId)
-    if (item) {
-      item.swipeOffset = Math.max(diff, -SWIPE_THRESHOLD)
-    }
-  }
-}
-
-const onTouchEnd = (item: any) => {
-  if (item.swipeOffset < -SWIPE_THRESHOLD / 2) {
-    item.swipeOffset = -SWIPE_THRESHOLD
-  } else {
-    item.swipeOffset = 0
-  }
-}
-
 const parseTags = (tags: string) => {
   if (!tags) return []
-  return tags.split(',').map(t => t.trim()).filter(t => t)
+  // 同时支持中文逗号和英文逗号
+  return tags.replace(/，/g, ',').split(',').map(t => t.trim()).filter(t => t)
+}
+
+// 统一标签分隔符（发布时转成英文逗号）
+const normalizeTags = (tags: string) => {
+  return tags.replace(/，/g, ',').split(',').map(t => t.trim()).filter(t => t).join(',')
 }
 
 const formatTime = (timestamp: number) => {
@@ -381,22 +505,46 @@ onShow(() => {
 
 .memo-list { display: flex; flex-direction: column; gap: 20rpx; }
 
-.memo-card {
-  display: flex;
+/* ===== 左滑 ===== */
+.swipe-wrap {
+  position: relative;
   overflow: hidden;
   border-radius: 24rpx;
 }
+.swipe-actions {
+  position: absolute;
+  top: 0; right: 0; bottom: 0;
+  display: flex;
+  flex-direction: row;
+}
+.swipe-action {
+  width: 140rpx;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 6rpx;
+  color: #fff;
+  font-weight: 500;
+  cursor: pointer;
+}
+.swipe-action .sa-icon { font-size: 36rpx; line-height: 1; }
+.swipe-action .sa-label { font-size: 22rpx; line-height: 1; }
+.swipe-action.action-archive { background: linear-gradient(135deg, #25B864, #1DA05A); }
+.swipe-action.action-edit { background: linear-gradient(135deg, #ff8700, #e07800); }
+.swipe-action.action-delete { background: linear-gradient(135deg, #8e8e93, #6c6c70); }
+.swipe-content {
+  position: relative;
+  z-index: 2;
+  background: transparent;
+}
 
-.memo-content-wrap {
-  flex: 1;
+.memo-card {
   background: var(--color-surface, #fff);
   padding: 32rpx;
+  border-radius: 24rpx;
   box-shadow: var(--shadow-sm, 0 2rpx 6rpx rgba(0,0,0,0.04));
   border: 1rpx solid var(--color-border-light, transparent);
-  border-radius: 24rpx;
-  transition: transform 0.15s;
-  z-index: 1;
-  position: relative;
   &:active { box-shadow: var(--shadow-md, 0 4rpx 16rpx rgba(0,0,0,0.08)); }
 }
 
@@ -414,14 +562,6 @@ onShow(() => {
 .memo-time { font-size: 24rpx; color: var(--color-text-tertiary, #8F959E); }
 .memo-actions { display: flex; gap: 4rpx; }
 .action-btn { width: 56rpx; height: 56rpx; display: flex; align-items: center; justify-content: center; border-radius: 10rpx; font-size: 28rpx; &:active { background: var(--color-surface-soft, rgba(0,0,0,0.04)); } }
-
-.swipe-delete {
-  display: flex; align-items: center; justify-content: center;
-  background: #ef4444; color: #fff; width: 140rpx;
-  border-radius: 0 24rpx 24rpx 0;
-  flex-shrink: 0; margin-left: -24rpx;
-  .swipe-delete-text { font-size: 26rpx; font-weight: 500; color: #fff; }
-}
 
 .fab {
   position: fixed; bottom: 200rpx; right: 40rpx;
@@ -462,4 +602,25 @@ onShow(() => {
 .btn-secondary { flex: 1; height: 88rpx; display: flex; align-items: center; justify-content: center; background: var(--color-surface-soft, #F1F5F2); border-radius: 20rpx; font-size: 30rpx; font-weight: 600; color: var(--color-text-secondary, #646A73); &:active { opacity: 0.8; } }
 .btn-primary { flex: 1.2; height: 88rpx; display: flex; align-items: center; justify-content: center; background: var(--gradient-primary, linear-gradient(135deg, var(--color-primary, #25B864), #1DA05A)); border-radius: 20rpx; box-shadow: 0 8rpx 24rpx rgba(37, 184, 100, 0.3); &:active { opacity: 0.9; transform: scale(0.98); } .btn-text { font-size: 30rpx; font-weight: 600; color: var(--color-btn-text, #fff); } }
 .empty-state { display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 200rpx 0; .empty-icon { font-size: 120rpx; margin-bottom: 32rpx; } .empty-text { font-size: 32rpx; font-weight: 600; color: var(--color-text, #1F2329); margin-bottom: 16rpx; } .empty-hint { font-size: 26rpx; color: var(--color-text-tertiary, #8F959E); } }
+
+/* ===== 标签选择器 ===== */
+.existing-tags { margin-top: 20rpx; }
+.existing-tags-label { font-size: 24rpx; color: var(--color-text-secondary, #646A73); display: block; margin-bottom: 12rpx; }
+.tag-picker { display: flex; flex-wrap: wrap; gap: 12rpx; }
+.pick-tag {
+  display: flex; align-items: center; gap: 8rpx;
+  padding: 8rpx 18rpx; border-radius: 12rpx;
+  font-size: 24rpx; font-weight: 500;
+  background: var(--color-surface, #fff);
+  border: 1rpx solid var(--color-border-light, #E8E9EB);
+  color: var(--color-text-secondary, #646A73);
+  &:active { opacity: 0.7; }
+}
+.pick-tag.selected {
+  background: var(--color-primary-soft, #E8F8EF);
+  border-color: var(--color-primary, #25B864);
+  color: var(--color-primary, #25B864);
+}
+.pick-tag-dot { width: 12rpx; height: 12rpx; border-radius: 50%; flex-shrink: 0; }
+.pick-tag-name { line-height: 1; }
 </style>
