@@ -46,6 +46,25 @@
         </view>
       </view>
 
+      <!-- 最近编辑文档 -->
+      <view class="section" v-if="recentDocs.length > 0">
+        <view class="section-header">
+          <text class="section-title">✏️ 最近编辑</text>
+        </view>
+        <view class="recent-doc-list">
+          <view class="recent-doc-item" v-for="doc in recentDocs" :key="doc.id" @tap="goToDocument(doc.id)">
+            <view class="doc-icon-box">📄</view>
+            <view class="doc-body">
+              <text class="doc-title">{{ doc.title }}</text>
+              <view class="doc-meta">
+                <text class="doc-time">{{ formatTime(doc.updateTime || doc.createTime) }}</text>
+                <text class="doc-version" v-if="doc.version">v{{ doc.version }}</text>
+              </view>
+            </view>
+          </view>
+        </view>
+      </view>
+
       <!-- 最近小记 -->
       <view class="section">
         <view class="section-header">
@@ -72,12 +91,13 @@ import { ref, onMounted } from 'vue'
 import { onShow } from '@dcloudio/uni-app'
 import { useRouter } from 'uniapp-router-next'
 import PremiumBottomNav from '@/components/PremiumBottomNav.vue'
-import { getKnowledgeBaseList, getQuickNoteList } from '@/api/knowledge'
+import { getKnowledgeBaseList, getQuickNoteList, getRecentDocuments, getKnowledgeBase } from '@/api/knowledge'
 
 const router = useRouter()
 
 const pinnedKBs = ref<any[]>([])
 const recentNotes = ref<any[]>([])
+const recentDocs = ref<any[]>([])
 
 const loadData = async () => {
   try {
@@ -88,6 +108,14 @@ const loadData = async () => {
     // 加载最近小记
     const noteRes = await getQuickNoteList({ pageNum: 1, pageSize: 3 })
     recentNotes.value = noteRes?.data?.records || []
+
+    // 加载最近编辑文档
+    try {
+      const docRes = await getRecentDocuments({ pageNum: 1, pageSize: 5 })
+      recentDocs.value = docRes?.data?.records || []
+    } catch (e) {
+      // 可能接口未实现，静默失败
+    }
   } catch (e) {
     console.error('加载数据失败', e)
   }
@@ -97,12 +125,16 @@ const goToDetail = (id: number) => {
   router.navigateTo(`/pages/knowledge/detail/index?id=${id}`)
 }
 
+const goToDocument = (id: number) => {
+  router.navigateTo(`/pages/knowledge/document-view/index?id=${id}`)
+}
+
 const goToMemo = () => {
   uni.switchTab({ url: '/pages/knowledge/memo/index' })
 }
 
 const handleSearch = () => {
-  router.navigateTo('/pages/search/index')
+  router.navigateTo('/pages/knowledge/search/index')
 }
 
 const handleNotification = () => {
@@ -291,6 +323,71 @@ onShow(() => {
 .kb-stats {
   font-size: 24rpx;
   color: #8F959E;
+}
+
+/* 最近编辑文档 */
+.recent-doc-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12rpx;
+}
+
+.recent-doc-item {
+  display: flex;
+  align-items: center;
+  padding: 20rpx 24rpx;
+  background: #fff;
+  border-radius: 16rpx;
+  gap: 16rpx;
+  
+  &:active { opacity: 0.8; }
+  
+  .doc-icon-box {
+    width: 64rpx;
+    height: 64rpx;
+    background: #F1F5F2;
+    border-radius: 14rpx;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 36rpx;
+    flex-shrink: 0;
+  }
+  
+  .doc-body {
+    flex: 1;
+    min-width: 0;
+  }
+  
+  .doc-title {
+    font-size: 28rpx;
+    font-weight: 500;
+    color: #1F2329;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    display: block;
+    margin-bottom: 4rpx;
+  }
+  
+  .doc-meta {
+    display: flex;
+    gap: 12rpx;
+    align-items: center;
+  }
+  
+  .doc-time {
+    font-size: 22rpx;
+    color: #8F959E;
+  }
+  
+  .doc-version {
+    font-size: 20rpx;
+    color: #25B864;
+    background: #E8F8EF;
+    padding: 2rpx 10rpx;
+    border-radius: 6rpx;
+  }
 }
 
 .memo-list {

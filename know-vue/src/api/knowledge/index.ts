@@ -145,7 +145,7 @@ export function deleteTag(id) {
 // 小记API
 export function getQuickNoteList(params) {
   return service({
-    url: '/api/knowledge/quickNote/page',
+    url: '/api/knowledge/quick-note/page',
     method: 'get',
     params
   })
@@ -153,7 +153,7 @@ export function getQuickNoteList(params) {
 
 export function addQuickNote(data) {
   return service({
-    url: '/api/knowledge/quickNote',
+    url: '/api/knowledge/quick-note',
     method: 'post',
     data
   })
@@ -161,7 +161,7 @@ export function addQuickNote(data) {
 
 export function updateQuickNote(data) {
   return service({
-    url: '/api/knowledge/quickNote',
+    url: '/api/knowledge/quick-note',
     method: 'put',
     data
   })
@@ -169,7 +169,63 @@ export function updateQuickNote(data) {
 
 export function deleteQuickNote(id) {
   return service({
-    url: `/api/knowledge/quickNote/${id}`,
+    url: `/api/knowledge/quick-note/${id}`,
+    method: 'delete'
+  })
+}
+
+// 评论API
+export function getCommentList(params) {
+  return service({
+    url: '/api/knowledge/comment/list',
+    method: 'get',
+    params
+  })
+}
+
+export function deleteComment(id) {
+  return service({
+    url: `/api/knowledge/comment/${id}`,
+    method: 'delete'
+  })
+}
+
+// 版本历史API
+export function getVersionList(params) {
+  return service({
+    url: '/api/knowledge/version/list',
+    method: 'get',
+    params
+  })
+}
+
+export function deleteVersion(id) {
+  return service({
+    url: `/api/knowledge/version/${id}`,
+    method: 'delete'
+  })
+}
+
+// 成员管理API
+export function getMemberList(params) {
+  return service({
+    url: '/api/knowledge/base-member/list',
+    method: 'get',
+    params
+  })
+}
+
+export function addMember(data) {
+  return service({
+    url: '/api/knowledge/base-member',
+    method: 'post',
+    data
+  })
+}
+
+export function removeMember(id) {
+  return service({
+    url: `/api/knowledge/base-member/${id}`,
     method: 'delete'
   })
 }

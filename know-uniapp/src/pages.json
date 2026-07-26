@@ -48,6 +48,18 @@
             }
         },
         {
+            "path": "pages/knowledge/search/index",
+            "style": {
+                "navigationStyle": "custom"
+            }
+        },
+        {
+            "path": "pages/knowledge/version-history/index",
+            "style": {
+                "navigationStyle": "custom"
+            }
+        },
+        {
             "path": "pages/index/index-v1",
             "style": {
                 // #ifndef H5
