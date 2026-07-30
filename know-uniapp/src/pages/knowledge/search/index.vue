@@ -78,7 +78,8 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onLoad } from '@dcloudio/uni-app'
+import { ref, computed } from 'vue'
+import { onLoad } from '@dcloudio/uni-app'
 import { useRouter } from 'uniapp-router-next'
 import { searchAll, getSearchHistory, clearSearchHistory } from '@/api/knowledge'
 
