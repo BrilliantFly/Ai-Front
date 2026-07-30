@@ -207,10 +207,9 @@ onShow(() => {
 }
 
 .search-bar {
-  margin: 24rpx 32rpx;
-  background: #F1F5F2;
-  border-radius: 44rpx;
+  margin: 24rpx 0;
   padding: 20rpx 32rpx;
+  background: #F1F5F2;
   display: flex;
   align-items: center;
   gap: 16rpx;

@@ -942,21 +942,14 @@ onShow(async () => {
             rgba(var(--color-primary-rgb), 0) 220rpx
         ),
         var(--color-bg-app);
-    padding: 24rpx;
-    box-sizing: border-box;
 }
 
 .phone-frame {
     width: 100%;
-    max-width: 750rpx;
-    min-height: calc(100vh - 48rpx);
-    margin: 0 auto;
+    min-height: 100vh;
     background: var(--color-bg-app);
-    border-radius: 32rpx;
     overflow: hidden;
     position: relative;
-    border: 2rpx solid var(--color-border-light);
-    box-shadow: var(--shadow-lg);
     padding-bottom: 200rpx;
 }
 
