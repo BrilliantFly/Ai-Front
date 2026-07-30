@@ -76,8 +76,8 @@ const requestHooks: RequestHooks = {
                 return data
             case RequestCodeEnum.FAILED:
                 // 后端 TOKEN_EMPTY 返回 code=0, msg="登录超时，请重新登录"
-                // 落在此分支时也要跳转登录页，否则只弹 toast 无跳转
-                if (msg && msg.indexOf('登录超时') !== -1) {
+                // 仅 isAuth 请求触发全局登出，非认证接口（如 camera）不误清除 token
+                if (isAuth && msg && msg.indexOf('登录超时') !== -1) {
                     handleTokenTimeout()
                     return Promise.reject(msg)
                 }
@@ -85,7 +85,10 @@ const requestHooks: RequestHooks = {
                 return Promise.reject(msg)
 
             case RequestCodeEnum.TOKEN_INVALID:
-                handleTokenTimeout()
+                // 仅 isAuth 请求触发全局登出，非认证接口（如 camera）不误清除 token
+                if (isAuth) {
+                    handleTokenTimeout()
+                }
                 return Promise.reject(msg)
 
             default:

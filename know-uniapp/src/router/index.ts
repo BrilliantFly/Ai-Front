@@ -34,6 +34,7 @@ let isFirstEach = true
 router.beforeEach(async (to, from) => {
     if (isFirstEach) {
         const userStore = useUserStore()
+        userStore.checkLogin()
         if (!userStore.isLogin && !to.meta.white) {
             cache.set(BACK_URL, to.fullPath)
         }
@@ -43,6 +44,7 @@ router.beforeEach(async (to, from) => {
 
 router.afterEach((to, from) => {
     const userStore = useUserStore()
+    userStore.checkLogin()
     if (!userStore.isLogin && !to.meta.white) {
         cache.set(BACK_URL, to.fullPath)
     }
@@ -57,6 +59,7 @@ router.beforeEach(async (to, from) => {
     }
 
     const userStore = useUserStore()
+    userStore.checkLogin()
     if (!userStore.isLogin && to.meta.auth) {
         return '/pages/login/login'
     }
