@@ -18,7 +18,7 @@
         "dev:quickapp-webview-huawei": "uni -p quickapp-webview-huawei",
         "dev:quickapp-webview-union": "uni -p quickapp-webview-union",
         "build": "node scripts/publish.js",
-        "build:app": "uni build -p app",
+        "build:app": "uni build -p app --mode app",
         "build:custom": "uni build -p",
         "build:h5": "uni build && node scripts/release.mjs",
         "build:h5:ssr": "uni build --ssr",
