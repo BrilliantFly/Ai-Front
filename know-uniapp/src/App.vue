@@ -5,6 +5,7 @@ import { useUserStore } from './stores/user'
 import { useDictStore } from './stores/dict'
 import { useThemeStore } from './stores/theme'
 import { useRouter, useRoute } from 'uniapp-router-next'
+import { removeToken } from '@/api/auth'
 
 const appStore = useAppStore()
 const userStore = useUserStore()
@@ -72,10 +73,20 @@ onLaunch(async () => {
     // 始终加载公共菜单配置（免登录 TabBar + 首页）
     await appStore.loadPublicMenuConfig()
 
-    // 如果已登录则加载带权限的用户数据
+    // 如果已登录则加载带权限的用户数据，静默降级
     if (userStore.isLogin) {
-        await initData()
+        try {
+            await initData()
+        } catch (e) {
+            // 静默降级：不清除 token 而是直接退出，避免 logoutApi 也触发 handleTokenTimeout
+            console.warn('[App] initData 失败，Token 可能已过期，静默降级为游客模式', e)
+            userStore.token = null
+            userStore.tokenName = null
+            userStore.userInfo = {}
+            removeToken()
+        }
     }
+    // 确保退出登录态后仍能正常浏览无 auth 页面
 })
 </script>
 <style lang="scss">
