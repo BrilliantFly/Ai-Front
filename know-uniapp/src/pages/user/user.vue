@@ -26,7 +26,7 @@
             </template>
         </view>
 
-        <tabbar />
+        <PremiumBottomNav active="profile" />
     </view>
 </template>
 
@@ -38,6 +38,7 @@ import { getDecorate } from '@/api/shop'
 import { useUserStore } from '@/stores/user'
 import cache from '@/utils/cache'
 import { BACK_URL } from '@/enums/constantEnums'
+import PremiumBottomNav from '@/components/PremiumBottomNav.vue'
 
 const state = reactive<{
     meta: any[]
@@ -96,7 +97,6 @@ getData()
     position: relative;
     background-repeat: no-repeat;
     background-size: 100% auto;
-    overflow: hidden;
     width: 100%;
     transition: background-color var(--duration) var(--ease),
         background-image var(--duration) var(--ease);
