@@ -47,7 +47,7 @@ service.interceptors.request.use((config: InternalAxiosRequestConfig) => {
     token = getToken() as string
   }
   if (token) {
-    ;(config as Recordable).headers['Authorization'] = `${token}`
+    ;(config as Recordable).headers['token'] = `${token}`
   }
 
   // 添加租户ID
