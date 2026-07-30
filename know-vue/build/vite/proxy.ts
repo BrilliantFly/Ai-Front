@@ -45,6 +45,13 @@ export function createProxy(list: ProxyList = []) {
     rewrite: path => path.replace(/^\/adminapi\/plan/, '/api/plan')
   }
   
+  // 摄像头管理 /adminapi/camera/* - 重写为 /api/camera/*
+  ret['/adminapi/camera'] = {
+    target: 'http://localhost:8082',
+    changeOrigin: true,
+    rewrite: path => path.replace(/^\/adminapi\/camera/, '/api/camera')
+  }
+  
   // 然后处理环境变量中的代理配置
   for (const [prefix, target] of list) {
     const isHttps = httpsRE.test(target)

@@ -1,13 +1,15 @@
 import request, { createRequest } from '@/utils/request'
 
 /**
- * 摄像头服务专用请求实例
- * 摄像头后端运行在 8085 端口，无 /api 前缀
+ * 摄像头服务请求实例
+ * 请求经 /adminapi/camera/* → rewrite → /api/camera/*
+ * standalone 模式: 由 know-boot-system(8082) 提供服务
+ * 微服务模式: 经 Gateway 路由到 camera 服务
  */
 const cameraRequest = createRequest({
-    baseUrl: 'http://localhost:8085',
-    urlPrefix: '',
-    withToken: false
+    baseUrl: '',       // 使用相对路径，经 Nginx 代理
+    urlPrefix: '',     // URL 已以 /camera 开头
+    withToken: true    // 携带认证 Token
 })
 
 /**
@@ -109,7 +111,7 @@ export interface PageResult<T> {
  */
 export function getCameraPage(params: PageParams): Promise<PageResult<CameraDevice>> {
     return cameraRequest.get({
-        url: '/camera/device/page',
+        url: '/adminapi/camera/device/page',
         data: params
     })
 }
@@ -119,7 +121,7 @@ export function getCameraPage(params: PageParams): Promise<PageResult<CameraDevi
  */
 export function getCameraList(): Promise<CameraDevice[]> {
     return cameraRequest.get({
-        url: '/camera/device/list'
+        url: '/adminapi/camera/device/list'
     })
 }
 
@@ -128,7 +130,7 @@ export function getCameraList(): Promise<CameraDevice[]> {
  */
 export function getCameraFavorites(): Promise<CameraDevice[]> {
     return cameraRequest.get({
-        url: '/camera/device/favorites'
+        url: '/adminapi/camera/device/favorites'
     })
 }
 
@@ -146,7 +148,7 @@ export function getCameraDetail(id: number): Promise<CameraDevice> {
  */
 export function addCamera(data: Partial<CameraDevice>): Promise<boolean> {
     return cameraRequest.post({
-        url: '/camera/device',
+        url: '/adminapi/camera/device',
         data
     })
 }
@@ -156,7 +158,7 @@ export function addCamera(data: Partial<CameraDevice>): Promise<boolean> {
  */
 export function updateCamera(data: Partial<CameraDevice>): Promise<boolean> {
     return cameraRequest.put({
-        url: '/camera/device',
+        url: '/adminapi/camera/device',
         data
     })
 }
@@ -175,7 +177,7 @@ export function deleteCamera(id: number): Promise<boolean> {
  */
 export function checkDeviceCode(deviceCode: string, excludeId?: number): Promise<boolean> {
     return cameraRequest.get({
-        url: '/camera/device/check',
+        url: '/adminapi/camera/device/check',
         data: { deviceCode, excludeId }
     })
 }
@@ -199,7 +201,7 @@ export function getRecordPage(
     params: { deviceId?: number } & PageParams
 ): Promise<PageResult<CameraRecord>> {
     return cameraRequest.get({
-        url: '/camera/record/page',
+        url: '/adminapi/camera/record/page',
         data: params
     })
 }
@@ -218,7 +220,7 @@ export function getRecordDetail(id: number): Promise<CameraRecord> {
  */
 export function startRecord(deviceId: number, recordType?: RecordType): Promise<CameraRecord> {
     return cameraRequest.post({
-        url: '/camera/record/start',
+        url: '/adminapi/camera/record/start',
         data: { deviceId, recordType: recordType || RecordType.Manual }
     })
 }
@@ -246,7 +248,7 @@ export function deleteRecord(id: number): Promise<boolean> {
  */
 export function deleteRecordBatch(ids: number[]): Promise<boolean> {
     return cameraRequest.delete({
-        url: '/camera/record/batch',
+        url: '/adminapi/camera/record/batch',
         data: ids
     })
 }
@@ -256,7 +258,7 @@ export function deleteRecordBatch(ids: number[]): Promise<boolean> {
  */
 export function getRecordingByDevice(deviceId: number): Promise<CameraRecord | null> {
     return cameraRequest.get({
-        url: '/camera/record/recording',
+        url: '/adminapi/camera/record/recording',
         data: { deviceId }
     })
 }
@@ -270,7 +272,7 @@ export function getSnapshotPage(
     params: { deviceId?: number } & PageParams
 ): Promise<PageResult<CameraSnapshot>> {
     return cameraRequest.get({
-        url: '/camera/snapshot/page',
+        url: '/adminapi/camera/snapshot/page',
         data: params
     })
 }
@@ -289,7 +291,7 @@ export function getSnapshotDetail(id: number): Promise<CameraSnapshot> {
  */
 export function getLatestSnapshot(deviceId: number): Promise<CameraSnapshot | null> {
     return cameraRequest.get({
-        url: '/camera/snapshot/latest',
+        url: '/adminapi/camera/snapshot/latest',
         data: { deviceId }
     })
 }
@@ -303,7 +305,7 @@ export function saveSnapshot(
     thumbnail?: string
 ): Promise<CameraSnapshot> {
     return cameraRequest.post({
-        url: '/camera/snapshot',
+        url: '/adminapi/camera/snapshot',
         data: { deviceId, filePath, thumbnail }
     })
 }
@@ -322,7 +324,7 @@ export function deleteSnapshot(id: number): Promise<boolean> {
  */
 export function deleteSnapshotBatch(ids: number[]): Promise<boolean> {
     return cameraRequest.delete({
-        url: '/camera/snapshot/batch',
+        url: '/adminapi/camera/snapshot/batch',
         data: ids
     })
 }
