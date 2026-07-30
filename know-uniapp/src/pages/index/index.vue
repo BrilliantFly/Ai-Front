@@ -1,13 +1,6 @@
 <template>
     <view class="home-page">
         <view class="phone-frame">
-            <view class="status-bar">
-                <text class="status-time">9:41</text>
-                <view class="status-right">
-                    <text class="status-icons">📶 🔋</text>
-                </view>
-            </view>
-
             <view class="hero-shell">
                 <view class="hero-bar">
                     <view class="deco-ring"></view>
@@ -951,35 +944,6 @@ onShow(async () => {
     overflow: hidden;
     position: relative;
     padding-bottom: 200rpx;
-}
-
-.status-bar {
-    height: 88rpx;
-    padding: 0 40rpx;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    color: #fff;
-    font-size: 22rpx;
-    font-weight: 600;
-    background: linear-gradient(135deg, var(--color-primary), var(--color-minor));
-    position: relative;
-    z-index: 10;
-}
-
-.status-time {
-    font-weight: 700;
-}
-
-.status-right {
-    display: flex;
-    align-items: center;
-    gap: 10rpx;
-}
-
-.status-icons {
-    color: rgba(255, 255, 255, 0.9);
-    font-size: 22rpx;
 }
 
 :deep(.theme-switcher .theme-trigger) {
