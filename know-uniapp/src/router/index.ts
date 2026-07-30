@@ -85,13 +85,13 @@ router.beforeEach(async (to, from) => {
     }
 })
 
-router.afterEach((to, from) => {
-    setTimeout(async () => {
-        if (client === ClientEnum.OA_WEIXIN && !to.meta.webview) {
-            await wechatOa.config()
-        }
-    })
-})
+// router.afterEach((to, from) => {
+//     setTimeout(async () => {
+//         if (client === ClientEnum.OA_WEIXIN && !to.meta.webview) {
+//             await wechatOa.config()
+//         }
+//     })
+// })
 // #endif
 
 export default router
