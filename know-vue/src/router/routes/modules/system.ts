@@ -2,16 +2,16 @@ import type { AppRoute } from '../../types'
 // import { t } from '@/locales/helper'
 import Layout from '@/layout'
 
-// system module page
-const ExcelRoute: AppRoute = {
+// system module page - KnowBoot System Module
+const SystemRoute: AppRoute = {
   path: '/system',
   name: 'System',
   component: Layout,
   redirect: '/system/user',
   meta: {
-    title: '系统设置',
+    title: '系统管理',
     icon: 'system',
-    orderNo: 14
+    orderNo: 2
   },
   children: [
     {
@@ -19,7 +19,7 @@ const ExcelRoute: AppRoute = {
       name: 'User',
       component: () => import('@/views/system/user.vue'),
       meta: {
-        title: '用户设置'
+        title: '用户管理'
       }
     },
     {
@@ -27,7 +27,7 @@ const ExcelRoute: AppRoute = {
       name: 'Role',
       component: () => import('@/views/system/role.vue'),
       meta: {
-        title: '角色设置'
+        title: '角色管理'
       }
     },
     {
@@ -35,7 +35,7 @@ const ExcelRoute: AppRoute = {
       name: 'Menu',
       component: () => import('@/views/system/menu.vue'),
       meta: {
-        title: '菜单设置'
+        title: '菜单管理'
       }
     },
     {
@@ -43,7 +43,7 @@ const ExcelRoute: AppRoute = {
       name: 'Dept',
       component: () => import('@/views/system/dept.vue'),
       meta: {
-        title: '部门设置'
+        title: '部门管理'
       }
     },
     {
@@ -51,7 +51,7 @@ const ExcelRoute: AppRoute = {
       name: 'Job',
       component: () => import('@/views/system/job.vue'),
       meta: {
-        title: '岗位设置'
+        title: '岗位管理'
       }
     },
     {
@@ -59,7 +59,7 @@ const ExcelRoute: AppRoute = {
       name: 'Dict',
       component: () => import('@/views/system/dict.vue'),
       meta: {
-        title: '字典设置'
+        title: '字典管理'
       }
     },
     {
@@ -68,22 +68,6 @@ const ExcelRoute: AppRoute = {
       component: () => import('@/views/system/tabbar/index.vue'),
       meta: {
         title: '底部导航'
-      }
-    },
-    {
-      path: 'camera',
-      name: 'Camera',
-      component: () => import('@/views/system/camera/index.vue'),
-      meta: {
-        title: '摄像头管理'
-      }
-    },
-    {
-      path: 'wifi',
-      name: 'Wifi',
-      component: () => import('@/views/system/device/wifi.vue'),
-      meta: {
-        title: 'Wi-Fi管理'
       }
     },
     {
@@ -97,4 +81,4 @@ const ExcelRoute: AppRoute = {
   ]
 }
 
-export default ExcelRoute
+export default SystemRoute
