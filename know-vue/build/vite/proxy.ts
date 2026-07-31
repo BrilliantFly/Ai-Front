@@ -31,21 +31,21 @@ export function createProxy(list: ProxyList = []) {
     rewrite: path => path.replace(/^\/getUserInfo/, '/api/login/getUserInfo')
   }
   
-  // 系统管理 /system/* - 保持原路径
+  // 系统管理 /system/* - 重写为 /api/system/*（后端统一 /api 前缀）
   ret['/system'] = {
     target: 'http://localhost:8082',
     changeOrigin: true,
-    rewrite: path => path
+    rewrite: path => '/api' + path
   }
   
-  // 计划管理 /adminapi/plan/* - 重写为 /api/plan/*
+  // 计划管理 /adminapi/plan/* - 重写为 /api/plan/*（单机模式，控制器已打包进 8082）
   ret['/adminapi/plan'] = {
-    target: 'http://localhost:8083',
+    target: 'http://localhost:8082',
     changeOrigin: true,
     rewrite: path => path.replace(/^\/adminapi\/plan/, '/api/plan')
   }
   
-  // 摄像头管理 /adminapi/camera/* - 重写为 /api/camera/*
+  // 摄像头管理 /adminapi/camera/* - 重写为 /api/camera/*（后端控制器映射为 /api/camera/*）
   ret['/adminapi/camera'] = {
     target: 'http://localhost:8082',
     changeOrigin: true,
@@ -62,9 +62,9 @@ export function createProxy(list: ProxyList = []) {
       ws: true
     }
 
-    // /api 需要移除前缀
+    // /api 保持原路径（后端控制器映射了 /api 前缀）
     if (prefix === '/api') {
-      proxyConfig.rewrite = path => path.replace(/^\/api/, '')
+      proxyConfig.rewrite = path => path
     }
     // login/logout/getUserInfo 保持原路径
     else {

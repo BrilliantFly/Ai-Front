@@ -85,7 +85,7 @@ export function getCameraFavorites() {
 
 export function getCameraDetail(id: number) {
   return service({
-    url: `/camera/device/${id}`,
+    url: `/adminapi/camera/device/${id}`,
     method: 'get'
   })
 }
@@ -108,7 +108,7 @@ export function updateCamera(data: Partial<CameraDevice>) {
 
 export function deleteCamera(id: number) {
   return service({
-    url: `/camera/device/${id}`,
+    url: `/adminapi/camera/device/${id}`,
     method: 'delete'
   })
 }
