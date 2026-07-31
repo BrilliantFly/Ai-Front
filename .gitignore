@@ -2,3 +2,6 @@
 # Build outputs
 server/
 *.tar
+
+# Keystore / secrets
+*.keystore

@@ -71,6 +71,12 @@ export default defineConfig({
                 target: 'http://localhost:5000',
                 changeOrigin: true
             },
+            // 摄像头/管理后台 - rewrite /adminapi/* → /api/*（后端控制器映射为 /api/camera/* 等）
+            '/adminapi': {
+                target: 'http://localhost:8082',
+                changeOrigin: true,
+                rewrite: path => path.replace(/^\/adminapi/, '/api')
+            },
             // 默认 → know-boot-system (8082)
             '/api': {
                 target: 'http://localhost:8082',

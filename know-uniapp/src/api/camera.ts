@@ -139,7 +139,7 @@ export function getCameraFavorites(): Promise<CameraDevice[]> {
  */
 export function getCameraDetail(id: number): Promise<CameraDevice> {
     return cameraRequest.get({
-        url: `/camera/device/${id}`
+        url: `/adminapi/camera/device/${id}`
     })
 }
 
@@ -168,7 +168,7 @@ export function updateCamera(data: Partial<CameraDevice>): Promise<boolean> {
  */
 export function deleteCamera(id: number): Promise<boolean> {
     return cameraRequest.delete({
-        url: `/camera/device/${id}`
+        url: `/adminapi/camera/device/${id}`
     })
 }
 
@@ -187,7 +187,7 @@ export function checkDeviceCode(deviceCode: string, excludeId?: number): Promise
  */
 export function updateCameraStatus(id: number, status: CameraStatus): Promise<boolean> {
     return cameraRequest.put({
-        url: `/camera/device/status/${id}`,
+        url: `/adminapi/camera/device/status/${id}`,
         data: { status }
     })
 }
@@ -211,7 +211,7 @@ export function getRecordPage(
  */
 export function getRecordDetail(id: number): Promise<CameraRecord> {
     return cameraRequest.get({
-        url: `/camera/record/${id}`
+        url: `/adminapi/camera/record/${id}`
     })
 }
 
@@ -230,7 +230,7 @@ export function startRecord(deviceId: number, recordType?: RecordType): Promise<
  */
 export function stopRecord(id: number): Promise<boolean> {
     return cameraRequest.post({
-        url: `/camera/record/stop/${id}`
+        url: `/adminapi/camera/record/stop/${id}`
     })
 }
 
@@ -239,7 +239,7 @@ export function stopRecord(id: number): Promise<boolean> {
  */
 export function deleteRecord(id: number): Promise<boolean> {
     return cameraRequest.delete({
-        url: `/camera/record/${id}`
+        url: `/adminapi/camera/record/${id}`
     })
 }
 
@@ -282,7 +282,7 @@ export function getSnapshotPage(
  */
 export function getSnapshotDetail(id: number): Promise<CameraSnapshot> {
     return cameraRequest.get({
-        url: `/camera/snapshot/${id}`
+        url: `/adminapi/camera/snapshot/${id}`
     })
 }
 
@@ -315,7 +315,7 @@ export function saveSnapshot(
  */
 export function deleteSnapshot(id: number): Promise<boolean> {
     return cameraRequest.delete({
-        url: `/camera/snapshot/${id}`
+        url: `/adminapi/camera/snapshot/${id}`
     })
 }
 
