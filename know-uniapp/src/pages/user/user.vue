@@ -1,5 +1,5 @@
 <template>
-    <view class="user premium-fade-in" :style="pageStyle">
+    <view class="user" :style="pageStyle">
         <view
             v-for="(item, index) in state.pages"
             :key="index"
