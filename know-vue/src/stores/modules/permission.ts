@@ -3,6 +3,8 @@ import { stores } from '../index'
 
 import type { AppRoute, AppMenu } from '@/router/types'
 import { transformRouteToMenu } from '@/router/helper/menuHelper'
+import { transformSysMenusToMenus } from '@/router/helper/sysMenuHelper'
+import { getMenuList } from '@/api/system/menu'
 import { asyncRoutes } from '@/router/routes'
 import { useAppStoreWithOut } from './app'
 import { appSetting } from '@/settings/appBaseSetting'
@@ -33,7 +35,23 @@ export const usePermissionStore = defineStore('app-permission', {
 
       if (permissionMode === PermissionModeEnum.MAPPING) {
         routes = asyncRoutes
-        const menuList = transformRouteToMenu(routes)
+
+        // 优先从数据库动态获取菜单（sys_menu），失败时降级为静态菜单
+        let menuList: AppMenu[] = []
+        try {
+          const res = await getMenuList({})
+          if (res && res.code === 1 && Array.isArray(res.data)) {
+            menuList = transformSysMenusToMenus(res.data)
+          } else {
+            console.warn('[permission] 动态菜单接口异常:', res?.msg || res)
+          }
+        } catch (e) {
+          console.warn('[permission] 动态菜单获取失败，降级为静态菜单:', e)
+        }
+
+        if (!menuList.length) {
+          menuList = transformRouteToMenu(routes)
+        }
 
         menuList.sort((a, b) => {
           return (a?.orderNo || menuList.length) - (b?.orderNo || menuList.length)
