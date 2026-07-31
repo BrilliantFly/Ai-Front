@@ -9,7 +9,7 @@ const planRoute: AppRoute = {
   meta: {
     title: '计划管理',
     icon: 'calendar',
-    orderNo: 10
+    orderNo: 3
   },
   children: [
     {

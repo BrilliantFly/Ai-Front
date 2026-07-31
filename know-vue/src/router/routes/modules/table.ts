@@ -11,7 +11,7 @@ const TableRoute: AppRoute = {
   meta: {
     title: t('routes.table.name'),
     icon: 'table',
-    orderNo: 3
+    orderNo: 11
   },
   children: [
     {

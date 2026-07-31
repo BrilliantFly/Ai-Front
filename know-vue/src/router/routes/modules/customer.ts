@@ -9,7 +9,7 @@ const CustomerRoute: AppRoute = {
   meta: {
     title: '客户管理',
     icon: 'user',
-    orderNo: 10
+    orderNo: 6
   },
   children: [
     {

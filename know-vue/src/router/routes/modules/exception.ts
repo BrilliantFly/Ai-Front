@@ -12,7 +12,7 @@ const ExceptionRoute: AppRoute = {
   meta: {
     title: t('routes.exception.name'),
     icon: 'bug',
-    orderNo: 11
+    orderNo: 19
   },
   children: [
     {

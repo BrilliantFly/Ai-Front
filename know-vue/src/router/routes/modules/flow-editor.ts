@@ -11,7 +11,7 @@ const FlowEditorRoute: AppRoute = {
   meta: {
     title: t('routes.flow.name'),
     icon: 'flow',
-    orderNo: 8
+    orderNo: 16
   },
   children: [
     {

@@ -11,7 +11,7 @@ const ImageRoute: AppRoute = {
   meta: {
     title: t('routes.image.name'),
     icon: 'image',
-    orderNo: 4
+    orderNo: 12
   },
   children: [
     {

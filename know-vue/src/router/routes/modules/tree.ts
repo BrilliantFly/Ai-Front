@@ -11,7 +11,7 @@ const TreeRoute: AppRoute = {
   meta: {
     title: t('routes.tree.name'),
     icon: 'tree',
-    orderNo: 9
+    orderNo: 17
   },
   children: [
     {

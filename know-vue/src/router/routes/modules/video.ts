@@ -11,7 +11,7 @@ const VideoRoute: AppRoute = {
   meta: {
     title: t('routes.video.name'),
     icon: 'video',
-    orderNo: 5
+    orderNo: 13
   },
   children: [
     {

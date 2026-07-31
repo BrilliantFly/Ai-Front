@@ -9,7 +9,7 @@ const KnowledgeRoute: AppRoute = {
   meta: {
     title: '知识管理',
     icon: 'document',
-    orderNo: 13
+    orderNo: 5
   },
   children: [
     {

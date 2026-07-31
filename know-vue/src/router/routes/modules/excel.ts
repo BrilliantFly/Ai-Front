@@ -11,7 +11,7 @@ const ExcelRoute: AppRoute = {
   meta: {
     title: t('routes.excel.name'),
     icon: 'excel',
-    orderNo: 10
+    orderNo: 18
   },
   children: [
     {

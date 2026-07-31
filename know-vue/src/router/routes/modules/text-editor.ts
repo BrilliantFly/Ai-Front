@@ -11,7 +11,7 @@ const TextEditorRoute: AppRoute = {
   meta: {
     title: t('routes.editor.name'),
     icon: 'editor',
-    orderNo: 7
+    orderNo: 15
   },
   children: [
     {

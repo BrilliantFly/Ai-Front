@@ -11,7 +11,7 @@ const CompoRoute: AppRoute = {
   meta: {
     title: t('routes.compo.name'),
     icon: 'compo',
-    orderNo: 6
+    orderNo: 14
   },
   children: [
     {

@@ -13,7 +13,7 @@ const IframeRoute: AppRoute = {
   meta: {
     title: t('routes.iframe.name'),
     icon: 'computer',
-    orderNo: 12
+    orderNo: 20
   },
   children: [
     {

@@ -11,7 +11,7 @@ const FormRoute: AppRoute = {
   meta: {
     title: t('routes.form.name'),
     icon: 'form',
-    orderNo: 2
+    orderNo: 10
   },
   children: [
     {
