@@ -538,23 +538,11 @@ const noticeItems = computed(() => {
 
 const quickTiles = computed<QuickTile[]>(() => {
     const merged: QuickTile[] = []
+    // 数据库已配置菜单时以数据库为准，仅当数据库无任何快捷菜单时才用本地兜底，避免隐藏项被“复活”
     const source = quickEntries.value.length ? quickEntries.value : quickFallbacks
     const candidates = [...source]
 
     candidates.forEach((item) => {
-        const exists = merged.some(
-            (row) =>
-                row.code === item.code ||
-                row.path === item.path ||
-                row.name === item.name ||
-                row.title === item.title
-        )
-        if (!exists && merged.length < 9) {
-            merged.push(item)
-        }
-    })
-
-    quickFallbacks.forEach((item) => {
         const exists = merged.some(
             (row) =>
                 row.code === item.code ||
@@ -589,10 +577,10 @@ const quickTiles = computed<QuickTile[]>(() => {
 
 const recommendTiles = computed<RecommendTile[]>(() => {
     const merged: RecommendTile[] = []
-    const candidates = [
-        ...recommendCards.value,
-        ...quickFallbacks.filter((item) => item.sections.includes('recommend'))
-    ]
+    // 数据库已配置推荐菜单时以数据库为准，仅当数据库无推荐菜单时才用本地兜底，避免隐藏项被“复活”
+    const candidates = recommendCards.value.length
+        ? [...recommendCards.value]
+        : quickFallbacks.filter((item) => item.sections.includes('recommend'))
 
     candidates.forEach((item) => {
         const exists = merged.some(

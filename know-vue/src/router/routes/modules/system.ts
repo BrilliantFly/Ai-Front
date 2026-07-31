@@ -71,6 +71,22 @@ const SystemRoute: AppRoute = {
       }
     },
     {
+      path: 'menu-config/tabbar',
+      name: 'MenuConfigTabbar',
+      component: () => import('@/views/system/menuConfig/index.vue'),
+      meta: {
+        title: '底部导航配置'
+      }
+    },
+    {
+      path: 'menu-config/home',
+      name: 'MenuConfigHome',
+      component: () => import('@/views/system/menuConfig/index.vue'),
+      meta: {
+        title: '首页菜单配置'
+      }
+    },
+    {
       path: 'tenant',
       name: 'Tenant',
       component: () => import('@/views/system/tenant/index.vue'),
