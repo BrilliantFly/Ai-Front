@@ -29,6 +29,14 @@ const planRoute: AppRoute = {
       }
     },
     {
+      path: 'slogan',
+      name: 'PlanSlogan',
+      component: () => import('@/views/plan/slogan/index.vue'),
+      meta: {
+        title: '首页标语'
+      }
+    },
+    {
       path: 'info',
       name: 'PlanInfo',
       component: () => import('@/views/plan/info/index.vue'),

@@ -265,7 +265,7 @@ import { useRouter } from 'uniapp-router-next'
 import PremiumBottomNav from '@/components/PremiumBottomNav.vue'
 import { useAppStore } from '@/stores/app'
 import { useUserStore } from '@/stores/user'
-import { getHomeConfig } from '@/api/plan/home'
+import { getHomeConfig, getCurrentSlogan } from '@/api/plan/home'
 import { getHomeMenu } from '@/api/system/menu'
 import { getTodayStats } from '@/api/plan/schedule'
 import { getCustomerStats } from '@/api/customer'
@@ -307,6 +307,7 @@ const router = useRouter()
 const noticeList = ref<any[]>([])
 const menuList = ref<any[]>([])
 const currentHero = ref(0)
+const sloganContent = ref<{ emoji?: string; content?: string } | null>(null)
 const todayStats = ref({
     totalCount: 0,
     todoCount: 0,
@@ -522,6 +523,9 @@ const greetingText = computed(() => `${displayName.value}，${getTimeGreeting()}
 const heroSubline = computed(() => {
     if (todayStats.value.todoCount > 0) {
         return `✨ 今日还有 ${todayStats.value.todoCount} 项待办，保持节奏继续推进`
+    }
+    if (sloganContent.value?.content) {
+        return `${sloganContent.value.emoji || '✨'} ${sloganContent.value.content}`.trim()
     }
     return '✨ 努力是光，坚持是路'
 })
@@ -829,6 +833,17 @@ const loadDashboardData = async () => {
     await Promise.all([loadTodayScheduleStats(), loadCustomerOverview(), loadDeviceOverview()])
 }
 
+const loadSlogan = async () => {
+    try {
+        const res: any = await withTimeout(getCurrentSlogan() as Promise<any>, null)
+        if (res && !isHtmlResponse(res) && res.content) {
+            sloganContent.value = { emoji: res.emoji || '', content: res.content }
+        }
+    } catch (error) {
+        console.error('加载首页标语失败', error)
+    }
+}
+
 const getTimeGreeting = () => {
     const hour = new Date().getHours()
     if (hour < 6) return '凌晨好'
@@ -920,7 +935,7 @@ const onHeroChange = (event: any) => {
 }
 
 onShow(async () => {
-    await Promise.all([loadConfig(), loadDashboardData()])
+    await Promise.all([loadConfig(), loadDashboardData(), loadSlogan()])
 })
 </script>
 
