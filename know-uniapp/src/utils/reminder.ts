@@ -186,3 +186,35 @@ export const syncReminders = () => {
     })
     // #endif
 }
+
+/**
+ * 初始化点击通知监听（App 端）
+ * 用户点击系统通知栏的提醒后，跳转到对应页面：
+ * - schedule → /pages/plan/schedule/detail?id=xxx
+ * - habit → /pages/plan/habit/index（习惯无独立详情页，回到列表）
+ * 需在 App.vue onLaunch 中调用一次
+ */
+export const initReminderClickListener = () => {
+    // #ifdef APP-PLUS
+    try {
+        plus.push.addEventListener('click', (msg: any) => {
+            let payload: { biz?: string; bizId?: string } | null = null
+            try {
+                payload = typeof msg.payload === 'string' ? JSON.parse(msg.payload) : msg.payload
+            } catch (_e) {
+                payload = null
+            }
+            if (!payload || !payload.biz) return
+            if (payload.biz === 'schedule' && payload.bizId) {
+                uni.navigateTo({
+                    url: `/pages/plan/schedule/detail?id=${encodeURIComponent(payload.bizId)}`
+                })
+            } else if (payload.biz === 'habit') {
+                uni.switchTab({ url: '/pages/plan/habit/index' })
+            }
+        })
+    } catch (e) {
+        console.warn('[reminder] init click listener failed', e)
+    }
+    // #endif
+}

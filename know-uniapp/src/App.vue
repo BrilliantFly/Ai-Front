@@ -6,7 +6,7 @@ import { useDictStore } from './stores/dict'
 import { useThemeStore } from './stores/theme'
 import { useRouter, useRoute } from 'uniapp-router-next'
 import { removeToken } from '@/api/auth'
-import { syncReminders } from '@/utils/reminder'
+import { initReminderClickListener, syncReminders } from '@/utils/reminder'
 
 const appStore = useAppStore()
 const userStore = useUserStore()
@@ -90,6 +90,8 @@ onLaunch(async () => {
     // 确保退出登录态后仍能正常浏览无 auth 页面
     // App 端：重新扫描并注册本地提醒（清理过期 + 重注册最近提醒）
     syncReminders()
+    // App 端：监听点击通知跳转对应页面
+    initReminderClickListener()
 })
 </script>
 <style lang="scss">
