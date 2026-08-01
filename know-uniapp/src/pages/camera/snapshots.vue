@@ -1,5 +1,16 @@
 <template>
     <view class="snapshots-page">
+        <!-- 顶部标题栏：含返回按钮 -->
+        <view class="page-header">
+            <view class="header-left">
+                <view class="back-btn" @tap="goBack">
+                    <text class="back-icon">‹</text>
+                </view>
+                <view>
+                    <text class="page-title">截图记录</text>
+                </view>
+            </view>
+        </view>
         <view class="snapshots-list" v-if="snapshots.length > 0">
             <view
                 class="snapshot-item"
@@ -33,24 +44,43 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { ref } from 'vue'
+import { onLoad } from '@dcloudio/uni-app'
+import { switchTabCompat } from '@/utils/util'
 import {
     getSnapshotPage,
     deleteSnapshot as apiDeleteSnapshot,
     type CameraSnapshot
 } from '@/api/camera'
 
+const goBack = () => {
+    const pages = getCurrentPages()
+    if (pages.length > 1) {
+        uni.navigateBack()
+    } else {
+        switchTabCompat('/pages/index/index')
+    }
+}
+
 const snapshots = ref<CameraSnapshot[]>([])
 const loading = ref(false)
+const deviceId = ref<number>(0)
 
-onMounted(async () => {
-    await loadSnapshots()
+onLoad((query: any) => {
+    if (query.deviceId) {
+        deviceId.value = parseInt(query.deviceId)
+    }
+    loadSnapshots()
 })
 
 async function loadSnapshots() {
     loading.value = true
     try {
-        const result = (await getSnapshotPage({ pageNum: 1, pageSize: 50 })) as any
+        const result = (await getSnapshotPage({
+            deviceId: deviceId.value || undefined,
+            pageNum: 1,
+            pageSize: 50
+        })) as any
         snapshots.value = result.records || []
     } catch (e) {
         console.error('加载截图失败', e)
@@ -183,5 +213,53 @@ function shareSnapshot(item: CameraSnapshot) {
         font-size: 28rpx;
         color: #999;
     }
+}
+
+.page-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 24rpx 40rpx 16rpx;
+}
+
+.header-left {
+    display: flex;
+    align-items: center;
+    gap: 16rpx;
+}
+
+.back-btn {
+    width: 64rpx;
+    height: 64rpx;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 16rpx;
+    margin-left: -16rpx;
+}
+
+.back-btn:active {
+    background: var(--color-surface-soft);
+}
+
+.back-btn .back-icon {
+    font-size: 44rpx;
+    line-height: 1;
+    color: var(--color-text);
+}
+
+.page-title {
+    display: block;
+    font-size: 36rpx;
+    font-weight: 600;
+    color: var(--color-text);
+    line-height: 1.2;
+}
+
+.page-subtitle {
+    display: block;
+    margin-top: 8rpx;
+    font-size: 26rpx;
+    color: var(--color-text-secondary);
 }
 </style>

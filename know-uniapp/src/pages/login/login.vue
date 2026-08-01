@@ -8,14 +8,14 @@
         <view class="bg-orbs"></view>
         <view class="toast" :class="{ show: toastMessage }">{{ toastMessage }}</view>
 
-        <view class="login-container">
+        <view class="login-container" :class="{ compact: isCompact }">
             <view class="theme-top">
                 <ThemeSwitcher />
             </view>
 
-            <view class="logo-wrap">
+            <view class="logo-wrap" :class="{ compact: isCompact }">
                 <image src="/static/images/logo.png" class="logo-image" mode="aspectFit" />
-                <text class="logo-name">{{ websiteConfig.shop_name || '喵百科' }}</text>
+                <text class="logo-name" v-if="showLogoName">{{ websiteConfig.shop_name || '喵百科' }}</text>
                 <text class="logo-desc">智能管理，触手可及</text>
             </view>
 
@@ -277,6 +277,15 @@ const showPassword = ref(false)
 const rememberLogin = ref(true)
 const toastMessage = ref('')
 
+// 一屏适配：根据窗口高度动态调整布局
+// 不同平台（H5 / APP / 小程序）窗口高度不同，自然得到差异化布局
+const sysInfo = uni.getSystemInfoSync()
+const windowHeight = ref(sysInfo.windowHeight || 0)
+// 窗口高度过小时进入紧凑模式（缩小 logo、压缩间距）
+const isCompact = computed(() => windowHeight.value > 0 && windowHeight.value < 720)
+// 紧凑模式下隐藏 logo 下方的"喵百科"文字，保证登录卡片完整一屏
+const showLogoName = computed(() => !isCompact.value)
+
 const formData = reactive({
     scene: 1,
     account: '',
@@ -537,7 +546,12 @@ onLoad(async () => {
 
 <style lang="scss">
 .login-wrap {
-    min-height: 100vh;
+    // 固定一屏高度，禁止滚动
+    height: 100vh;
+    /* #ifdef H5 */
+    // H5 端使用动态视口高度，适配移动浏览器地址栏伸缩
+    height: 100dvh;
+    /* #endif */
     display: flex;
     justify-content: center;
     align-items: center;
@@ -626,6 +640,81 @@ onLoad(async () => {
     max-width: 92vw;
     padding: 24px 0;
     margin: 0 auto;
+
+    // 紧凑模式（小屏设备）：压缩各区块间距，保证登录卡片一屏完整展示
+    &.compact {
+        padding: 10px 0;
+
+        .theme-top {
+            padding-bottom: 0;
+        }
+
+        .logo-wrap {
+            margin-bottom: 14px;
+        }
+
+        .logo-image {
+            width: 50px;
+            height: 50px;
+            margin-bottom: 8px;
+            border-radius: 14px;
+        }
+
+        .logo-desc {
+            font-size: 12px;
+            margin-top: 2px;
+        }
+
+        .card-glass {
+            padding: 20px 24px 18px;
+        }
+
+        .login-tabs {
+            margin-bottom: 16px;
+        }
+
+        .form-group {
+            margin-bottom: 12px;
+        }
+
+        .form-label {
+            margin-bottom: 6px;
+        }
+
+        .native-input {
+            padding-top: 11px;
+            padding-bottom: 11px;
+        }
+
+        .btn-code-send {
+            padding: 11px 16px;
+        }
+
+        .extras {
+            margin: 12px 0 4px;
+        }
+
+        .agreement-row {
+            margin: 6px 0 8px;
+        }
+
+        .btn-login {
+            padding: 12px;
+        }
+
+        .social-divider {
+            margin: 14px 0 12px;
+        }
+
+        .social-btn {
+            width: 44px;
+            height: 44px;
+        }
+
+        .signup-link {
+            margin-top: 10px;
+        }
+    }
 }
 
 .theme-top {

@@ -131,6 +131,8 @@ import {
     updateCamera,
     deleteCamera,
     updateCameraStatus,
+    discoverCamera,
+    checkDeviceCode,
     type CameraDevice
 } from '@/api/camera'
 
@@ -185,13 +187,22 @@ function clearPassword() {
 }
 
 async function testConnection() {
+    if (!formData.value.deviceCode) {
+        uni.showToast({ title: '请先填写设备编号', icon: 'none' })
+        return
+    }
     uni.showLoading({ title: '测试连接中...' })
     try {
-        // TODO: 实现真实连接测试
-        setTimeout(() => {
-            uni.hideLoading()
-            uni.showToast({ title: '连接成功', icon: 'success' })
-        }, 1500)
+        // 调用后端真实检测接口，校验设备编号是否可用（编辑时排除自身）
+        const available = await checkDeviceCode(
+            formData.value.deviceCode,
+            deviceId.value || undefined
+        )
+        uni.hideLoading()
+        uni.showToast({
+            title: available ? '设备编码可用' : '设备编码已存在',
+            icon: available ? 'success' : 'none'
+        })
     } catch (e) {
         uni.hideLoading()
         uni.showToast({ title: '连接失败', icon: 'none' })
@@ -199,24 +210,30 @@ async function testConnection() {
 }
 
 async function testStream() {
-    uni.showLoading({ title: '测试视频流...' })
-    try {
-        // TODO: 实现真实流测试
-        setTimeout(() => {
-            uni.hideLoading()
-            uni.showToast({ title: '视频流正常', icon: 'success' })
-        }, 2000)
-    } catch (e) {
-        uni.hideLoading()
-        uni.showToast({ title: '视频流异常', icon: 'none' })
+    // 无真实流检测接口，仅校验流地址/IP 是否已配置
+    const url = formData.value.streamUrl || formData.value.ipAddress
+    if (!url) {
+        uni.showToast({ title: '未配置流地址或IP', icon: 'none' })
+        return
     }
+    uni.showToast({ title: '流地址已配置，待流媒体服务器就绪', icon: 'none' })
 }
 
 async function refreshStatus() {
     uni.showLoading({ title: '刷新状态...' })
     try {
-        await updateCameraStatus(deviceId.value, formData.value.status || 0)
-        uni.showToast({ title: '状态已更新', icon: 'success' })
+        // 调用后端真实探测：discover 会 TCP 探测已添加设备的在线状态
+        const list = await discoverCamera()
+        const found = list.find((d) => d.deviceId === deviceId.value)
+        if (found && found.online) {
+            formData.value.status = 1
+            await updateCameraStatus(deviceId.value, 1)
+            uni.showToast({ title: '设备在线', icon: 'success' })
+        } else {
+            formData.value.status = 0
+            await updateCameraStatus(deviceId.value, 0)
+            uni.showToast({ title: '设备离线', icon: 'none' })
+        }
     } catch (e) {
         uni.showToast({ title: '刷新失败', icon: 'none' })
     } finally {

@@ -184,11 +184,33 @@ export function checkDeviceCode(deviceCode: string, excludeId?: number): Promise
 
 /**
  * 更新设备状态
+ * 后端 @RequestParam 接收，参数须拼在 URL query 上（PUT 的 data 会作为请求体）
  */
 export function updateCameraStatus(id: number, status: CameraStatus): Promise<boolean> {
     return cameraRequest.put({
-        url: `/adminapi/camera/device/status/${id}`,
-        data: { status }
+        url: `/adminapi/camera/device/status/${id}?status=${status}`
+    })
+}
+
+// ==================== 设备发现 ====================
+
+// 局域网发现的设备
+export interface DiscoveredCamera {
+    ipAddress?: string
+    port?: number
+    brand?: string
+    online?: boolean
+    isAdded?: boolean
+    deviceId?: number
+    deviceName?: string
+}
+
+/**
+ * 局域网发现设备（后端真实 TCP 端口探测）
+ */
+export function discoverCamera(): Promise<DiscoveredCamera[]> {
+    return cameraRequest.get({
+        url: '/adminapi/camera/device/discover'
     })
 }
 
@@ -207,21 +229,12 @@ export function getRecordPage(
 }
 
 /**
- * 获取录像详情
- */
-export function getRecordDetail(id: number): Promise<CameraRecord> {
-    return cameraRequest.get({
-        url: `/adminapi/camera/record/${id}`
-    })
-}
-
-/**
  * 开始录制
+ * 后端 @RequestParam 接收，参数须拼在 URL query 上（POST 的 data 会作为请求体）
  */
 export function startRecord(deviceId: number, recordType?: RecordType): Promise<CameraRecord> {
     return cameraRequest.post({
-        url: '/adminapi/camera/record/start',
-        data: { deviceId, recordType: recordType || RecordType.Manual }
+        url: `/adminapi/camera/record/start?deviceId=${deviceId}&recordType=${recordType || RecordType.Manual}`
     })
 }
 
@@ -243,26 +256,6 @@ export function deleteRecord(id: number): Promise<boolean> {
     })
 }
 
-/**
- * 批量删除录像
- */
-export function deleteRecordBatch(ids: number[]): Promise<boolean> {
-    return cameraRequest.delete({
-        url: '/adminapi/camera/record/batch',
-        data: ids
-    })
-}
-
-/**
- * 获取正在录制的录像
- */
-export function getRecordingByDevice(deviceId: number): Promise<CameraRecord | null> {
-    return cameraRequest.get({
-        url: '/adminapi/camera/record/recording',
-        data: { deviceId }
-    })
-}
-
 // ==================== 截图管理接口 ====================
 
 /**
@@ -278,35 +271,19 @@ export function getSnapshotPage(
 }
 
 /**
- * 获取截图详情
- */
-export function getSnapshotDetail(id: number): Promise<CameraSnapshot> {
-    return cameraRequest.get({
-        url: `/adminapi/camera/snapshot/${id}`
-    })
-}
-
-/**
- * 获取最新截图
- */
-export function getLatestSnapshot(deviceId: number): Promise<CameraSnapshot | null> {
-    return cameraRequest.get({
-        url: '/adminapi/camera/snapshot/latest',
-        data: { deviceId }
-    })
-}
-
-/**
  * 保存截图
+ * 后端 @RequestParam 接收，参数须拼在 URL query 上（POST 的 data 会作为请求体）
  */
 export function saveSnapshot(
     deviceId: number,
     filePath: string,
     thumbnail?: string
 ): Promise<CameraSnapshot> {
+    const query = `deviceId=${deviceId}&filePath=${encodeURIComponent(filePath)}${
+        thumbnail ? `&thumbnail=${encodeURIComponent(thumbnail)}` : ''
+    }`
     return cameraRequest.post({
-        url: '/adminapi/camera/snapshot',
-        data: { deviceId, filePath, thumbnail }
+        url: `/adminapi/camera/snapshot?${query}`
     })
 }
 
@@ -316,16 +293,6 @@ export function saveSnapshot(
 export function deleteSnapshot(id: number): Promise<boolean> {
     return cameraRequest.delete({
         url: `/adminapi/camera/snapshot/${id}`
-    })
-}
-
-/**
- * 批量删除截图
- */
-export function deleteSnapshotBatch(ids: number[]): Promise<boolean> {
-    return cameraRequest.delete({
-        url: '/adminapi/camera/snapshot/batch',
-        data: ids
     })
 }
 

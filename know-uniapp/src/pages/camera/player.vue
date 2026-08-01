@@ -98,20 +98,34 @@ async function loadDevice() {
     }
 }
 
-function generateStreamUrl() {
-    if (!device.value) return
+function buildStreamUrl(quality: string): string {
+    if (!device.value) return ''
 
     const { ipAddress, port, username, password, streamUrl: savedUrl } = device.value
 
+    // 子码流统一使用 /live/stream2 后缀，主码流使用 /live/stream
+    const suffix = quality === 'sub' ? '/live/stream2' : '/live/stream'
+
     if (savedUrl) {
-        // 使用已保存的流地址
-        streamUrl.value = savedUrl
+        // 使用已保存的流地址：子码流在保存地址基础上切换为 stream2
+        if (quality === 'sub') {
+            return savedUrl.replace(/\/stream$/, '/stream2')
+        }
+        return savedUrl
     } else if (ipAddress) {
         // 生成RTSP流地址
         const p = port || 554
         const user = username ? `${username}:${password}@` : ''
-        streamUrl.value = `rtsp://${user}${ipAddress}:${p}/live/stream`
+        return `rtsp://${user}${ipAddress}:${p}${suffix}`
     }
+
+    return ''
+}
+
+function generateStreamUrl() {
+    if (!device.value) return
+
+    streamUrl.value = buildStreamUrl(currentQuality.value)
 
     // 设置缩略图
     if (device.value.snapshotUrl) {
@@ -148,10 +162,7 @@ async function onSnapshot() {
     uni.showLoading({ title: '截图保存中...' })
 
     try {
-        // 获取当前视频画面截图
-        const canvas = uni.createCanvasContext('snapshot-canvas')
-        // 注意：实际需要使用 uni.canvasToTempFilePath 获取视频截图
-        // 这里简化处理，使用模拟路径
+        // 真实截图需流媒体服务器快照 API，此处仅保留保存记录逻辑
         const filePath = `snapshot_${Date.now()}.jpg`
 
         await saveSnapshot(deviceId.value, filePath)
@@ -200,7 +211,8 @@ function toggleFullscreen() {
 
 function onQualityChange(quality: string) {
     currentQuality.value = quality
-    // TODO: 根据画质切换视频流
+    // 切换主/子码流：main → /live/stream，sub → /live/stream2
+    streamUrl.value = buildStreamUrl(quality)
     uni.showToast({ title: `已切换至${quality === 'main' ? '主码流' : '子码流'}`, icon: 'none' })
 }
 

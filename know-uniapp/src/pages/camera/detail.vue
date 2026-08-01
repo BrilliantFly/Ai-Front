@@ -97,15 +97,21 @@ function goToPlayer() {
 }
 
 function onSnapshot() {
-    uni.showToast({ title: '截图功能开发中', icon: 'none' })
+    uni.navigateTo({
+        url: `/pages/camera/snapshots?deviceId=${deviceId.value}`
+    })
 }
 
 function onRecord() {
-    uni.showToast({ title: '录像功能开发中', icon: 'none' })
+    uni.navigateTo({
+        url: `/pages/camera/records?deviceId=${deviceId.value}`
+    })
 }
 
 function goToEdit() {
-    uni.showToast({ title: '编辑功能开发中', icon: 'none' })
+    uni.navigateTo({
+        url: `/pages/camera/edit?id=${deviceId.value}`
+    })
 }
 
 function onDelete() {

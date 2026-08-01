@@ -290,9 +290,8 @@ function playRecord(record: CameraRecord) {
 }
 
 async function downloadRecord(record: CameraRecord) {
-    if (!record.filePath) return
-    uni.showToast({ title: '开始下载...', icon: 'loading' })
-    // TODO: 实现下载
+    // 后端无真实录像文件，待流媒体服务器生成后再提供下载
+    uni.showToast({ title: '录像文件待流媒体服务器生成', icon: 'none' })
 }
 
 async function deleteRecord(record: CameraRecord) {

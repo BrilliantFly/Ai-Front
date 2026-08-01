@@ -1,9 +1,14 @@
 <template>
     <view class="more-page">
         <view class="page-header">
-            <view>
-                <text class="page-title">{{ sectionTitle }}</text>
-                <text class="page-subtitle">后台菜单动态展示更多内容</text>
+            <view class="header-left">
+                <view class="back-btn" @tap="goBack">
+                    <text class="back-icon">‹</text>
+                </view>
+                <view>
+                    <text class="page-title">{{ sectionTitle }}</text>
+                    <text class="page-subtitle">后台菜单动态展示更多内容</text>
+                </view>
             </view>
         </view>
 
@@ -52,6 +57,16 @@ import { useRoute, useRouter } from 'uniapp-router-next'
 import { getHomeMenu } from '@/api/system/menu'
 import { useAppStore } from '@/stores/app'
 import { buildHomeSections, normalizeHomeMenuItems } from './home-sections'
+import { switchTabCompat } from '@/utils/util'
+
+const goBack = () => {
+    const pages = getCurrentPages()
+    if (pages.length > 1) {
+        uni.navigateBack()
+    } else {
+        switchTabCompat('/pages/index/index')
+    }
+}
 
 const route = useRoute()
 const router = useRouter()
@@ -123,6 +138,32 @@ onShow(() => {
 
 .page-header {
     padding: 0 8rpx 18rpx;
+}
+
+.header-left {
+    display: flex;
+    align-items: center;
+    gap: 16rpx;
+}
+
+.back-btn {
+    width: 64rpx;
+    height: 64rpx;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 16rpx;
+    margin-left: -16rpx;
+}
+
+.back-btn:active {
+    background: var(--color-surface-soft);
+}
+
+.back-btn .back-icon {
+    font-size: 44rpx;
+    line-height: 1;
+    color: var(--color-text);
 }
 
 .page-title {

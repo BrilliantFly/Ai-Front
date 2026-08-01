@@ -28,6 +28,22 @@ const CameraRoute: AppRoute = {
       meta: {
         title: 'Wi-Fi管理'
       }
+    },
+    {
+      path: 'records',
+      name: 'CameraRecords',
+      component: () => import('@/views/system/camera/records.vue'),
+      meta: {
+        title: '录像记录'
+      }
+    },
+    {
+      path: 'snapshots',
+      name: 'CameraSnapshots',
+      component: () => import('@/views/system/camera/snapshots.vue'),
+      meta: {
+        title: '截图记录'
+      }
     }
   ]
 }

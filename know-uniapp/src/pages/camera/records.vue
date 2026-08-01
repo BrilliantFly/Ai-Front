@@ -1,5 +1,16 @@
 <template>
     <view class="records-page">
+        <!-- 顶部标题栏：含返回按钮 -->
+        <view class="page-header">
+            <view class="header-left">
+                <view class="back-btn" @tap="goBack">
+                    <text class="back-icon">‹</text>
+                </view>
+                <view>
+                    <text class="page-title">录像记录</text>
+                </view>
+            </view>
+        </view>
         <view class="records-list" v-if="records.length > 0">
             <view
                 class="record-item"
@@ -31,7 +42,9 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { ref } from 'vue'
+import { onLoad } from '@dcloudio/uni-app'
+import { switchTabCompat } from '@/utils/util'
 import {
     getRecordPage,
     deleteRecord as apiDeleteRecord,
@@ -39,17 +52,34 @@ import {
     RecordType
 } from '@/api/camera'
 
+const goBack = () => {
+    const pages = getCurrentPages()
+    if (pages.length > 1) {
+        uni.navigateBack()
+    } else {
+        switchTabCompat('/pages/index/index')
+    }
+}
+
 const records = ref<CameraRecord[]>([])
 const loading = ref(false)
+const deviceId = ref<number>(0)
 
-onMounted(async () => {
-    await loadRecords()
+onLoad((query: any) => {
+    if (query.deviceId) {
+        deviceId.value = parseInt(query.deviceId)
+    }
+    loadRecords()
 })
 
 async function loadRecords() {
     loading.value = true
     try {
-        const result = (await getRecordPage({ pageNum: 1, pageSize: 50 })) as any
+        const result = (await getRecordPage({
+            deviceId: deviceId.value || undefined,
+            pageNum: 1,
+            pageSize: 50
+        })) as any
         records.value = result.records || []
     } catch (e) {
         console.error('加载录像失败', e)
@@ -93,9 +123,8 @@ function playRecord(item: CameraRecord) {
 }
 
 async function downloadRecord(item: CameraRecord) {
-    if (!item.filePath) return
-    uni.showToast({ title: '开始下载...', icon: 'loading' })
-    // TODO: 实现下载逻辑
+    // 后端无真实录像文件，待流媒体服务器生成后再提供下载
+    uni.showToast({ title: '录像文件待流媒体服务器生成', icon: 'none' })
 }
 
 async function deleteRecord(item: CameraRecord) {
@@ -212,5 +241,53 @@ async function deleteRecord(item: CameraRecord) {
         font-size: 28rpx;
         color: #999;
     }
+}
+
+.page-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 24rpx 40rpx 16rpx;
+}
+
+.header-left {
+    display: flex;
+    align-items: center;
+    gap: 16rpx;
+}
+
+.back-btn {
+    width: 64rpx;
+    height: 64rpx;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 16rpx;
+    margin-left: -16rpx;
+}
+
+.back-btn:active {
+    background: var(--color-surface-soft);
+}
+
+.back-btn .back-icon {
+    font-size: 44rpx;
+    line-height: 1;
+    color: var(--color-text);
+}
+
+.page-title {
+    display: block;
+    font-size: 36rpx;
+    font-weight: 600;
+    color: var(--color-text);
+    line-height: 1.2;
+}
+
+.page-subtitle {
+    display: block;
+    margin-top: 8rpx;
+    font-size: 26rpx;
+    color: var(--color-text-secondary);
 }
 </style>

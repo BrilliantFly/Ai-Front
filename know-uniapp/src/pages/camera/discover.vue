@@ -66,6 +66,7 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import { onMounted } from 'vue'
+import { discoverCamera, type DiscoveredCamera } from '@/api/camera'
 
 interface LanDevice {
     ip: string
@@ -75,6 +76,8 @@ interface LanDevice {
     deviceType?: string
     isAdded: boolean
     online?: boolean
+    deviceId?: number
+    deviceName?: string
 }
 
 const isScanning = ref(false)
@@ -85,20 +88,26 @@ onMounted(() => {
     startDiscover()
 })
 
-function startDiscover() {
+async function startDiscover() {
     isScanning.value = true
     hasSearched.value = true
     discoveredDevices.value = []
-
-    // 模拟设备发现过程
-    setTimeout(() => {
-        // TODO: 实现真实的设备发现逻辑
-        discoveredDevices.value = [
-            { ip: '192.168.1.100', port: 8000, brand: 'Hikvision', isAdded: false, online: true },
-            { ip: '192.168.1.101', port: 37777, brand: 'Dahua', isAdded: true, online: true }
-        ]
+    try {
+        const list: DiscoveredCamera[] = await discoverCamera()
+        discoveredDevices.value = (list || []).map((item) => ({
+            ip: item.ipAddress || '',
+            port: item.port,
+            brand: item.brand,
+            isAdded: !!item.isAdded,
+            online: !!item.online,
+            deviceId: item.deviceId,
+            deviceName: item.deviceName
+        }))
+    } catch (e) {
+        uni.showToast({ title: '设备扫描失败，请稍后重试', icon: 'none' })
+    } finally {
         isScanning.value = false
-    }, 3000)
+    }
 }
 
 function selectDevice(device: LanDevice) {

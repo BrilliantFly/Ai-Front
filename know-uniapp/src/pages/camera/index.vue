@@ -104,6 +104,7 @@
 
                     <view class="actions">
                         <view class="action-btn play" @tap.stop="goToPlay(device)">▶</view>
+                        <view class="action-btn record" @tap.stop="goToRecord(device)">🎬</view>
                         <view class="action-btn" @tap.stop="toggleFavorite(device)">⋯</view>
                     </view>
                 </view>
@@ -275,6 +276,11 @@ const goToDetail = (device: CameraDevice) => {
 const goToPlay = (device: CameraDevice) => {
     if (!device.id) return
     router.navigateTo(`/pages/camera/player?id=${device.id}`)
+}
+
+const goToRecord = (device: CameraDevice) => {
+    if (!device.id) return
+    router.navigateTo(`/pages/camera/records?deviceId=${device.id}`)
 }
 
 onShow(() => {
@@ -540,6 +546,12 @@ onPullDownRefresh(async () => {
     background: var(--color-primary-soft);
     border-color: var(--color-primary-mist);
     color: var(--color-primary);
+}
+
+.action-btn.record {
+    background: var(--color-success-soft);
+    border-color: var(--color-success-soft);
+    color: var(--color-success);
 }
 
 .empty-state {

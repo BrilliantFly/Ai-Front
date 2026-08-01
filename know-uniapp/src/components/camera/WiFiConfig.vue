@@ -1,6 +1,6 @@
 <template>
     <view class="wifi-config-container">
-        <view class="wifi-config-header">
+        <view class="wifi-config-header" v-if="showHeader">
             <text class="title">WiFi配网</text>
             <text class="subtitle">将摄像头连接到您的WiFi网络</text>
         </view>
@@ -145,6 +145,15 @@ import {
 } from '@/utils/camera/wifiConfig'
 import { WifiUtils } from '@/utils/wifi'
 
+withDefaults(
+    defineProps<{
+        showHeader?: boolean
+    }>(),
+    {
+        showHeader: true
+    }
+)
+
 interface WifiInfo {
     SSID: string
     BSSID: string
@@ -269,7 +278,7 @@ function retryConfig() {
 
 function goToDeviceList() {
     uni.navigateTo({
-        url: '/pages/camera/list'
+        url: '/pages/camera/index'
     })
 }
 
