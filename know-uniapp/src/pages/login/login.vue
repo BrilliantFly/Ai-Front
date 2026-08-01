@@ -14,8 +14,8 @@
             </view>
 
             <view class="logo-wrap">
-                <view class="logo-icon">{{ logoLetter }}</view>
-                <text class="logo-name">{{ websiteConfig.shop_name || 'AI Master' }}</text>
+                <image src="/static/images/logo.png" class="logo-image" mode="aspectFit" />
+                <text class="logo-name">{{ websiteConfig.shop_name || '喵百科' }}</text>
                 <text class="logo-desc">智能管理，触手可及</text>
             </view>
 
@@ -225,8 +225,8 @@
         <!-- #ifdef MP-WEIXIN -->
         <mplogin-popup
             v-model:show="showLoginPopup"
-            :logo="websiteConfig.shop_logo"
-            :title="websiteConfig.shop_name"
+            :logo="websiteConfig.shop_logo || '/static/images/logo.png'"
+            :title="websiteConfig.shop_name || '喵百科'"
             @update="handleUpdateUser"
         />
         <!--  #endif -->
@@ -286,10 +286,6 @@ const formData = reactive({
 const loginData = ref()
 
 const websiteConfig = computed(() => appStore.getWebsiteConfig)
-const logoLetter = computed(() => {
-    const name = websiteConfig.value?.shop_name || 'Know'
-    return String(name).trim().charAt(0).toUpperCase() || 'K'
-})
 
 const wechatIcon = `
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
@@ -647,17 +643,10 @@ onLoad(async () => {
     margin-bottom: 44px;
 }
 
-.logo-icon {
-    width: 72px;
-    height: 72px;
-    border-radius: 24px;
-    background: linear-gradient(135deg, var(--color-primary), #e8499d);
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 34px;
-    color: #fff;
-    font-weight: 700;
+.logo-image {
+    width: 76px;
+    height: 76px;
+    border-radius: 20px;
     margin-bottom: 18px;
     box-shadow: 0 10px 36px rgba(var(--color-primary-rgb), 0.25);
 }
@@ -666,7 +655,7 @@ onLoad(async () => {
     display: block;
     font-size: 26px;
     font-weight: 700;
-    color: #fff;
+    color: var(--color-text);
     letter-spacing: -0.02em;
     line-height: 1.2;
 }

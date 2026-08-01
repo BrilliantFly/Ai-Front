@@ -1,6 +1,7 @@
 <template>
     <view class="as-us-page">
-        <view class="logo">AI-Master</view>
+        <image src="/static/images/logo.png" class="logo-image" mode="aspectFit" />
+        <view class="logo">喵百科</view>
         <text class="version">版本 1.0.0</text>
         <text class="desc">智能管理系统</text>
     </view>
@@ -16,6 +17,12 @@
     align-items: center;
     justify-content: center;
     background: var(--color-bg);
+}
+.logo-image {
+    width: 96px;
+    height: 96px;
+    border-radius: 24px;
+    margin-bottom: 16px;
 }
 .logo {
     font-size: 60rpx;

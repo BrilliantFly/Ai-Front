@@ -1,7 +1,7 @@
 {
-    "name" : "know-uniapp",
+    "name" : "喵百科",
     "appid" : "__UNI__32EDE25",
-    "description" : "",
+    "description" : "喵百科",
     "versionName" : "1.0.0",
     "versionCode" : "100",
     "transformPx" : false,
@@ -50,7 +50,39 @@
                 "dSYMs" : false
             },
             /* SDK配置 */
-            "sdkConfigs" : {}
+            "sdkConfigs" : {},
+            "icons" : {
+                "android" : {
+                    "hdpi" : "static/icons/icon_72x72.png",
+                    "xhdpi" : "static/icons/icon_96x96.png",
+                    "xxhdpi" : "static/icons/icon_144x144.png",
+                    "xxxhdpi" : "static/icons/icon_192x192.png"
+                },
+                "ios" : {
+                    "appstore" : "static/icons/icon_1024x1024.png",
+                    "ipad" : {
+                        "app" : "static/icons/icon_76x76.png",
+                        "app@2x" : "static/icons/icon_152x152.png",
+                        "notification" : "static/icons/icon_20x20.png",
+                        "notification@2x" : "static/icons/icon_40x40.png",
+                        "proapp@2x" : "static/icons/icon_167x167.png",
+                        "settings" : "static/icons/icon_29x29.png",
+                        "settings@2x" : "static/icons/icon_58x58.png",
+                        "spotlight" : "static/icons/icon_40x40.png",
+                        "spotlight@2x" : "static/icons/icon_80x80.png"
+                    },
+                    "iphone" : {
+                        "app@2x" : "static/icons/icon_120x120.png",
+                        "app@3x" : "static/icons/icon_180x180.png",
+                        "notification@2x" : "static/icons/icon_40x40.png",
+                        "notification@3x" : "static/icons/icon_60x60.png",
+                        "settings@2x" : "static/icons/icon_58x58.png",
+                        "settings@3x" : "static/icons/icon_87x87.png",
+                        "spotlight@2x" : "static/icons/icon_80x80.png",
+                        "spotlight@3x" : "static/icons/icon_120x120.png"
+                    }
+                }
+            }
         }
     },
     /* 快应用特有相关 */
@@ -90,6 +122,6 @@
             "mode" : "history",
             "base" : "/mobile/"
         },
-        "title" : "加载中"
+        "title" : "喵百科"
     }
 }

@@ -1,7 +1,7 @@
 <template>
     <view class="login-container">
         <view class="login-header">
-            <image :src="appStore.getWebsiteConfig.shop_logo" mode="widthFix" class="logo" />
+            <image :src="appStore.getWebsiteConfig.shop_logo || '/static/images/logo.png'" mode="widthFix" class="logo" />
         </view>
 
         <view class="login-form">

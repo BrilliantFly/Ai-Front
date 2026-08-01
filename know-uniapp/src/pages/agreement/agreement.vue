@@ -1,7 +1,7 @@
 <template>
     <view class="agreement-page">
         <text class="title">用户协议</text>
-        <text class="content">本协议是用户与AI-Master之间的协议...</text>
+        <text class="content">本协议是用户与喵百科之间的协议...</text>
     </view>
 </template>
 
