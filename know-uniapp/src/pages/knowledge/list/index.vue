@@ -8,7 +8,8 @@
         </view>
         <text class="header-title">我的知识库</text>
       </view>
-      <view class="create-btn" @tap="openCreateDialog">
+      <!-- 新建按钮已改为右下角悬浮按钮 -->
+      <view class="create-btn" v-show="false" @tap="openCreateDialog">
         <text class="create-icon">+</text>
         <text class="create-text">新建</text>
       </view>
@@ -107,6 +108,11 @@
           </view>
         </view>
       </view>
+    </view>
+
+    <!-- 浮动添加按钮 -->
+    <view class="fab" @tap="openCreateDialog">
+      <text class="fab-icon">+</text>
     </view>
 
     <PremiumBottomNav active="knowledge" />
@@ -251,6 +257,26 @@ onShow(() => {
   min-height: 100vh;
   background: var(--color-bg-app, #F8FAF9);
   padding-bottom: 200rpx;
+}
+
+/* 浮动添加按钮 */
+.fab {
+  position: fixed;
+  bottom: 200rpx;
+  right: 40rpx;
+  width: 96rpx;
+  height: 96rpx;
+  background: var(--color-primary, #25B864);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 8rpx 24rpx rgba(37, 184, 100, 0.4);
+  z-index: 90;
+
+  &:active { transform: scale(0.92); }
+
+  .fab-icon { font-size: 48rpx; color: var(--color-btn-text, #fff); font-weight: 600; }
 }
 
 .header {

@@ -2,7 +2,12 @@
   <view class="memo-page">
     <!-- 顶部导航栏 -->
     <view class="header">
-      <text class="header-title">小记</text>
+      <view class="header-left">
+        <view class="back-btn" @tap="goBack">
+          <text class="back-icon">‹</text>
+        </view>
+        <text class="header-title">小记</text>
+      </view>
       <view class="header-actions">
         <view class="header-btn" @tap="openFilterModal">
           <text class="filter-icon">☰</text>
@@ -369,6 +374,15 @@ const toggleArchive = async (item: any) => {
   })
 }
 
+const goBack = () => {
+  const pages = getCurrentPages()
+  if (pages.length > 1) {
+    uni.navigateBack()
+  } else {
+    uni.switchTab({ url: '/pages/index/index' })
+  }
+}
+
 const openFilterModal = () => {
   uni.showActionSheet({
     itemList: ['全部小记', '未归档', '已归档'],
@@ -466,6 +480,17 @@ onShow(() => {
   background: var(--color-surface, rgba(255,255,255,0.92));
   backdrop-filter: blur(24rpx);
   border-bottom: 1rpx solid var(--color-border-light, rgba(0,0,0,0.06));
+
+  .header-left { display: flex; align-items: center; gap: 8rpx; }
+
+  .back-btn {
+    width: 72rpx; height: 72rpx;
+    display: flex; align-items: center; justify-content: center;
+    border-radius: 16rpx;
+    margin-left: -16rpx;
+    &:active { background: var(--color-surface-soft, rgba(0,0,0,0.04)); }
+    .back-icon { font-size: 44rpx; line-height: 1; color: var(--color-text, #1F2329); }
+  }
 
   .header-title { font-size: 34rpx; font-weight: 600; color: var(--color-text, #1F2329); }
   .header-actions { display: flex; gap: 8rpx; }

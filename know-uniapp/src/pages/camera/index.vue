@@ -1,14 +1,21 @@
 <template>
     <view class="device-page">
+        <!-- 顶部标题栏：含返回按钮 -->
         <view class="device-header">
-            <text class="page-title">设备中心</text>
+            <view class="header-left">
+                <view class="back-btn" @tap="goBack">
+                    <text class="back-icon">‹</text>
+                </view>
+                <text class="page-title">设备中心</text>
+            </view>
             <view class="header-actions">
                 <view class="premium-header-btn" @tap="goToSort">⇅</view>
                 <view class="premium-header-btn" @tap="goToDiscover">搜</view>
             </view>
         </view>
 
-        <view class="search-section">
+        <!-- 搜索栏：暂以隐藏方式保留，需要时去掉 v-show="false" 即可恢复 -->
+        <view class="search-section" v-show="false">
             <view class="premium-search">
                 <text class="search-icon">搜</text>
                 <input
@@ -237,6 +244,15 @@ const toggleFavorite = (device: CameraDevice) => {
     }
 }
 
+const goBack = () => {
+    const pages = getCurrentPages()
+    if (pages.length > 1) {
+        uni.navigateBack()
+    } else {
+        uni.switchTab({ url: '/pages/index/index' })
+    }
+}
+
 const goToSort = () => {
     uni.showToast({ title: '排序功能待接入', icon: 'none' })
 }
@@ -283,6 +299,32 @@ onPullDownRefresh(async () => {
     padding: 4px 20px 20px;
 }
 
+.header-left {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.back-btn {
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 8px;
+    margin-left: -10px;
+
+    &:active {
+        background: var(--color-surface-soft);
+    }
+
+    .back-icon {
+        font-size: 26px;
+        line-height: 1;
+        color: var(--color-text);
+    }
+}
+
 .page-title {
     font-size: 26px;
     font-weight: 700;
@@ -301,14 +343,17 @@ onPullDownRefresh(async () => {
 
 .overview-cards {
     display: flex;
-    gap: 10px;
-    padding: 0 20px 24px;
+    flex-wrap: nowrap;
+    gap: 8px;
+    padding: 0 16px 24px;
 }
 
 .ov-card {
     flex: 1;
+    min-width: 0;
+    white-space: nowrap;
     border-radius: var(--radius-md);
-    padding: 14px 12px;
+    padding: 14px 6px;
     background: var(--color-surface-soft);
     transition: all var(--duration) var(--ease);
     cursor: pointer;
@@ -338,10 +383,11 @@ onPullDownRefresh(async () => {
 }
 
 .ov-num {
-    font-size: 24px;
+    font-size: 22px;
     font-weight: 700;
     letter-spacing: -.03em;
     color: var(--color-text);
+    line-height: 1.1;
 }
 
 .ov-label {
@@ -349,6 +395,7 @@ onPullDownRefresh(async () => {
     color: var(--color-text-secondary);
     margin-top: 3px;
     font-weight: 400;
+    line-height: 1.1;
 }
 
 .device-list {

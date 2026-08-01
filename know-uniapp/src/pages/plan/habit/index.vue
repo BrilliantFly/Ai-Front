@@ -1,9 +1,15 @@
 ﻿<template>
     <view class="plan-habit-page">
+        <!-- 顶部标题栏：含返回按钮 -->
         <view class="page-header">
-            <view>
-                <text class="page-title">🎯 习惯打卡</text>
-                <text class="page-subtitle">用连续打卡培养稳定节奏</text>
+            <view class="header-left">
+                <view class="back-btn" @tap="goBack">
+                    <text class="back-icon">‹</text>
+                </view>
+                <view>
+                    <text class="page-title">🎯 习惯打卡</text>
+                    <text class="page-subtitle">用连续打卡培养稳定节奏</text>
+                </view>
             </view>
             <view class="header-actions">
                 <view class="premium-header-btn" @tap="goAddHabit">+</view>
@@ -11,20 +17,6 @@
         </view>
 
         <scroll-view scroll-y class="calendar-scroll">
-            <view class="streak-cards premium-fade-in premium-d1">
-                <view class="streak-card" style="--card-accent: #6366f1">
-                    <text class="streak-num">{{ checkedCount }}</text>
-                    <text class="streak-label">今日已打卡</text>
-                </view>
-                <view class="streak-card" style="--card-accent: #f59e0b">
-                    <text class="streak-num">{{ bestHabit?.currentDays || 0 }}</text>
-                    <text class="streak-label">最长连续</text>
-                </view>
-                <view class="streak-card" style="--card-accent: #10b981">
-                    <text class="streak-num">{{ monthlyStats.rate }}%</text>
-                    <text class="streak-label">本月完成率</text>
-                </view>
-            </view>
             <CalendarGrid
                 :year="currentYear"
                 :month="currentMonth"
@@ -72,8 +64,24 @@
                 </scroll-view>
             </view>
 
+            <!-- 今日已打卡统计：位于徽章下方 -->
+            <view class="streak-cards premium-fade-in premium-d1">
+                <view class="streak-card" style="--card-accent: #6366f1">
+                    <text class="streak-num">{{ checkedCount }}</text>
+                    <text class="streak-label">今日已打卡</text>
+                </view>
+                <view class="streak-card" style="--card-accent: #f59e0b">
+                    <text class="streak-num">{{ bestHabit?.currentDays || 0 }}</text>
+                    <text class="streak-label">最长连续</text>
+                </view>
+                <view class="streak-card" style="--card-accent: #10b981">
+                    <text class="streak-num">{{ monthlyStats.rate }}%</text>
+                    <text class="streak-label">本月完成率</text>
+                </view>
+            </view>
+
             <view
-                v-if="activeTab === 'checkin' && selectedDateLabel"
+                v-if="activeTab === 'checkin' && selectedDateLabel && dayHabitRecords.length > 0"
                 class="day-overview premium-card premium-fade-in premium-d2"
             >
                 <view class="overview-top">
@@ -1172,6 +1180,15 @@ const refreshHabitPage = async () => {
     }
 }
 
+const goBack = () => {
+    const pages = getCurrentPages()
+    if (pages.length > 1) {
+        uni.navigateBack()
+    } else {
+        uni.switchTab({ url: '/pages/index/index' })
+    }
+}
+
 const goAddHabit = () => {
     editingHabit.value = null
     showForm.value = true
@@ -1215,6 +1232,32 @@ onShow(async () => {
     justify-content: space-between;
     align-items: center;
     padding: 24rpx 40rpx 16rpx;
+}
+
+.header-left {
+    display: flex;
+    align-items: center;
+    gap: 16rpx;
+}
+
+.back-btn {
+    width: 64rpx;
+    height: 64rpx;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 16rpx;
+    margin-left: -16rpx;
+}
+
+.back-btn:active {
+    background: var(--color-surface-soft);
+}
+
+.back-btn .back-icon {
+    font-size: 44rpx;
+    line-height: 1;
+    color: var(--color-text);
 }
 
 .header-actions {

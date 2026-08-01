@@ -1,15 +1,18 @@
 ﻿<template>
     <view class="plan-schedule-page">
+        <!-- 顶部标题栏：含返回按钮 -->
         <view class="page-header">
             <view class="header-left">
-                <text class="header-title">日程计划</text>
-                <text class="header-sub">高效管理你的每一项安排</text>
+                <view class="back-btn" @tap="goBack">
+                    <text class="back-icon">‹</text>
+                </view>
+                <view class="header-title-wrap">
+                    <text class="header-title">日程计划</text>
+                    <text class="header-sub">高效管理你的每一项安排</text>
+                </view>
             </view>
             <view class="header-actions">
                 <view class="premium-header-btn" @tap="toggleMatrix" title="矩阵">⊞</view>
-                <view class="premium-header-btn" @tap="showPinSettings" title="加锁">🔒</view>
-                <view class="premium-header-btn" :class="{ active: batchMode }" @tap="toggleBatchMode" title="批量操作">☰</view>
-                <view class="premium-header-btn" @tap="goAddSchedule">+</view>
             </view>
         </view>
 
@@ -90,18 +93,18 @@
             <view style="height: 180rpx"></view>
         </scroll-view>
 
-        <view class="floating-add" @tap="goAddSchedule">+</view>
+        <view class="floating-actions">
+            <!-- 矩阵按钮：暂以隐藏方式保留，需要时去掉 v-show="false" 即可恢复 -->
+            <view class="floating-matrix" v-show="false" @tap="toggleMatrix" title="矩阵">⊞</view>
+            <view class="floating-add" @tap="goAddSchedule">+</view>
+        </view>
 
-        <PremiumBottomNav active="plan" />
+        <PremiumBottomNav active="schedule" />
 
         <!-- Matrix Modal -->
         <view v-if="matrixVisible" class="matrix-overlay" @tap="toggleMatrix">
             <view class="matrix-modal premium-card premium-fade-in" @tap.stop>
                 <view class="matrix-header">
-                    <text class="matrix-title"
-                        >艾森豪威尔 <text class="matrix-title-accent">矩阵</text></text
-                    >
-                    <text class="matrix-sub">将任务分类到四个象限，明确优先级</text>
                     <button class="matrix-close" type="button" @tap="toggleMatrix">✕</button>
                 </view>
                 <view class="matrix-grid">
@@ -288,6 +291,14 @@ const detailItem = ref(null)
 
 const toggleMatrix = () => {
     matrixVisible.value = !matrixVisible.value
+}
+const goBack = () => {
+    const pages = getCurrentPages()
+    if (pages.length > 1) {
+        uni.navigateBack()
+    } else {
+        uni.switchTab({ url: '/pages/index/index' })
+    }
 }
 const showPinSettings = () => {
     uni.showToast({ title: '锁屏设置', icon: 'none' })
@@ -502,6 +513,7 @@ onShow(async () => {
     padding-bottom: 150rpx;
 }
 
+/* 顶部标题栏样式 */
 .page-header {
     display: flex;
     justify-content: space-between;
@@ -510,6 +522,33 @@ onShow(async () => {
 }
 
 .header-left {
+    display: flex;
+    align-items: center;
+    gap: 16rpx;
+}
+
+.back-btn {
+    width: 64rpx;
+    height: 64rpx;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 16rpx;
+    margin-left: -16rpx;
+    flex-shrink: 0;
+
+    &:active {
+        background: var(--color-surface-soft);
+    }
+
+    .back-icon {
+        font-size: 44rpx;
+        line-height: 1;
+        color: var(--color-text);
+    }
+}
+
+.header-title-wrap {
     display: flex;
     flex-direction: column;
 }
@@ -706,11 +745,31 @@ onShow(async () => {
     color: var(--color-primary);
 }
 
-.floating-add {
+.floating-actions {
     position: fixed;
     right: 40rpx;
     bottom: 122rpx;
     z-index: 50;
+    display: flex;
+    align-items: center;
+    gap: 24rpx;
+}
+
+.floating-matrix {
+    width: 88rpx;
+    height: 88rpx;
+    border-radius: 50%;
+    background: var(--color-surface, #ffffff);
+    border: 1px solid var(--color-border-light, rgba(0, 0, 0, 0.08));
+    color: var(--color-primary);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 40rpx;
+    box-shadow: var(--shadow-sm, 0 4rpx 16rpx rgba(0, 0, 0, 0.08));
+}
+
+.floating-add {
     width: 104rpx;
     height: 104rpx;
     border-radius: 50%;
