@@ -8,7 +8,8 @@
                 </view>
                 <text class="page-title">设备中心</text>
             </view>
-            <view class="header-actions">
+            <!-- 操作按钮：暂以隐藏方式保留，需要时去掉 v-show="false" 即可恢复 -->
+            <view class="header-actions" v-show="false">
                 <view class="premium-header-btn" @tap="goToSort">⇅</view>
                 <view class="premium-header-btn" @tap="goToDiscover">搜</view>
             </view>
@@ -327,9 +328,8 @@ onPullDownRefresh(async () => {
 }
 
 .page-title {
-    font-size: 26px;
-    font-weight: 700;
-    letter-spacing: -.03em;
+    font-size: 36rpx;
+    font-weight: 600;
     color: var(--color-text);
 }
 

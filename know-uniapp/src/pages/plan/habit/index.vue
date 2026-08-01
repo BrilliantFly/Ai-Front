@@ -8,10 +8,12 @@
                 </view>
                 <view>
                     <text class="page-title">🎯 习惯打卡</text>
-                    <text class="page-subtitle">用连续打卡培养稳定节奏</text>
+                    <!-- 副标题：暂以隐藏方式保留，需要时去掉 v-show="false" 即可恢复 -->
+                    <text class="page-subtitle" v-show="false">用连续打卡培养稳定节奏</text>
                 </view>
             </view>
-            <view class="header-actions">
+            <!-- 操作按钮：暂以隐藏方式保留，需要时去掉 v-show="false" 即可恢复 -->
+            <view class="header-actions" v-show="false">
                 <view class="premium-header-btn" @tap="goAddHabit">+</view>
             </view>
         </view>
@@ -1269,8 +1271,8 @@ onShow(async () => {
 
 .page-title {
     display: block;
-    font-size: 48rpx;
-    font-weight: 700;
+    font-size: 36rpx;
+    font-weight: 600;
     color: var(--color-text);
     line-height: 1.2;
 }

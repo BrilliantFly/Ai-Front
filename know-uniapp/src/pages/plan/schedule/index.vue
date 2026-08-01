@@ -8,10 +8,12 @@
                 </view>
                 <view class="header-title-wrap">
                     <text class="header-title">日程计划</text>
-                    <text class="header-sub">高效管理你的每一项安排</text>
+                    <!-- 副标题：暂以隐藏方式保留，需要时去掉 v-show="false" 即可恢复 -->
+                    <text class="header-sub" v-show="false">高效管理你的每一项安排</text>
                 </view>
             </view>
-            <view class="header-actions">
+            <!-- 操作按钮：暂以隐藏方式保留，需要时去掉 v-show="false" 即可恢复 -->
+            <view class="header-actions" v-show="false">
                 <view class="premium-header-btn" @tap="toggleMatrix" title="矩阵">⊞</view>
             </view>
         </view>
@@ -555,8 +557,8 @@ onShow(async () => {
 }
 
 .header-title {
-    font-size: 48rpx;
-    font-weight: 700;
+    font-size: 36rpx;
+    font-weight: 600;
     color: var(--color-text);
     line-height: 1.2;
 }
