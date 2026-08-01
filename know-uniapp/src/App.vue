@@ -34,7 +34,7 @@ const setH5WebIcon = () => {
         favicon.rel = 'icon'
         document.head.appendChild(favicon)
     }
-    favicon.href = config.h5_favicon
+    favicon.href = config.h5_favicon + (config.h5_favicon.includes('?') ? '&' : '?') + 'v=喵百科'
 }
 //#endif
 
