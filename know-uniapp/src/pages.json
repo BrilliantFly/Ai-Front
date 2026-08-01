@@ -342,6 +342,12 @@
             }
         },
         {
+            "path": "pages/plan/slogan/index",
+            "style": {
+                "navigationStyle": "custom"
+            }
+        },
+        {
             "path": "pages/plan/schedule/detail",
             "style": {
                 "navigationBarTitleText": "日程详情"
