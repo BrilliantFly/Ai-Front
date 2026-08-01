@@ -38,6 +38,20 @@ export function currentPage() {
 }
 
 /**
+ * @description 平台兼容的 tab 切换：
+ * - App 端未配置原生 tabBar（方案B），需用 reLaunch 模拟 tab 切换
+ * - H5 / 小程序端保留原生 tabBar 配置，继续使用 switchTab
+ */
+export function switchTabCompat(url: string) {
+    // #ifdef APP-PLUS
+    uni.reLaunch({ url })
+    // #endif
+    // #ifndef APP-PLUS
+    uni.switchTab({ url })
+    // #endif
+}
+
+/**
  * @description 后台选择链接专用跳转
  */
 interface Link {
@@ -93,7 +107,7 @@ export function navigateTo(
 
     const url = link?.query ? `${link.path}?${objectToQuery(link?.query)}` : link.path
 
-    ;(navigateType == 'switchTab' || link.canTab) && uni.switchTab({ url })
+    ;(navigateType == 'switchTab' || link.canTab) && switchTabCompat(url)
     navigateType == 'navigateTo' && uni.navigateTo({ url })
     navigateType == 'reLaunch' && uni.reLaunch({ url })
 }

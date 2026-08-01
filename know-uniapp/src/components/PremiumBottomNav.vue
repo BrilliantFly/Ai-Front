@@ -44,6 +44,7 @@ import { useUserStore } from '@/stores/user'
 import { useRouter } from 'uniapp-router-next'
 import { getTabbarMenu, getTabbarMenuByUser } from '@/api/system/menu'
 import { useHoverEffect } from '@/hooks/useHoverEffect'
+import { switchTabCompat } from '@/utils/util'
 
 type NavItem = {
     key: string
@@ -316,7 +317,7 @@ const navigate = (item: NavItem) => {
     const path = resolveNavPath(item)
     if (!path || currentKey.value === item.key) return
     if (item.navType === 'switchTab') {
-        uni.switchTab({ url: path })
+        switchTabCompat(path)
         return
     }
     router.navigateTo(path)

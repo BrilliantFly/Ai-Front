@@ -81,7 +81,12 @@ const handleLogin = async () => {
         uni.showToast({ title: '登录成功', icon: 'success' })
 
         // Navigate to home page
+        // #ifdef APP-PLUS
+        router.reLaunch('/pages/index/index')
+        // #endif
+        // #ifndef APP-PLUS
         router.switchTab('/pages/index/index')
+        // #endif
     } catch (error: any) {
         uni.hideLoading()
         uni.showToast({ title: error || '登录失败', icon: 'none' })

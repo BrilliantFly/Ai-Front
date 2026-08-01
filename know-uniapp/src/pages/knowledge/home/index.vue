@@ -90,6 +90,7 @@
 import { ref, onMounted } from 'vue'
 import { onShow } from '@dcloudio/uni-app'
 import { useRouter } from 'uniapp-router-next'
+import { switchTabCompat } from '@/utils/util'
 import PremiumBottomNav from '@/components/PremiumBottomNav.vue'
 import { getKnowledgeBaseList, getQuickNoteList, getRecentDocuments, getKnowledgeBase } from '@/api/knowledge'
 
@@ -130,7 +131,7 @@ const goToDocument = (id: number) => {
 }
 
 const goToMemo = () => {
-  uni.switchTab({ url: '/pages/knowledge/memo/index' })
+  switchTabCompat('/pages/knowledge/memo/index')
 }
 
 const handleSearch = () => {
@@ -142,7 +143,7 @@ const handleNotification = () => {
 }
 
 const handleProfile = () => {
-  uni.switchTab({ url: '/pages/user/user' })
+  switchTabCompat('/pages/user/user')
 }
 
 const formatTime = (timestamp: number) => {

@@ -130,6 +130,7 @@
 import { computed, ref } from 'vue'
 import { onPullDownRefresh, onShow } from '@dcloudio/uni-app'
 import { useRouter } from 'uniapp-router-next'
+import { switchTabCompat } from '@/utils/util'
 import PremiumBottomNav from '@/components/PremiumBottomNav.vue'
 import { getCameraFavorites, getCameraList, type CameraDevice } from '@/api/camera'
 
@@ -249,7 +250,7 @@ const goBack = () => {
     if (pages.length > 1) {
         uni.navigateBack()
     } else {
-        uni.switchTab({ url: '/pages/index/index' })
+        switchTabCompat('/pages/index/index')
     }
 }
 

@@ -81,6 +81,7 @@
 import { ref, computed } from 'vue'
 import { onLoad } from '@dcloudio/uni-app'
 import { useRouter } from 'uniapp-router-next'
+import { switchTabCompat } from '@/utils/util'
 import { searchAll, getSearchHistory, clearSearchHistory } from '@/api/knowledge'
 
 const router = useRouter()
@@ -146,7 +147,7 @@ const openResult = (item: any) => {
     router.navigateTo(`/pages/knowledge/document-view/index?id=${item.id}`)
   } else {
     // 对于小记，跳转到memo tab
-    uni.switchTab({ url: '/pages/knowledge/memo/index' })
+    switchTabCompat('/pages/knowledge/memo/index')
   }
 }
 

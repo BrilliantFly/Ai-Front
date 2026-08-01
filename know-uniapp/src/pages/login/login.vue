@@ -401,12 +401,22 @@ const loginHandle = async (data: any) => {
         onLoad && onLoad(options)
     } else if (cache.get(BACK_URL)) {
         try {
+            // #ifdef APP-PLUS
+            router.reLaunch(cache.get(BACK_URL))
+            // #endif
+            // #ifndef APP-PLUS
             router.switchTab(cache.get(BACK_URL))
+            // #endif
         } catch (error) {
             router.redirectTo(cache.get(BACK_URL))
         }
     } else {
+        // #ifdef APP-PLUS
+        router.reLaunch('/pages/index/index')
+        // #endif
+        // #ifndef APP-PLUS
         router.switchTab('/pages/index/index')
+        // #endif
     }
     cache.remove(BACK_URL)
 }

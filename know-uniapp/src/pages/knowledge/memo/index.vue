@@ -159,6 +159,7 @@
 import { ref, computed } from 'vue'
 import { onShow } from '@dcloudio/uni-app'
 import PremiumBottomNav from '@/components/PremiumBottomNav.vue'
+import { switchTabCompat } from '@/utils/util'
 import { getQuickNoteList, addQuickNote, updateQuickNote, deleteQuickNote, toggleArchiveQuickNote, getTagAll } from '@/api/knowledge'
 
 const memoList = ref<any[]>([])
@@ -379,7 +380,7 @@ const goBack = () => {
   if (pages.length > 1) {
     uni.navigateBack()
   } else {
-    uni.switchTab({ url: '/pages/index/index' })
+    switchTabCompat('/pages/index/index')
   }
 }
 

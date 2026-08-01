@@ -260,6 +260,7 @@
 import { computed, onMounted, ref } from 'vue'
 import { onShow } from '@dcloudio/uni-app'
 import PremiumBottomNav from '@/components/PremiumBottomNav.vue'
+import { switchTabCompat } from '@/utils/util'
 import CalendarGrid from '@/components/calendar-grid/CalendarGrid.vue'
 import EventList from './components/EventList.vue'
 import ScheduleFormSheet from './components/ScheduleFormSheet.vue'
@@ -297,7 +298,7 @@ const goBack = () => {
     if (pages.length > 1) {
         uni.navigateBack()
     } else {
-        uni.switchTab({ url: '/pages/index/index' })
+        switchTabCompat('/pages/index/index')
     }
 }
 const showPinSettings = () => {

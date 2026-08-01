@@ -438,6 +438,7 @@
             "navigationStyle": "custom"
         }
     },
+    // #ifndef APP-PLUS
     "tabBar": {
         "custom": true,
         "iconWidth": "20px",
@@ -474,6 +475,7 @@
             }
         ]
     },
+    // #endif
     "easycom": {
         "custom": {
             "router-navigate": "uniapp-router-next/components/router-navigate/router-navigate.vue",

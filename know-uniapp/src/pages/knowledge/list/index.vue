@@ -123,6 +123,7 @@
 import { ref } from 'vue'
 import { onShow } from '@dcloudio/uni-app'
 import { useRouter } from 'uniapp-router-next'
+import { switchTabCompat } from '@/utils/util'
 import PremiumBottomNav from '@/components/PremiumBottomNav.vue'
 import { getKnowledgeBaseList, addKnowledgeBase, updateKnowledgeBase, deleteKnowledgeBase } from '@/api/knowledge'
 
@@ -161,7 +162,7 @@ const loadData = async () => {
 }
 
 const goBack = () => {
-  uni.switchTab({ url: '/pages/index/index' })
+  switchTabCompat('/pages/index/index')
 }
 
 const goToDetail = (id: number) => {
