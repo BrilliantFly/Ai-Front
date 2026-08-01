@@ -277,6 +277,7 @@ import { computed, reactive, ref } from 'vue'
 import { onLoad } from '@dcloudio/uni-app'
 import { addHabit, getHabitDetail, updateHabit } from '@/api/plan/habit'
 import { formatYYYYMMDD } from '@/components/calendar-grid/calendar-utils.js'
+import { registerHabitReminder } from '@/utils/reminder'
 
 const categoryOptions = ['健康', '学习', '工作', '生活']
 const frequencyPeriods = [
@@ -590,9 +591,18 @@ const handleSave = async () => {
             await updateHabit(payload)
             uni.showToast({ title: '更新成功', icon: 'success' })
         } else {
-            await addHabit(payload)
+            const res = await addHabit(payload)
             uni.showToast({ title: '保存成功', icon: 'success' })
+            // 新建成功拿到后端返回 id 后注册提醒
+            payload.id = (res && (res.id || res.data?.id)) || editId.value || payload.id
         }
+        // App 端注册每日提醒
+        registerHabitReminder({
+            id: payload.id || editId.value || '',
+            name: payload.name,
+            reminderTime: payload.reminderTime,
+            secondReminder: payload.secondReminder
+        })
         setTimeout(() => uni.navigateBack(), 500)
     } catch (error) {
         console.error(error)

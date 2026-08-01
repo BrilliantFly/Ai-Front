@@ -234,6 +234,7 @@ import {
 } from '@/api/plan/schedule'
 import { formatYYYYMMDD } from '@/components/calendar-grid/calendar-utils.js'
 import { useHoverEffect } from '@/hooks/useHoverEffect'
+import { registerScheduleReminder } from '@/utils/reminder'
 
 useHoverEffect(
     '.action-btn.cancel,.action-btn.submit,.section-card,.fg-input,.fg-select,.fg-textarea,.quad-option,.check-chip,.more-summary,.subtask-del,.btn-add-sub'
@@ -592,9 +593,18 @@ const handleSave = async () => {
             await updateSchedule(payload)
             uni.showToast({ title: '更新成功', icon: 'success' })
         } else {
-            await addSchedule(payload)
+            const res = await addSchedule(payload)
             uni.showToast({ title: '添加成功', icon: 'success' })
+            // 新建成功拿到后端返回 id 后注册提醒
+            payload.id = (res && (res.id || res.data?.id)) || editId.value || payload.id
         }
+        // App 端注册本地通知提醒（多提醒取最早提前分钟数）
+        registerScheduleReminder({
+            id: payload.id || editId.value || '',
+            title: payload.title,
+            startTime: payload.startTime,
+            remindMinutes: payload.remindMinutes
+        })
         emit('saved')
         emit('close')
     } catch (error) {

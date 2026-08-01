@@ -268,6 +268,7 @@ import EventList from './components/EventList.vue'
 import ScheduleFormSheet from './components/ScheduleFormSheet.vue'
 import { useSchedule } from './composables/useSchedule'
 import { deleteSchedule, getTodayStats } from '@/api/plan/schedule'
+import { removeRemindersByBiz } from '@/utils/reminder'
 import { useHoverEffect } from '@/hooks/useHoverEffect'
 
 useHoverEffect('.stat-card,.detail-action-btn')
@@ -463,6 +464,8 @@ const handleDelete = async (item) => {
     try {
         await deleteSchedule(item.id)
         uni.showToast({ title: '已删除', icon: 'success' })
+        // 同步清理该日程的本地提醒
+        removeRemindersByBiz('schedule', String(item.id))
         await fetchCalendarMonthly()
         if (selectedDateLabel.value) {
             await fetchDayEvents(selectedDateLabel.value)

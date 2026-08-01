@@ -244,6 +244,7 @@ import {
     updateSchedule
 } from '@/api/plan/schedule'
 import { formatYYYYMMDD } from '@/components/calendar-grid/calendar-utils.js'
+import { registerScheduleReminder } from '@/utils/reminder'
 
 const quadrantCards = [
     { value: 1, label: '重要紧急', icon: '🔥' },
@@ -551,9 +552,18 @@ const handleSave = async () => {
             await updateSchedule(payload)
             uni.showToast({ title: '更新成功', icon: 'success' })
         } else {
-            await addSchedule(payload)
+            const res = await addSchedule(payload)
             uni.showToast({ title: '添加成功', icon: 'success' })
+            // 新建成功拿到后端返回 id 后注册提醒
+            payload.id = (res && (res.id || res.data?.id)) || editId.value || payload.id
         }
+        // App 端注册本地通知提醒
+        registerScheduleReminder({
+            id: payload.id || editId.value || '',
+            title: payload.title,
+            startTime: payload.startTime,
+            remindMinutes: payload.remindMinutes
+        })
         setTimeout(() => uni.navigateBack(), 500)
     } catch (error) {
         console.error(error)
