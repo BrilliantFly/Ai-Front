@@ -6,7 +6,7 @@
                 <view class="back-btn" @tap="goBack">
                     <text class="back-icon">‹</text>
                 </view>
-                <text class="page-title">设备中心</text>
+                <text class="page-title">📹 设备中心</text>
             </view>
             <!-- 操作按钮：暂以隐藏方式保留，需要时去掉 v-show="false" 即可恢复 -->
             <view class="header-actions" v-show="false">

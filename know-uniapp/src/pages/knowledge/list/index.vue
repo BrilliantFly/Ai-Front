@@ -6,7 +6,7 @@
         <view class="back-btn" @tap="goBack">
           <text class="back-icon">‹</text>
         </view>
-        <text class="header-title">我的知识库</text>
+        <text class="header-title">📚 我的知识库</text>
       </view>
       <!-- 新建按钮已改为右下角悬浮按钮 -->
       <view class="create-btn" v-show="false" @tap="openCreateDialog">

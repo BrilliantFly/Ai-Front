@@ -6,9 +6,10 @@
         <view class="back-btn" @tap="goBack">
           <text class="back-icon">‹</text>
         </view>
-        <text class="header-title">小记</text>
+        <text class="header-title">📝 小记</text>
       </view>
-      <view class="header-actions">
+      <!-- 操作按钮：暂以隐藏方式保留，需要时去掉 v-show="false" 即可恢复 -->
+      <view class="header-actions" v-show="false">
         <view class="header-btn" @tap="openFilterModal">
           <text class="filter-icon">☰</text>
         </view>
@@ -493,7 +494,7 @@ onShow(() => {
     .back-icon { font-size: 44rpx; line-height: 1; color: var(--color-text, #1F2329); }
   }
 
-  .header-title { font-size: 34rpx; font-weight: 600; color: var(--color-text, #1F2329); }
+  .header-title { font-size: 36rpx; font-weight: 600; color: var(--color-text, #1F2329); }
   .header-actions { display: flex; gap: 8rpx; }
 
   .header-btn {

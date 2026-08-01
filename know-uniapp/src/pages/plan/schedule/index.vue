@@ -7,7 +7,7 @@
                     <text class="back-icon">‹</text>
                 </view>
                 <view class="header-title-wrap">
-                    <text class="header-title">日程计划</text>
+                    <text class="header-title">📅 日程计划</text>
                     <!-- 副标题：暂以隐藏方式保留，需要时去掉 v-show="false" 即可恢复 -->
                     <text class="header-sub" v-show="false">高效管理你的每一项安排</text>
                 </view>
