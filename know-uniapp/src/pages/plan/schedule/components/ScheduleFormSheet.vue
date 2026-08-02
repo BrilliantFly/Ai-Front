@@ -1,5 +1,5 @@
 <template>
-    <view v-if="visible" class="form-overlay" @tap="onOverlayTap">
+    <view class="form-overlay" :class="{ active: visible }" @tap="onOverlayTap">
         <view class="form-sheet" @tap.stop>
             <view class="sheet-handle"></view>
             <view class="sheet-header">
@@ -621,10 +621,13 @@ const handleSave = async () => {
     inset: 0;
     background: rgba(0, 0, 0, 0.4);
     z-index: 300;
-    display: flex;
+    display: none;
     align-items: flex-end;
     justify-content: center;
-    animation: overlayFadeIn 0.2s ease;
+
+    &.active {
+        display: flex;
+    }
 }
 
 .form-sheet {
@@ -635,7 +638,6 @@ const handleSave = async () => {
     padding: 18rpx 24rpx 28rpx;
     border-radius: 32rpx 32rpx 0 0;
     background: var(--color-bg-app, #ffffff);
-    animation: sheetSlideUp 0.3s cubic-bezier(0.22, 1, 0.36, 1);
 }
 
 .sheet-handle {
@@ -1283,24 +1285,6 @@ const handleSave = async () => {
 }
 
 /* ===== Keyframe animations ===== */
-@keyframes overlayFadeIn {
-    from {
-        opacity: 0;
-    }
-    to {
-        opacity: 1;
-    }
-}
-
-@keyframes sheetSlideUp {
-    from {
-        transform: translateY(100%);
-    }
-    to {
-        transform: translateY(0);
-    }
-}
-
 @keyframes cardSlideIn {
     from {
         opacity: 0;

@@ -1,5 +1,5 @@
 <template>
-    <view v-if="visible" class="form-overlay" @tap.self="emit('close')">
+    <view class="form-overlay" :class="{ active: visible }" @tap.self="emit('close')">
         <view class="form-sheet">
             <view class="modal-handle"></view>
             <text class="modal-title">{{ isEdit ? '编辑目标' : '新建目标' }}</text>
@@ -687,18 +687,12 @@ const saveAsTemplate = () => {
     inset: 0;
     z-index: 200;
     background: rgba(15, 23, 42, 0.42);
-    display: flex;
+    display: none;
     align-items: flex-end;
-    animation: fadeIn 0.2s ease;
 }
 
-@keyframes fadeIn {
-    from {
-        opacity: 0;
-    }
-    to {
-        opacity: 1;
-    }
+.form-overlay.active {
+    display: flex;
 }
 
 .form-sheet {
@@ -709,16 +703,6 @@ const saveAsTemplate = () => {
     border-radius: 32rpx 32rpx 0 0;
     background: var(--color-bg-app, #ffffff);
     box-shadow: 0 -8rpx 40rpx rgba(15, 23, 42, 0.12);
-    animation: sheetSlideUp 0.3s cubic-bezier(0.22, 1, 0.36, 1);
-}
-
-@keyframes sheetSlideUp {
-    from {
-        transform: translateY(100%);
-    }
-    to {
-        transform: translateY(0);
-    }
 }
 
 .modal-handle {
@@ -1385,35 +1369,5 @@ const saveAsTemplate = () => {
     color: var(--color-text-tertiary);
     font-style: italic;
     font-weight: 400;
-}
-
-/* ===== Keyframe animations ===== */
-@keyframes overlayFadeIn {
-    from {
-        opacity: 0;
-    }
-    to {
-        opacity: 1;
-    }
-}
-
-@keyframes sheetSlideUp {
-    from {
-        transform: translateY(100%);
-    }
-    to {
-        transform: translateY(0);
-    }
-}
-
-@keyframes cardSlideIn {
-    from {
-        opacity: 0;
-        transform: translateY(12rpx);
-    }
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
 }
 </style>
