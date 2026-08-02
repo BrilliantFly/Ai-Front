@@ -262,6 +262,7 @@
 import { computed, ref } from 'vue'
 import { onShow, onHide } from '@dcloudio/uni-app'
 import { useRouter } from 'uniapp-router-next'
+import { switchTabCompat } from '@/utils/util'
 import PremiumBottomNav from '@/components/PremiumBottomNav.vue'
 import { useAppStore } from '@/stores/app'
 import { useUserStore } from '@/stores/user'
@@ -892,12 +893,7 @@ const handleScan = () => {
 
 const goNotice = () => {
     if (noticeItems.value.length) {
-        // #ifdef APP-PLUS
-        router.reLaunch('/pages/news/news')
-        // #endif
-        // #ifndef APP-PLUS
-        router.switchTab('/pages/news/news')
-        // #endif
+        switchTabCompat('/pages/news/news')
         return
     }
     uni.showToast({ title: '暂无更多公告', icon: 'none' })
@@ -915,12 +911,7 @@ const TABBAR_PAGES = [
 const goLink = (path?: string) => {
     if (!path) return
     if (TABBAR_PAGES.includes(path)) {
-        // #ifdef APP-PLUS
-        router.reLaunch(path)
-        // #endif
-        // #ifndef APP-PLUS
-        router.switchTab(path)
-        // #endif
+        switchTabCompat(path)
         return
     }
     router.navigateTo(path)

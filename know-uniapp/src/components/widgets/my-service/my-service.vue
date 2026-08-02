@@ -52,7 +52,7 @@
 
 <script lang="ts" setup>
 import { computed } from 'vue'
-import { navigateTo, objectToQuery } from '@/utils/util'
+import { navigateTo, objectToQuery, switchTabCompat } from '@/utils/util'
 import { useUserStore } from '@/stores/user'
 import { storeToRefs } from 'pinia'
 import { useRouter } from 'uniapp-router-next'
@@ -171,12 +171,7 @@ const openLink = (link: DecorateLink) => {
         }
         const url = link.query ? `${link.path}?${objectToQuery(link.query)}` : link.path
         if (link.canTab) {
-            // #ifdef APP-PLUS
-            router.reLaunch(url)
-            // #endif
-            // #ifndef APP-PLUS
-            router.switchTab(url)
-            // #endif
+            switchTabCompat(url)
             return
         }
         router.navigateTo(url)

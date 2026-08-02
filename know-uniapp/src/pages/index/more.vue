@@ -113,12 +113,7 @@ const loadMenus = async () => {
 const goLink = (path?: string) => {
     if (!path) return
     if (['/pages/index/index', '/pages/user/user', '/pages/news/news'].includes(path)) {
-        // #ifdef APP-PLUS
-        router.reLaunch(path)
-        // #endif
-        // #ifndef APP-PLUS
-        router.switchTab(path)
-        // #endif
+        switchTabCompat(path)
         return
     }
     router.navigateTo(path)
