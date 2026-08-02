@@ -162,7 +162,13 @@ const loadData = async () => {
 }
 
 const goBack = () => {
-  switchTabCompat('/pages/index/index')
+  // 复刻「首页标语」页返回模式：有上一页则返回，否则回首页
+  const pages = getCurrentPages()
+  if (pages.length > 1) {
+    uni.navigateBack()
+  } else {
+    switchTabCompat('/pages/index/index')
+  }
 }
 
 const goToDetail = (id: number) => {

@@ -39,12 +39,24 @@ export function currentPage() {
 
 /**
  * @description 平台兼容的 tab 切换：
- * - App 端未配置原生 tabBar（方案B），需用 reLaunch 模拟 tab 切换
+ * - App 端未配置原生 tabBar，复刻「首页标语」页的 navigateTo 压栈方式模拟 tab 切换：
+ *   目标页已在栈中 → navigateBack 回到该页（避免重复压栈，并清理其上的页面）
+ *   否则 → navigateTo 压栈（保留返回链，左滑/返回键可回到上一页，而非触发退出应用）
  * - H5 / 小程序端保留原生 tabBar 配置，继续使用 switchTab
  */
 export function switchTabCompat(url: string) {
     // #ifdef APP-PLUS
-    uni.reLaunch({ url })
+    const stack = getCurrentPages()
+    const target = url.split('?')[0]
+    const targetIndex = stack.findIndex((page) => '/' + page.route === target)
+    if (targetIndex >= 0) {
+        const delta = stack.length - 1 - targetIndex
+        if (delta > 0) {
+            uni.navigateBack({ delta })
+        }
+        return
+    }
+    uni.navigateTo({ url })
     // #endif
     // #ifndef APP-PLUS
     uni.switchTab({ url })
