@@ -121,20 +121,22 @@
             <template v-if="activeTab === 'checkin'">
                 <view v-for="item in dayHabitRecords" :key="item.habitId" class="goal-card-wrap">
                     <view class="swipe-actions">
-                        <view class="swipe-action action-done" @tap.stop="onHabitSwipeAction(item)">
+                        <!-- 完成/编辑按钮已按要求隐藏（v-if=false），保留代码便于后续恢复 -->
+                        <view v-if="false" class="swipe-action action-done" @tap.stop="onHabitSwipeAction(item)">
                             <text class="sa-icon">{{ item.checked ? '↩' : '✓' }}</text>
                             <text class="sa-label">{{ item.checked ? '取消' : '完成' }}</text>
                         </view>
-                        <view
-                            class="swipe-action action-edit"
-                            @tap.stop="editHabitFromCheckin(item)"
-                        >
+                        <view v-if="false" class="swipe-action action-edit" @tap.stop="editHabitFromCheckin(item)">
                             <text class="sa-icon">✏️</text>
                             <text class="sa-label">编辑</text>
                         </view>
                         <view class="swipe-action action-archive" @tap.stop="archiveHabit(item)">
                             <text class="sa-icon">📦</text>
                             <text class="sa-label">结束</text>
+                        </view>
+                        <view class="swipe-action action-delete" @tap.stop="deleteHabitFromCheckin(item)">
+                            <text class="sa-icon">🗑️</text>
+                            <text class="sa-label">删除</text>
                         </view>
                     </view>
                     <view
@@ -303,13 +305,22 @@
                         }}</text>
                         <text class="mi-sub">{{ buildArchivedMeta(habit) }}</text>
                     </view>
-                    <button
-                        class="mi-action"
-                        type="button"
-                        @tap.stop="restoreHabitFromManage(habit)"
-                    >
-                        恢复
-                    </button>
+                    <view class="manage-actions">
+                        <button
+                            class="mi-action"
+                            type="button"
+                            @tap.stop="restoreHabitFromManage(habit)"
+                        >
+                            恢复
+                        </button>
+                        <button
+                            class="mi-action"
+                            type="button"
+                            @tap.stop="deleteHabitFromManage(habit)"
+                        >
+                            删除
+                        </button>
+                    </view>
                 </view>
                 <view
                     style="
@@ -495,6 +506,7 @@ import CalendarGrid from '@/components/calendar-grid/CalendarGrid.vue'
 import HabitFormSheet from './components/HabitFormSheet.vue'
 import {
     checkinHabit,
+    deleteHabit,
     getCalendarMonthly,
     getHabitStats,
     uncheckinHabit,
@@ -661,7 +673,7 @@ const isGroupCollapsed = (cat) => {
 }
 
 const HABIT_SWIPE_THRESHOLD = 42
-const HABIT_SWIPE_MAX = 210
+const HABIT_SWIPE_MAX = 140
 const habitSwipeOffsets = ref({})
 const openHabitId = ref(null)
 
@@ -787,7 +799,9 @@ const buildArchivedMeta = (habit = {}) => {
 const mapHabitRecordsForDay = (dateStr) => {
     if (!dateStr) return []
     const day = Number(dateStr.split('-')[2])
-    return allHabits.value.map((habit) => {
+    return allHabits.value
+        .filter((habit) => !habit.endDate)
+        .map((habit) => {
         const checked = (habit.checkinDays || []).includes(day)
         return {
             habitId: habit.habitId || habit.id,
@@ -1099,6 +1113,48 @@ const editHabitFromCheckin = (item) => {
 
 const archiveHabit = (item) => {
     archiveHabitFromManage(item)
+}
+
+const deleteHabitFromCheckin = (item) => {
+    const habitId = item.habitId
+    if (!habitId) return
+    uni.showModal({
+        title: '删除习惯',
+        content:
+            `确定要删除「${item.habitName || '未命名习惯'}」吗？该操作不可恢复，打卡记录将一并删除。`,
+        confirmColor: '#ff3b30',
+        success: async (res) => {
+            if (!res.confirm) return
+            try {
+                await deleteHabit(habitId)
+                uni.showToast({ title: '已删除', icon: 'success' })
+                await refreshHabitPage()
+            } catch (error) {
+                console.error('删除习惯失败', error)
+            }
+        }
+    })
+}
+
+const deleteHabitFromManage = (habit) => {
+    const habitId = habit.habitId || habit.id
+    if (!habitId) return
+    uni.showModal({
+        title: '删除习惯',
+        content:
+            `确定要删除「${habit.habitName || habit.name || '未命名习惯'}」吗？该操作不可恢复，打卡记录将一并删除。`,
+        confirmColor: '#ff3b30',
+        success: async (res) => {
+            if (!res.confirm) return
+            try {
+                await deleteHabit(habitId)
+                uni.showToast({ title: '已删除', icon: 'success' })
+                await refreshHabitPage()
+            } catch (error) {
+                console.error('删除习惯失败', error)
+            }
+        }
+    })
 }
 
 const moveHabit = (habit, dir, cat) => {
@@ -1700,6 +1756,14 @@ onShow(async () => {
 
 .goal-card-wrap .swipe-action.action-archive {
     background: var(--color-text-tertiary, #8e8e93);
+}
+
+.goal-card-wrap .swipe-action.action-delete {
+    background: linear-gradient(135deg, #8e8e93, #6c6c70);
+}
+
+.goal-card-wrap .swipe-action.action-archive {
+    background: linear-gradient(135deg, var(--color-primary), #8980f0);
 }
 
 .goal-card-wrap .swipe-action.hover-active {

@@ -1,6 +1,16 @@
 import { isDevMode } from '@/utils/env'
+
+//#ifdef APP-PLUS
+// App 原生端：HBuilderX 打包不会加载 .env.app，必须内置兜底域名，
+// 否则 VITE_APP_BASE_URL 为空 → 相对路径 → 原生环境全部请求失败
+const envBaseUrl = import.meta.env.VITE_APP_BASE_URL || 'http://101.37.83.88'
+// customer 模块暂未启用，与主服务同域名兜底
+const envCustomerBaseUrl = import.meta.env.VITE_CUSTOMER_BASE_URL || 'http://101.37.83.88'
+//#endif
+//#ifndef APP-PLUS
 const envBaseUrl = import.meta.env.VITE_APP_BASE_URL || ''
 const envCustomerBaseUrl = import.meta.env.VITE_CUSTOMER_BASE_URL || ''
+//#endif
 
 let baseUrl = `${envBaseUrl}/`
 let customerBaseUrl = `${envCustomerBaseUrl}/`

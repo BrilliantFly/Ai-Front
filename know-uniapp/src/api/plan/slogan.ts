@@ -8,6 +8,13 @@ export function getSloganPage(params) {
 }
 
 /**
+ * 查询启用标语列表（首页轮播用，按 sort 升序）
+ */
+export function getSloganList(params) {
+    return request.get({ url: '/plan/slogan/list', data: params })
+}
+
+/**
  * 新增首页标语
  */
 export function addSlogan(data) {

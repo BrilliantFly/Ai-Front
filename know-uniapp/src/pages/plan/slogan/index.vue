@@ -12,7 +12,7 @@
 
     <!-- 副标题提示 -->
     <view class="intro-bar">
-      <text class="intro-text">标语将在首页 hero 区轮播展示，支持设置生效时间窗（可留空表示永久有效）</text>
+      <text class="intro-text">标语将在首页 hero 区按排序定时轮播展示，数字越小越靠前</text>
     </view>
 
     <!-- 内容区域 -->
@@ -41,6 +41,7 @@
             @touchstart="onSwipeStart($event, item.id)"
             @touchmove="onSwipeMove($event, item.id)"
             @touchend="onSwipeEnd($event, item.id)"
+            @tap.stop="handleCardTap(item)"
             @longpress="showCardActions(item)"
           >
             <view class="slogan-card" :class="{ disabled: item.status !== 1 }">
@@ -52,7 +53,7 @@
               </view>
               <text class="card-content">{{ item.content }}</text>
               <view class="card-footer">
-                <text class="card-time">{{ formatTimeWindow(item) }}</text>
+                <text class="card-time">永久有效</text>
                 <text class="card-sort" v-if="item.sort != null">排序 {{ item.sort }}</text>
               </view>
             </view>
@@ -104,33 +105,21 @@
                 :maxlength="10"
               />
             </view>
+            <view class="emoji-quick-row">
+              <view
+                class="emoji-quick"
+                :class="{ selected: formEmoji === e }"
+                v-for="e in emojiQuickOptions"
+                :key="e"
+                @tap="formEmoji = e"
+              >
+                <text>{{ e }}</text>
+              </view>
+            </view>
             <view class="emoji-preview" v-if="formEmoji">
               <text class="emoji-preview-label">预览：</text>
               <text class="emoji-preview-icon">{{ formEmoji }}</text>
             </view>
-          </view>
-
-          <view class="fgs-full">
-            <text class="fg-label">⏰ 生效时间窗</text>
-            <view class="time-row">
-              <view class="time-col">
-                <text class="time-label">开始日期</text>
-                <picker mode="date" :value="formStartDate" @change="onStartDateChange">
-                  <view class="time-picker" :class="{ empty: !formStartDate }">
-                    {{ formStartDate || '不限' }}
-                  </view>
-                </picker>
-              </view>
-              <view class="time-col">
-                <text class="time-label">结束日期</text>
-                <picker mode="date" :value="formEndDate" @change="onEndDateChange">
-                  <view class="time-picker" :class="{ empty: !formEndDate }">
-                    {{ formEndDate || '不限' }}
-                  </view>
-                </picker>
-              </view>
-            </view>
-            <text class="field-help">留空表示永久有效；仅在时间窗内展示</text>
           </view>
 
           <view class="fgs-full">
@@ -178,11 +167,12 @@ const showModal = ref(false)
 const editingId = ref(0)
 const submitting = ref(false)
 
+// 快捷表情（与 vue 管理端一致）
+const emojiQuickOptions = ['✨', '🚀', '🌱', '⭐', '🔥', '💪', '🌈', '🎯', '📝', '☀️']
+
 // ===== 表单状态 =====
 const formContent = ref('')
 const formEmoji = ref('')
-const formStartDate = ref('')
-const formEndDate = ref('')
 const formSort = ref('')
 const formStatus = ref(1)
 
@@ -191,6 +181,13 @@ const SWIPE_THRESHOLD = 42
 const SWIPE_MAX = 210
 const swipeOffsets = ref<Record<number, { startX: number; currentX: number; translateX: number }>>({})
 const openSwipeId = ref<number | null>(null)
+// 最近一次滑动结束时间，用于避免滑动后误触卡片 tap 进入编辑
+let lastSwipeAt = 0
+
+const handleCardTap = (item: any) => {
+  if (Date.now() - lastSwipeAt < 350) return
+  openEditModal(item)
+}
 
 const closeSwipe = (id: number) => {
   if (swipeOffsets.value[id]) swipeOffsets.value[id].translateX = 0
@@ -220,6 +217,7 @@ const onSwipeMove = (e: any, id: number) => {
 const onSwipeEnd = (e: any, id: number) => {
   const data = swipeOffsets.value[id]
   if (!data) return
+  lastSwipeAt = Date.now()
   if (Math.abs(data.translateX) > SWIPE_THRESHOLD) {
     openSwipeId.value = id
     data.translateX = -SWIPE_MAX
@@ -247,31 +245,11 @@ const loadData = async () => {
   }
 }
 
-// ===== 时间处理 =====
-const formatDate = (timestamp: number) => {
-  if (!timestamp) return ''
-  const date = new Date(timestamp)
-  return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(
-    date.getDate()
-  ).padStart(2, '0')}`
-}
-
-const formatTimeWindow = (item: any) => {
-  const start = formatDate(item.startTime)
-  const end = formatDate(item.endTime)
-  if (!start && !end) return '永久有效'
-  if (start && !end) return `${start} 起`
-  if (!start && end) return `${end} 止`
-  return `${start} ~ ${end}`
-}
-
 // ===== 弹窗 =====
 const openCreateModal = () => {
   editingId.value = 0
   formContent.value = ''
   formEmoji.value = ''
-  formStartDate.value = ''
-  formEndDate.value = ''
   formSort.value = ''
   formStatus.value = 1
   showModal.value = true
@@ -281,8 +259,6 @@ const openEditModal = (item: any) => {
   editingId.value = item.id
   formContent.value = item.content || ''
   formEmoji.value = item.emoji || ''
-  formStartDate.value = formatDate(item.startTime)
-  formEndDate.value = formatDate(item.endTime)
   formSort.value = item.sort != null ? String(item.sort) : ''
   formStatus.value = item.status === 1 ? 1 : 0
   closeSwipe(item.id)
@@ -294,18 +270,8 @@ const closeModal = () => {
   editingId.value = 0
   formContent.value = ''
   formEmoji.value = ''
-  formStartDate.value = ''
-  formEndDate.value = ''
   formSort.value = ''
   formStatus.value = 1
-}
-
-const onStartDateChange = (e: any) => {
-  formStartDate.value = e.detail.value
-}
-
-const onEndDateChange = (e: any) => {
-  formEndDate.value = e.detail.value
 }
 
 const onStatusChange = (e: any) => {
@@ -319,23 +285,11 @@ const handleSave = async () => {
     uni.showToast({ title: '请输入标语内容', icon: 'none' })
     return
   }
-  // 结束日期不能早于开始日期
-  if (formStartDate.value && formEndDate.value && formEndDate.value < formStartDate.value) {
-    uni.showToast({ title: '结束日期不能早于开始日期', icon: 'none' })
-    return
-  }
   submitting.value = true
   try {
     const payload: any = {
       content: formContent.value.trim(),
       emoji: formEmoji.value.trim(),
-      // 开始日期 → 当天 00:00:00；结束日期 → 当天 23:59:59.999
-      startTime: formStartDate.value
-        ? new Date(`${formStartDate.value.replace(/-/g, '/')} 00:00:00`).getTime()
-        : null,
-      endTime: formEndDate.value
-        ? new Date(`${formEndDate.value.replace(/-/g, '/')} 23:59:59`).getTime() + 999
-        : null,
       sort: formSort.value ? Number(formSort.value) : 0,
       status: formStatus.value
     }
@@ -753,32 +707,27 @@ onShow(() => {
   line-height: 1;
 }
 
-/* ===== 时间窗 ===== */
-.time-row {
+/* ===== 表情快捷选择 ===== */
+.emoji-quick-row {
   display: flex;
-  gap: 20rpx;
+  flex-wrap: wrap;
+  gap: 16rpx;
+  margin-top: 16rpx;
 }
-.time-col {
-  flex: 1;
-}
-.time-label {
-  font-size: 22rpx;
-  color: var(--color-text-secondary, #646a73);
-  display: block;
-  margin-bottom: 10rpx;
-}
-.time-picker {
-  height: 82rpx;
+.emoji-quick {
+  width: 76rpx;
+  height: 76rpx;
   display: flex;
   align-items: center;
   justify-content: center;
-  background: var(--color-surface, #fff);
-  border: 1rpx solid var(--color-border-light, #e8e9eb);
+  background: var(--color-surface-soft, #f1f5f2);
+  border: 2rpx solid transparent;
   border-radius: 18rpx;
-  font-size: 28rpx;
-  color: var(--color-text, #1f2329);
-  &.empty {
-    color: var(--color-text-tertiary, #c0c4cc);
+  font-size: 40rpx;
+  line-height: 1;
+  &.selected {
+    background: var(--color-primary-soft, #e8f8ef);
+    border-color: var(--color-primary, #25b864);
   }
 }
 

@@ -260,12 +260,13 @@
 
 <script setup lang="ts">
 import { computed, ref } from 'vue'
-import { onShow } from '@dcloudio/uni-app'
+import { onShow, onHide } from '@dcloudio/uni-app'
 import { useRouter } from 'uniapp-router-next'
 import PremiumBottomNav from '@/components/PremiumBottomNav.vue'
 import { useAppStore } from '@/stores/app'
 import { useUserStore } from '@/stores/user'
-import { getHomeConfig, getCurrentSlogan } from '@/api/plan/home'
+import { getHomeConfig } from '@/api/plan/home'
+import { getSloganList } from '@/api/plan/slogan'
 import { getHomeMenu } from '@/api/system/menu'
 import { getTodayStats } from '@/api/plan/schedule'
 import { getCustomerStats } from '@/api/customer'
@@ -307,7 +308,11 @@ const router = useRouter()
 const noticeList = ref<any[]>([])
 const menuList = ref<any[]>([])
 const currentHero = ref(0)
-const sloganContent = ref<{ emoji?: string; content?: string } | null>(null)
+// 首页标语轮播：按 sort 优先级定时切换
+const sloganList = ref<any[]>([])
+const sloganIndex = ref(0)
+let sloganTimer: ReturnType<typeof setInterval> | null = null
+const SLOGAN_ROTATE_INTERVAL = 5000
 const todayStats = ref({
     totalCount: 0,
     todoCount: 0,
@@ -524,8 +529,9 @@ const heroSubline = computed(() => {
     if (todayStats.value.todoCount > 0) {
         return `✨ 今日还有 ${todayStats.value.todoCount} 项待办，保持节奏继续推进`
     }
-    if (sloganContent.value?.content) {
-        return `${sloganContent.value.emoji || '✨'} ${sloganContent.value.content}`.trim()
+    const item = sloganList.value[sloganIndex.value]
+    if (item?.content) {
+        return `${item.emoji || '✨'} ${item.content}`.trim()
     }
     return '✨ 努力是光，坚持是路'
 })
@@ -835,12 +841,30 @@ const loadDashboardData = async () => {
 
 const loadSlogan = async () => {
     try {
-        const res: any = await withTimeout(getCurrentSlogan() as Promise<any>, null)
-        if (res && !isHtmlResponse(res) && res.content) {
-            sloganContent.value = { emoji: res.emoji || '', content: res.content }
-        }
+        const res: any = await withTimeout(getSloganList({ status: 1 }) as Promise<any>, null)
+        const arr = Array.isArray(res) ? res : res?.records || []
+        sloganList.value = arr.filter((i: any) => i?.content)
+        sloganIndex.value = 0
+        startSloganRotation()
     } catch (error) {
         console.error('加载首页标语失败', error)
+    }
+}
+
+// 定时轮播：按 sort 优先级（后端已升序）逐条切换，单条或空时不轮播
+const startSloganRotation = () => {
+    stopSloganRotation()
+    if (sloganList.value.length > 1) {
+        sloganTimer = setInterval(() => {
+            sloganIndex.value = (sloganIndex.value + 1) % sloganList.value.length
+        }, SLOGAN_ROTATE_INTERVAL)
+    }
+}
+
+const stopSloganRotation = () => {
+    if (sloganTimer !== null) {
+        clearInterval(sloganTimer)
+        sloganTimer = null
     }
 }
 
@@ -937,6 +961,10 @@ const onHeroChange = (event: any) => {
 onShow(async () => {
     await Promise.all([loadConfig(), loadDashboardData(), loadSlogan()])
 })
+
+onHide(() => {
+    stopSloganRotation()
+})
 </script>
 
 <style scoped lang="scss">
@@ -989,6 +1017,13 @@ onShow(async () => {
     background: linear-gradient(135deg, var(--color-primary), var(--color-minor));
     box-shadow: none;
 }
+
+/* App 端自定义导航栏：顶部避开状态栏（刘海屏/状态栏高度） */
+/* #ifdef APP-PLUS */
+.hero-bar {
+    padding-top: calc(34rpx + env(safe-area-inset-top));
+}
+/* #endif */
 
 .hero-bar::before {
     content: '';

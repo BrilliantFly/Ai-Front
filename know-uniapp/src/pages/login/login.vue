@@ -8,11 +8,11 @@
         <view class="bg-orbs"></view>
         <view class="toast" :class="{ show: toastMessage }">{{ toastMessage }}</view>
 
-        <view class="login-container" :class="{ compact: isCompact }">
-            <view class="theme-top">
-                <ThemeSwitcher />
-            </view>
+        <view class="theme-top">
+            <ThemeSwitcher />
+        </view>
 
+        <view class="login-container" :class="{ compact: isCompact }" :style="containerStyle">
             <view class="logo-wrap" :class="{ compact: isCompact }">
                 <image src="/static/images/logo.png" class="logo-image" mode="aspectFit" />
                 <text class="logo-name" v-if="showLogoName">{{ websiteConfig.shop_name || '喵百科' }}</text>
@@ -281,10 +281,29 @@ const toastMessage = ref('')
 // 不同平台（H5 / APP / 小程序）窗口高度不同，自然得到差异化布局
 const sysInfo = uni.getSystemInfoSync()
 const windowHeight = ref(sysInfo.windowHeight || 0)
+// 状态栏高度：App 端自定义导航栏布局需要避开状态栏
+const statusBarHeight = sysInfo.statusBarHeight || 0
+// 底部安全区（iPhone home indicator 等）
+const safeAreaBottom = sysInfo.safeAreaInsets?.bottom || 0
+
+// 一屏适配核心：根据窗口可用高度动态缩放整个登录卡片
+// 保证任何屏幕（H5/小程序/App/iOS）下内容一屏完整显示、垂直居中、无需滚动
+const containerStyle = computed(() => {
+    // 基准内容高度：登录卡片在设计稿高度（约 780px 视口）下的自然高度
+    const BASE = isCompact.value ? 620 : 700
+    // 可用高度：窗口高度扣除状态栏 + 底部安全区 + 上下留白（约 30px）
+    const avail = windowHeight.value - (statusBarHeight || 0) - safeAreaBottom - 30
+    if (!avail || avail <= 0) return {}
+    const ratio = Math.min(1, Math.max(0.7, avail / BASE))
+    return {
+        transform: `scale(${ratio})`,
+        transformOrigin: 'center center'
+    }
+})
 // 窗口高度过小时进入紧凑模式（缩小 logo、压缩间距）
 const isCompact = computed(() => windowHeight.value > 0 && windowHeight.value < 720)
-// 紧凑模式下隐藏 logo 下方的"喵百科"文字，保证登录卡片完整一屏
-const showLogoName = computed(() => !isCompact.value)
+// 隐藏 logo 下方的"喵百科"文字，保证登录卡片完整一屏（全平台隐藏）
+const showLogoName = computed(() => false)
 
 const formData = reactive({
     scene: 1,
@@ -558,6 +577,11 @@ onLoad(async () => {
     overflow: hidden;
     background: var(--color-bg-app);
     position: relative;
+    box-sizing: border-box;
+    /* #ifdef APP-PLUS */
+    // App 端避免底部安全区（home indicator）遮挡
+    padding-bottom: env(safe-area-inset-bottom);
+    /* #endif */
 }
 
 .bg-orbs {
@@ -639,15 +663,15 @@ onLoad(async () => {
     width: 400px;
     max-width: 92vw;
     padding: 24px 0;
-    margin: 0 auto;
+    // 垂直居中：父容器 flex 居中，transform scale 仅做视觉缩放不影响居中
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    will-change: transform;
 
     // 紧凑模式（小屏设备）：压缩各区块间距，保证登录卡片一屏完整展示
     &.compact {
         padding: 10px 0;
-
-        .theme-top {
-            padding-bottom: 0;
-        }
 
         .logo-wrap {
             margin-bottom: 14px;
@@ -718,10 +742,13 @@ onLoad(async () => {
 }
 
 .theme-top {
+    position: fixed;
+    top: calc(10px + env(safe-area-inset-top));
+    right: 14px;
+    z-index: 200;
     display: flex;
     align-items: center;
     justify-content: flex-end;
-    padding: 0 0 8px;
 }
 
 .logo-wrap {
