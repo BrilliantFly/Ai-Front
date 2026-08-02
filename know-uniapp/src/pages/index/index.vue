@@ -1018,10 +1018,10 @@ onHide(() => {
     box-shadow: none;
 }
 
-/* App 端自定义导航栏：顶部避开状态栏（刘海屏/状态栏高度） */
+/* App 端自定义导航栏：顶部避开状态栏（var(--status-bar-height) 在 App 端=状态栏实际高度，Android/iOS 均生效；H5=0） */
 /* #ifdef APP-PLUS */
 .hero-bar {
-    padding-top: calc(34rpx + env(safe-area-inset-top));
+    padding-top: calc(34rpx + var(--status-bar-height));
 }
 /* #endif */
 

@@ -250,8 +250,9 @@ import { isWeixinClient } from '@/utils/client'
 // #ifdef H5
 import wechatOa, { UrlScene } from '@/utils/wechat'
 // #endif
-import { onLoad } from '@dcloudio/uni-app'
-import { computed, reactive, ref, shallowRef, watch } from 'vue'
+import { getRect } from '@/utils/util'
+import { onLoad, onReady, onUnload } from '@dcloudio/uni-app'
+import { computed, nextTick, reactive, ref, shallowRef, watch } from 'vue'
 
 enum LoginWayEnum {
     ACCOUNT = 1,
@@ -277,8 +278,7 @@ const showPassword = ref(false)
 const rememberLogin = ref(true)
 const toastMessage = ref('')
 
-// 一屏适配：根据窗口高度动态调整布局
-// 不同平台（H5 / APP / 小程序）窗口高度不同，自然得到差异化布局
+// 一屏适配：优先实测真实渲染高度动态缩放，测量失败时回退到按窗口高度推算
 const sysInfo = uni.getSystemInfoSync()
 const windowHeight = ref(sysInfo.windowHeight || 0)
 // 状态栏高度：App 端自定义导航栏布局需要避开状态栏
@@ -286,12 +286,29 @@ const statusBarHeight = sysInfo.statusBarHeight || 0
 // 底部安全区（iPhone home indicator 等）
 const safeAreaBottom = sysInfo.safeAreaInsets?.bottom || 0
 
-// 一屏适配核心：根据窗口可用高度动态缩放整个登录卡片
-// 保证任何屏幕（H5/小程序/App/iOS）下内容一屏完整显示、垂直居中、无需滚动
+// 实测状态：wrapH=登录容器实际高度，cardH=卡片自然高度（未缩放），
+// measuring=true 时 containerStyle 返回 {}（清除 transform），避免量到缩放后的尺寸
+const wrapH = ref(0)
+const cardH = ref(0)
+const measured = ref(false)
+const measuring = ref(false)
+let measuringInFlight = false
+
+// 一屏适配核心：根据实测高度动态缩放整个登录卡片，保证任何屏幕一屏完整显示
 const containerStyle = computed(() => {
-    // 基准内容高度：登录卡片在设计稿高度（约 780px 视口）下的自然高度
+    // 测量过程中必须先清除 transform，否则 boundingClientRect 返回缩放后尺寸导致二次缩放偏差
+    if (measuring.value) return {}
+    if (measured.value && cardH.value > 0) {
+        // 可用高度：容器实测高度扣除上下留白（各 12px）
+        const avail = wrapH.value - 24
+        const ratio = Math.min(1, Math.max(0.55, avail / cardH.value))
+        return {
+            transform: `scale(${ratio})`,
+            transformOrigin: 'center center'
+        }
+    }
+    // 兜底回退：测量失败时沿用旧的窗口高度推算公式
     const BASE = isCompact.value ? 620 : 700
-    // 可用高度：窗口高度扣除状态栏 + 底部安全区 + 上下留白（约 30px）
     const avail = windowHeight.value - (statusBarHeight || 0) - safeAreaBottom - 30
     if (!avail || avail <= 0) return {}
     const ratio = Math.min(1, Math.max(0.7, avail / BASE))
@@ -301,9 +318,42 @@ const containerStyle = computed(() => {
     }
 })
 // 窗口高度过小时进入紧凑模式（缩小 logo、压缩间距）
-const isCompact = computed(() => windowHeight.value > 0 && windowHeight.value < 720)
+// 优先用实测 wrapH（App 端 windowHeight 可能偏大导致紧凑模式不生效）
+const isCompact = computed(() => {
+    const effectiveH = measured.value ? wrapH.value : windowHeight.value
+    return effectiveH > 0 && effectiveH < 720
+})
 // 隐藏 logo 下方的"喵百科"文字，保证登录卡片完整一屏（全平台隐藏）
 const showLogoName = computed(() => false)
+
+// 实测协议：清除 transform -> nextTick 等重渲染 -> 量取自然高度
+const measure = async () => {
+    if (measuringInFlight) return
+    measuringInFlight = true
+    measuring.value = true
+    await nextTick()
+    try {
+        const wrap = (await getRect('.login-wrap')) as any
+        const card = (await getRect('.login-container')) as any
+        wrapH.value = wrap?.height ?? 0
+        cardH.value = card?.height ?? 0
+        measured.value = cardH.value > 0
+    } catch {
+        // 测量失败：保持 measured=false，走旧公式兜底
+        measured.value = false
+    } finally {
+        measuring.value = false
+        measuringInFlight = false
+    }
+}
+
+onReady(() => {
+    measure()
+    uni.onWindowResize(measure)
+})
+onUnload(() => {
+    uni.offWindowResize(measure)
+})
 
 const formData = reactive({
     scene: 1,
@@ -743,7 +793,7 @@ onLoad(async () => {
 
 .theme-top {
     position: fixed;
-    top: calc(10px + env(safe-area-inset-top));
+    top: calc(10px + var(--status-bar-height));
     right: 14px;
     z-index: 200;
     display: flex;
