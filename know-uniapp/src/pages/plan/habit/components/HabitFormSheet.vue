@@ -684,15 +684,19 @@ const saveAsTemplate = () => {
 <style scoped lang="scss">
 .form-overlay {
     position: fixed;
-    inset: 0;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
     z-index: 200;
     background: rgba(15, 23, 42, 0.42);
     display: none;
     align-items: flex-end;
-}
+    justify-content: center;
 
-.form-overlay.active {
-    display: flex;
+    &.active {
+        display: flex;
+    }
 }
 
 .form-sheet {
