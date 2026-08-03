@@ -188,7 +188,7 @@ onLoad(() => {
   display: flex;
   align-items: center;
   gap: 16rpx;
-  padding: 16rpx 24rpx;
+  padding: calc(16rpx + var(--status-bar-height)) 24rpx 16rpx;
   background: var(--color-surface, #fff);
   border-bottom: 1rpx solid var(--color-border-light, #DEE0E3);
 

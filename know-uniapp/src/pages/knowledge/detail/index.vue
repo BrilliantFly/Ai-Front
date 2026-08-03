@@ -496,7 +496,7 @@ onLoad((options) => {
 .header {
   position: sticky; top: 0; z-index: 100;
   background: var(--color-surface, rgba(255,255,255,0.92)); backdrop-filter: blur(24rpx);
-  padding: 24rpx 16rpx; display: flex; align-items: center; justify-content: space-between;
+  padding: calc(24rpx + var(--status-bar-height)) 16rpx 24rpx; display: flex; align-items: center; justify-content: space-between;
   border-bottom: 1rpx solid var(--color-border-light, rgba(0,0,0,0.06));
 
   .header-left { display: flex; align-items: center; gap: 8rpx; flex: 1; min-width: 0; }

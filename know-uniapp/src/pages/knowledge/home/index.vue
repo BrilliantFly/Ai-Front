@@ -172,7 +172,7 @@ onShow(() => {
 
 .header {
   background: #fff;
-  padding: 24rpx 32rpx;
+  padding: calc(24rpx + var(--status-bar-height)) 32rpx 24rpx;
   display: flex;
   align-items: center;
   justify-content: space-between;

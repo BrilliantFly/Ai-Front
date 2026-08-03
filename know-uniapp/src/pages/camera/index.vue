@@ -304,7 +304,7 @@ onPullDownRefresh(async () => {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: 4px 20px 20px;
+    padding: calc(4px + var(--status-bar-height)) 20px 20px;
 }
 
 .header-left {

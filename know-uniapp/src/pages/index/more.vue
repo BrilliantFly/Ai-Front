@@ -132,7 +132,7 @@ onShow(() => {
 }
 
 .page-header {
-    padding: 0 8rpx 18rpx;
+    padding: var(--status-bar-height) 8rpx 18rpx;
 }
 
 .header-left {

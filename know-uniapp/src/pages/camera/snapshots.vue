@@ -14,7 +14,7 @@
         <view class="snapshots-list" v-if="snapshots.length > 0">
             <view
                 class="snapshot-item"
-                v-for="(item, index) in snapshots"
+                v-for="item in snapshots"
                 :key="item.id"
                 @tap="previewSnapshot(item)"
             >
@@ -219,7 +219,7 @@ function shareSnapshot(item: CameraSnapshot) {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 24rpx 40rpx 16rpx;
+    padding: calc(24rpx + var(--status-bar-height)) 40rpx 16rpx;
 }
 
 .header-left {

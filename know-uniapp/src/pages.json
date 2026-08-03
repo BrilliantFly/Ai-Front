@@ -75,7 +75,7 @@
         {
             "path": "pages/index/more",
             "style": {
-                "navigationBarTitleText": "更多内容"
+                "navigationStyle": "custom"
             }
         },
         {
@@ -253,7 +253,7 @@
         {
             "path": "pages/camera/index",
             "style": {
-                "navigationBarTitleText": "摄像头设备"
+                "navigationStyle": "custom"
             }
         },
         {
@@ -265,8 +265,7 @@
         {
             "path": "pages/camera/wifi-config",
             "style": {
-                "navigationBarTitleText": "WiFi配网",
-                "navigationBarBackgroundColor": "#ffffff"
+                "navigationStyle": "custom"
             }
         },
         {
@@ -300,7 +299,7 @@
         {
             "path": "pages/plan/schedule/index",
             "style": {
-                "navigationBarTitleText": "日程管理"
+                "navigationStyle": "custom"
             }
         },
         {
@@ -331,7 +330,7 @@
         {
             "path": "pages/plan/habit/index",
             "style": {
-                "navigationBarTitleText": "习惯打卡"
+                "navigationStyle": "custom"
             }
         },
         {
@@ -363,15 +362,13 @@
         {
             "path": "pages/camera/snapshots",
             "style": {
-                "navigationBarTitleText": "我的截图",
-                "navigationBarBackgroundColor": "#ffffff"
+                "navigationStyle": "custom"
             }
         },
         {
             "path": "pages/camera/records",
             "style": {
-                "navigationBarTitleText": "录像记录",
-                "navigationBarBackgroundColor": "#ffffff"
+                "navigationStyle": "custom"
             }
         },
         {
