@@ -68,41 +68,6 @@
                 </view>
             </view>
 
-            <view v-if="activeTab === 'checkin'" class="badge-strip premium-fade-in premium-d2">
-                <scroll-view scroll-x class="badge-scroll" show-scrollbar="false">
-                    <view
-                        v-for="ms in milestoneStatus"
-                        :key="ms.days"
-                        class="badge-item"
-                        :class="{ unlocked: ms.unlocked }"
-                    >
-                        <text class="badge-icon">{{ ms.icon }}</text>
-                        <text class="badge-days">{{ ms.days }}天</text>
-                    </view>
-                </scroll-view>
-            </view>
-
-            <view
-                v-if="activeTab === 'checkin' && selectedDateLabel && dayHabitRecords.length > 0"
-                class="day-overview premium-card premium-fade-in premium-d2"
-            >
-                <view class="overview-top">
-                    <text class="overview-date">{{ selectedDateLabel }}</text>
-                    <text class="overview-count">{{ dayHabitRecords.length }} 个习惯</text>
-                </view>
-                <view class="overview-chips">
-                    <text class="overview-chip">已打卡 {{ checkedCount }}</text>
-                    <text class="overview-chip">未打卡 {{ uncheckedCount }}</text>
-                    <text class="overview-chip">月完成率 {{ monthlyStats.rate }}%</text>
-                </view>
-                <view class="overview-progress" v-if="dayHabitRecords.length > 0">
-                    <view class="overview-bar">
-                        <view class="overview-fill" :style="{ width: dayCheckRate + '%' }"></view>
-                    </view>
-                    <text class="overview-rate">{{ dayCheckRate }}%</text>
-                </view>
-            </view>
-
             <view
                 class="day-title premium-fade-in premium-d3"
                 v-if="activeTab === 'checkin' && selectedDateLabel"
@@ -628,11 +593,6 @@ const monthlyStats = computed(() => {
     }
 })
 const checkedCount = computed(() => dayHabitRecords.value.filter((item) => item.checked).length)
-const uncheckedCount = computed(() => dayHabitRecords.value.filter((item) => !item.checked).length)
-const dayCheckRate = computed(() => {
-    if (!dayHabitRecords.value.length) return 0
-    return Math.round((checkedCount.value / dayHabitRecords.value.length) * 100)
-})
 const todayDate = computed(() => {
     const now = new Date()
     return formatYYYYMMDD(now.getFullYear(), now.getMonth() + 1, now.getDate())
@@ -645,16 +605,6 @@ const selectedRecordDate = () => {
 const bestHabit = computed(() => {
     if (!allHabits.value.length) return null
     return [...allHabits.value].sort((a, b) => (b.currentDays || 0) - (a.currentDays || 0))[0]
-})
-const milestoneStatus = computed(() => {
-    const bestDays = bestHabit.value?.currentDays || 0
-    return MILESTONES.map((milestone) => ({
-        ...milestone,
-        unlocked: bestDays >= milestone.days
-    }))
-})
-const unlockedMilestoneCount = computed(() => {
-    return milestoneStatus.value.filter((item) => item.unlocked).length
 })
 
 const collapsedGroups = ref({})
@@ -1231,11 +1181,6 @@ const restoreHabitFromManage = async (habit) => {
     }
 }
 
-const editHabitFromManage = (habit) => {
-    editingHabit.value = habit
-    showForm.value = true
-}
-
 const handleBackfillEntry = async () => {
     if (!detailModal.value.habitId) return
     if (detailModal.value.checked) {
@@ -1635,71 +1580,6 @@ onShow(async () => {
     margin-top: 6rpx;
     font-size: 21rpx;
     color: var(--color-text-secondary);
-}
-
-.day-overview {
-    margin: 0 16px 14px;
-    padding: 22rpx 24rpx;
-}
-
-.overview-top {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    gap: 20rpx;
-}
-
-.overview-date {
-    font-size: 28rpx;
-    font-weight: 600;
-    color: var(--color-text);
-}
-
-.overview-count {
-    font-size: 22rpx;
-    color: var(--color-text-secondary);
-}
-
-.overview-chips {
-    display: flex;
-    gap: 12rpx;
-    flex-wrap: wrap;
-    margin-top: 14rpx;
-}
-
-.overview-chip {
-    font-size: 22rpx;
-    color: var(--color-text-secondary);
-    background: var(--color-surface-soft, #f8fafc);
-    padding: 6rpx 16rpx;
-    border-radius: 999rpx;
-}
-
-.overview-progress {
-    display: flex;
-    align-items: center;
-    gap: 12rpx;
-    margin-top: 16rpx;
-}
-
-.overview-bar {
-    flex: 1;
-    height: 6rpx;
-    border-radius: 999rpx;
-    background: var(--color-surface-soft, #f8fafc);
-    overflow: hidden;
-}
-
-.overview-fill {
-    height: 100%;
-    border-radius: 999rpx;
-    background: linear-gradient(135deg, var(--color-primary, #6366f1), #8980f0);
-}
-
-.overview-rate {
-    font-size: 22rpx;
-    font-weight: 600;
-    color: var(--color-primary);
 }
 
 .stat-card {
@@ -2475,53 +2355,6 @@ button.detail-action-btn-primary {
 }
 .streak-card:active {
     transform: scale(0.96);
-}
-
-/* ---- badge strip ---- */
-.badge-strip {
-    padding: 0 32rpx 20rpx;
-}
-.badge-scroll {
-    display: flex;
-    flex-direction: row;
-    white-space: nowrap;
-    overflow-x: auto;
-    -webkit-overflow-scrolling: touch;
-    padding: 4rpx 0;
-}
-.badge-item {
-    display: inline-flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 4rpx;
-    padding: 12rpx 20rpx;
-    margin-right: 12rpx;
-    border-radius: 20rpx;
-    background: var(--color-surface-soft, #f5f5f7);
-    border: 2rpx solid var(--color-border-light, #e5e7eb);
-    opacity: 0.45;
-    filter: grayscale(1);
-    transition: all 0.3s ease;
-    flex-shrink: 0;
-}
-.badge-item.unlocked {
-    opacity: 1;
-    filter: grayscale(0);
-    border-color: var(--color-primary, #6366f1);
-    background: var(--color-surface, #ffffff);
-    box-shadow: 0 2rpx 8rpx rgba(99, 102, 241, 0.12);
-}
-.badge-icon {
-    font-size: 32rpx;
-    line-height: 1;
-}
-.badge-days {
-    font-size: 20rpx;
-    font-weight: 600;
-    color: var(--color-text-secondary, #6b7280);
-}
-.badge-item.unlocked .badge-days {
-    color: var(--color-primary, #6366f1);
 }
 
 /* ---- g-note ---- */
