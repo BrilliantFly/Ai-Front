@@ -190,7 +190,9 @@ export function useSchedule() {
     }
 
     // --- 获取日事件 ---
+    let dayEventsRequestSeq = 0
     const fetchDayEvents = async (dateStr) => {
+        const seq = ++dayEventsRequestSeq
         try {
             const parts = dateStr.split('-')
             const ts = new Date(
@@ -199,6 +201,8 @@ export function useSchedule() {
                 parseInt(parts[2])
             ).getTime()
             const res = await getScheduleByDate({ date: ts })
+            // 竞态保护：若期间用户已切换日期，丢弃过期响应
+            if (seq !== dayEventsRequestSeq) return
             const events = res || []
             dayEvents.value = events.map(normalizeEvent)
             // 同步 completedMap
@@ -208,7 +212,9 @@ export function useSchedule() {
             }
             completedMap.value = { ...completedMap.value, ...map }
         } catch (e) {
-            console.error('获取当日日程失败', e)
+            if (seq === dayEventsRequestSeq) {
+                console.error('获取当日日程失败', e)
+            }
         }
     }
 
@@ -250,7 +256,7 @@ export function useSchedule() {
             .then((res) => {
                 categories.value = res || []
             })
-            .catch(() => {})
+            .catch(() => undefined)
         // 默认选中今天
         const now = new Date()
         const today = formatYYYYMMDD(now.getFullYear(), now.getMonth() + 1, now.getDate())

@@ -34,6 +34,22 @@
                 @toggle-collapse="toggleCollapse"
             />
 
+            <!-- 今日已打卡统计：位于日历下方、tab 切换上方 -->
+            <view class="streak-cards premium-fade-in premium-d1">
+                <view class="streak-card" style="--card-accent: #6366f1">
+                    <text class="streak-num">{{ checkedCount }}</text>
+                    <text class="streak-label">今日已打卡</text>
+                </view>
+                <view class="streak-card" style="--card-accent: #f59e0b">
+                    <text class="streak-num">{{ bestHabit?.currentDays || 0 }}</text>
+                    <text class="streak-label">最长连续</text>
+                </view>
+                <view class="streak-card" style="--card-accent: #10b981">
+                    <text class="streak-num">{{ monthlyStats.rate }}%</text>
+                    <text class="streak-label">本月完成率</text>
+                </view>
+            </view>
+
             <view class="checkin-tabs premium-fade-in premium-d1">
                 <view
                     class="checkin-tab"
@@ -64,22 +80,6 @@
                         <text class="badge-days">{{ ms.days }}天</text>
                     </view>
                 </scroll-view>
-            </view>
-
-            <!-- 今日已打卡统计：位于徽章下方 -->
-            <view class="streak-cards premium-fade-in premium-d1">
-                <view class="streak-card" style="--card-accent: #6366f1">
-                    <text class="streak-num">{{ checkedCount }}</text>
-                    <text class="streak-label">今日已打卡</text>
-                </view>
-                <view class="streak-card" style="--card-accent: #f59e0b">
-                    <text class="streak-num">{{ bestHabit?.currentDays || 0 }}</text>
-                    <text class="streak-label">最长连续</text>
-                </view>
-                <view class="streak-card" style="--card-accent: #10b981">
-                    <text class="streak-num">{{ monthlyStats.rate }}%</text>
-                    <text class="streak-label">本月完成率</text>
-                </view>
             </view>
 
             <view
@@ -121,12 +121,19 @@
             <template v-if="activeTab === 'checkin'">
                 <view v-for="item in dayHabitRecords" :key="item.habitId" class="goal-card-wrap">
                     <view class="swipe-actions">
-                        <!-- 完成/编辑按钮已按要求隐藏（v-if=false），保留代码便于后续恢复 -->
-                        <view v-if="false" class="swipe-action action-done" @tap.stop="onHabitSwipeAction(item)">
+                        <!-- 打卡按钮按需隐藏，编辑按钮已恢复显示 -->
+                        <view
+                            v-if="false"
+                            class="swipe-action action-done"
+                            @tap.stop="onHabitSwipeAction(item)"
+                        >
                             <text class="sa-icon">{{ item.checked ? '↩' : '✓' }}</text>
                             <text class="sa-label">{{ item.checked ? '取消' : '完成' }}</text>
                         </view>
-                        <view v-if="false" class="swipe-action action-edit" @tap.stop="editHabitFromCheckin(item)">
+                        <view
+                            class="swipe-action action-edit"
+                            @tap.stop="editHabitFromCheckin(item)"
+                        >
                             <text class="sa-icon">✏️</text>
                             <text class="sa-label">编辑</text>
                         </view>
@@ -134,7 +141,10 @@
                             <text class="sa-icon">📦</text>
                             <text class="sa-label">结束</text>
                         </view>
-                        <view class="swipe-action action-delete" @tap.stop="deleteHabitFromCheckin(item)">
+                        <view
+                            class="swipe-action action-delete"
+                            @tap.stop="deleteHabitFromCheckin(item)"
+                        >
                             <text class="sa-icon">🗑️</text>
                             <text class="sa-label">删除</text>
                         </view>
@@ -673,7 +683,8 @@ const isGroupCollapsed = (cat) => {
 }
 
 const HABIT_SWIPE_THRESHOLD = 42
-const HABIT_SWIPE_MAX = 140
+// 左滑最多露出 3 个操作按钮（编辑/结束/删除），每个 70px
+const HABIT_SWIPE_MAX = 210
 const habitSwipeOffsets = ref({})
 const openHabitId = ref(null)
 
@@ -774,7 +785,9 @@ const normalizeReminderTime = (value) => {
 }
 
 const buildReminderText = (habit = {}) => {
-    const reminders = [habit.reminderTime, habit.secondReminder].map(normalizeReminderTime).filter(Boolean)
+    const reminders = [habit.reminderTime, habit.secondReminder]
+        .map(normalizeReminderTime)
+        .filter(Boolean)
     return reminders.length ? reminders.join(' / ') : '不提醒'
 }
 
@@ -799,37 +812,44 @@ const buildArchivedMeta = (habit = {}) => {
 const mapHabitRecordsForDay = (dateStr) => {
     if (!dateStr) return []
     const day = Number(dateStr.split('-')[2])
+    const parts = dateStr.split('-').map((item) => Number(item))
+    const selectedTs = new Date(parts[0], parts[1] - 1, parts[2]).getTime()
     return allHabits.value
-        .filter((habit) => !habit.endDate)
+        .filter((habit) => {
+            if (habit.endDate) return false
+            // 开始日期晚于当前选中日期的习惯不显示（8.3 只显示 8.3 及之前开始的）
+            if (habit.startDate && selectedTs < habit.startDate) return false
+            return true
+        })
         .map((habit) => {
-        const checked = (habit.checkinDays || []).includes(day)
-        return {
-            habitId: habit.habitId || habit.id,
-            habitName: habit.habitName || habit.name || '未命名习惯',
-            checked,
-            currentDays: habit.currentDays || 0,
-            totalDays: habit.totalDays || 0,
-            description: habit.description || '',
-            icon: habit.icon || '🎯',
-            color: habit.color || '#5b5bd6',
-            category: habit.category || '',
-            motto: habit.motto || '',
-            trackingType: habit.trackingType || 'boolean',
-            targetValue: habit.targetValue || 1,
-            targetUnit: habit.targetUnit || '次',
-            frequencyType: habit.frequencyType || 1,
-            frequencyRule: habit.frequencyRule || '',
-            timePeriod: habit.timePeriod || 'all',
-            allowBackfill: habit.allowBackfill !== false,
-            note: habit.note || '',
-            checkinDays: habit.checkinDays || [],
-            reminderTime: habit.reminderTime || '',
-            secondReminder: habit.secondReminder || '',
-            reminderText: buildReminderText(habit),
-            startDate: formatTimestampDate(habit.startDate),
-            endDate: formatTimestampDate(habit.endDate)
-        }
-    })
+            const checked = (habit.checkinDays || []).includes(day)
+            return {
+                habitId: habit.habitId || habit.id,
+                habitName: habit.habitName || habit.name || '未命名习惯',
+                checked,
+                currentDays: habit.currentDays || 0,
+                totalDays: habit.totalDays || 0,
+                description: habit.description || '',
+                icon: habit.icon || '🎯',
+                color: habit.color || '#5b5bd6',
+                category: habit.category || '',
+                motto: habit.motto || '',
+                trackingType: habit.trackingType || 'boolean',
+                targetValue: habit.targetValue || 1,
+                targetUnit: habit.targetUnit || '次',
+                frequencyType: habit.frequencyType || 1,
+                frequencyRule: habit.frequencyRule || '',
+                timePeriod: habit.timePeriod || 'all',
+                allowBackfill: habit.allowBackfill !== false,
+                note: habit.note || '',
+                checkinDays: habit.checkinDays || [],
+                reminderTime: habit.reminderTime || '',
+                secondReminder: habit.secondReminder || '',
+                reminderText: buildReminderText(habit),
+                startDate: formatTimestampDate(habit.startDate),
+                endDate: formatTimestampDate(habit.endDate)
+            }
+        })
 }
 
 const toHabitRecord = (habit) => {
@@ -1120,8 +1140,9 @@ const deleteHabitFromCheckin = (item) => {
     if (!habitId) return
     uni.showModal({
         title: '删除习惯',
-        content:
-            `确定要删除「${item.habitName || '未命名习惯'}」吗？该操作不可恢复，打卡记录将一并删除。`,
+        content: `确定要删除「${
+            item.habitName || '未命名习惯'
+        }」吗？该操作不可恢复，打卡记录将一并删除。`,
         confirmColor: '#ff3b30',
         success: async (res) => {
             if (!res.confirm) return
@@ -1141,8 +1162,9 @@ const deleteHabitFromManage = (habit) => {
     if (!habitId) return
     uni.showModal({
         title: '删除习惯',
-        content:
-            `确定要删除「${habit.habitName || habit.name || '未命名习惯'}」吗？该操作不可恢复，打卡记录将一并删除。`,
+        content: `确定要删除「${
+            habit.habitName || habit.name || '未命名习惯'
+        }」吗？该操作不可恢复，打卡记录将一并删除。`,
         confirmColor: '#ff3b30',
         success: async (res) => {
             if (!res.confirm) return
@@ -2527,12 +2549,20 @@ button.detail-action-btn-primary {
 
 /* ---- popCheck animation ---- */
 .checkin-btn.checked {
-    animation: popCheck 0.4s cubic-bezier(.34,1.56,.64,1);
+    animation: popCheck 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 @keyframes popCheck {
-    0% { transform: scale(1); }
-    40% { transform: scale(1.3); }
-    70% { transform: scale(0.92); }
-    100% { transform: scale(1); }
+    0% {
+        transform: scale(1);
+    }
+    40% {
+        transform: scale(1.3);
+    }
+    70% {
+        transform: scale(0.92);
+    }
+    100% {
+        transform: scale(1);
+    }
 }
 </style>

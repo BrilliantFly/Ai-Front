@@ -265,13 +265,13 @@
             </view>
 
             <view class="form-actions">
-                <button class="action-btn cancel" type="button" @tap="emit('close')">取消</button>
-                <button class="action-btn cancel template-btn" type="button" @tap="saveAsTemplate">
+                <view class="action-btn cancel" @tap="emit('close')">取消</view>
+                <view class="action-btn cancel template-btn" @tap="saveAsTemplate">
                     💾 存为模板
-                </button>
-                <button class="action-btn submit" type="button" :disabled="submitting" @tap="handleSave">
+                </view>
+                <view class="action-btn submit" :class="{ disabled: submitting }" @tap="handleSave">
                     {{ submitting ? '保存中...' : '保存打卡' }}
-                </button>
+                </view>
             </view>
         </view>
     </view>
@@ -1273,9 +1273,11 @@ const saveAsTemplate = () => {
     border-radius: 18rpx;
     font-size: 27rpx;
     font-weight: 800;
+    line-height: 1;
     display: flex;
     align-items: center;
     justify-content: center;
+    cursor: pointer;
     transition: transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.25s,
         background 0.25s, color 0.25s;
 }
@@ -1298,7 +1300,7 @@ const saveAsTemplate = () => {
     box-shadow: 0 2rpx 12rpx rgba(var(--color-primary-rgb), 0.15);
 }
 
-.action-btn.submit[disabled] {
+.action-btn.submit.disabled {
     opacity: 0.65;
     transform: none !important;
     box-shadow: none !important;

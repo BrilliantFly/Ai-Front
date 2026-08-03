@@ -392,6 +392,11 @@ onShow(() => {
   backdrop-filter: blur(24rpx);
   border-bottom: 1rpx solid var(--color-border-light, rgba(0, 0, 0, 0.06));
 
+  /* #ifdef APP-PLUS */
+  height: calc(96rpx + var(--status-bar-height));
+  padding: var(--status-bar-height) 32rpx 0;
+  /* #endif */
+
   .header-left {
     display: flex;
     align-items: center;

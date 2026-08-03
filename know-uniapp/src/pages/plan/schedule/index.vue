@@ -35,18 +35,18 @@
                 @toggle-collapse="toggleCollapse"
             />
 
-            <view class="stats-row premium-fade-in premium-d1">
-                <view class="stat-card accent">
-                    <text class="stat-num">{{ todayStats.completedCount }}</text>
-                    <text class="stat-label">已完成</text>
+            <view class="streak-cards premium-fade-in premium-d1">
+                <view class="streak-card" style="--card-accent: #6366f1">
+                    <text class="streak-num">{{ todayStats.completedCount }}</text>
+                    <text class="streak-label">已完成</text>
                 </view>
-                <view class="stat-card">
-                    <text class="stat-num">{{ todayStats.todoCount }}</text>
-                    <text class="stat-label">待处理</text>
+                <view class="streak-card" style="--card-accent: #f59e0b">
+                    <text class="streak-num">{{ todayStats.todoCount }}</text>
+                    <text class="streak-label">待处理</text>
                 </view>
-                <view class="stat-card">
-                    <text class="stat-num">{{ todayStats.totalCount }}</text>
-                    <text class="stat-label">总任务</text>
+                <view class="streak-card" style="--card-accent: #10b981">
+                    <text class="streak-num">{{ todayStats.totalCount }}</text>
+                    <text class="streak-label">总任务</text>
                 </view>
             </view>
 
@@ -271,7 +271,7 @@ import { deleteSchedule, getTodayStats } from '@/api/plan/schedule'
 import { removeRemindersByBiz } from '@/utils/reminder'
 import { useHoverEffect } from '@/hooks/useHoverEffect'
 
-useHoverEffect('.stat-card,.detail-action-btn')
+useHoverEffect('.streak-card,.detail-action-btn')
 
 const quadrants = [
     { value: 0, label: '全部', color: '#999999' },
@@ -582,47 +582,42 @@ onShow(async () => {
     padding-bottom: 20rpx;
 }
 
-.stats-row {
+.streak-cards {
     display: flex;
-    gap: 18rpx;
-    padding: 0 32rpx 20rpx;
+    gap: 16rpx;
+    padding: 0 32rpx 24rpx;
 }
-
-.stat-card {
+.streak-card {
     flex: 1;
-    border-radius: 24rpx;
-    padding: 20rpx;
     background: var(--color-surface, #ffffff);
-    border: 1px solid var(--color-border-light, rgba(0, 0, 0, 0.06));
-    box-shadow: var(--shadow-sm, 0 1px 3px rgba(0, 0, 0, 0.04));
-    text-align: center;
+    border-radius: 24rpx;
+    padding: 20rpx 16rpx;
+    border-top: 4rpx solid var(--card-accent, #6366f1);
+    box-shadow: 0 2rpx 8rpx rgba(0, 0, 0, 0.04);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6rpx;
     cursor: pointer;
     transition: background 0.3s ease, transform 0.2s ease, box-shadow 0.3s ease;
 }
-.stat-card.hover-active {
+.streak-card.hover-active {
     background: var(--color-surface-soft);
     box-shadow: 0 8px 28px rgba(0, 0, 0, 0.06), 0 2px 8px rgba(0, 0, 0, 0.04);
 }
-.stat-card:active {
+.streak-card:active {
     transform: scale(0.96);
 }
-
-.stat-card.accent {
-    background: var(--color-primary-soft);
-    border-color: var(--color-primary-mist);
-}
-
-.stat-num {
-    font-size: 40rpx;
-    font-weight: 700;
-    color: var(--color-text);
+.streak-num {
+    font-size: 36rpx;
+    font-weight: 800;
+    color: var(--card-accent, #6366f1);
     line-height: 1.2;
 }
-
-.stat-label {
-    font-size: 24rpx;
-    color: var(--color-text-secondary);
-    margin-top: 8rpx;
+.streak-label {
+    font-size: 22rpx;
+    color: var(--color-text-secondary, #6b7280);
+    font-weight: 500;
 }
 
 .batch-bar {

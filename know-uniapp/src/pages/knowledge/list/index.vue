@@ -294,6 +294,10 @@ onShow(() => {
   justify-content: space-between;
   border-bottom: 1rpx solid var(--color-border-light, #DEE0E3);
 
+  /* #ifdef APP-PLUS */
+  padding: calc(24rpx + var(--status-bar-height)) 32rpx;
+  /* #endif */
+
   .header-left {
     display: flex;
     align-items: center;
