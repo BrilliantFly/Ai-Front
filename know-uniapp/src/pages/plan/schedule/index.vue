@@ -786,7 +786,10 @@ onShow(async () => {
 /* Matrix Modal */
 .matrix-overlay {
     position: fixed;
-    inset: 0;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
     background: rgba(0, 0, 0, 0.4);
     z-index: 400;
     display: flex;
@@ -891,7 +894,10 @@ onShow(async () => {
 /* ===== Detail Sheet Modal ===== */
 .detail-overlay {
     position: fixed;
-    inset: 0;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
     z-index: 400;
     background: rgba(15, 23, 42, 0.45);
     backdrop-filter: blur(6px);

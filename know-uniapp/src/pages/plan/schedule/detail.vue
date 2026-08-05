@@ -474,6 +474,8 @@ onMounted(() => {
         rgba(var(--color-primary-rgb), 0.08),
         rgba(var(--color-primary-rgb), 0)
     );
+    /* env() 在超旧内核整条失效会丢弃 padding，先给底部 calc 提供无 env fallback */
+    padding: 18rpx 18rpx 52rpx;
     padding: 18rpx 18rpx calc(env(safe-area-inset-bottom) + 34rpx);
 }
 
@@ -597,7 +599,8 @@ onMounted(() => {
     margin-top: 20rpx;
     padding: 24rpx;
     display: grid;
-    grid-template-columns: repeat(3, minmax(0, 1fr));
+    /* 旧版 WebView 兼容：minmax(0, 1fr) 在老内核下整条失效会导致三格挤成一列 */
+    grid-template-columns: 1fr 1fr 1fr;
     gap: 16rpx;
     max-width: 720rpx;
     margin-left: auto;
