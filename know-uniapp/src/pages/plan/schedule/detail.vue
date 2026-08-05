@@ -312,6 +312,7 @@ const onDetailTouchEnd = () => {
 }
 
 const detailSwipeStyle = computed(() => {
+    if (detailSwipe.value.translateX === 0) return ''
     return `transform: translateX(${detailSwipe.value.translateX}px); transition: transform 0.25s cubic-bezier(.22,1,.36,1);`
 })
 
@@ -385,6 +386,8 @@ const fetchDetail = async (id) => {
         console.error('获取详情失败', error)
     } finally {
         loading.value = false
+        // App 端：内容由 loading 骤增为全量时复位滚动到顶部，避免锚定在底部
+        uni.pageScrollTo({ scrollTop: 0, duration: 0 })
     }
 }
 
@@ -463,14 +466,15 @@ onMounted(() => {
 
 <style scoped lang="scss">
 .schedule-detail-page {
+    box-sizing: border-box;
     min-height: 100vh;
-    background: linear-gradient(
-            180deg,
-            rgba(var(--color-primary-rgb), 0.08),
-            rgba(var(--color-primary-rgb), 0)
-        ),
-        var(--color-bg-app);
-    padding: 18rpx 18rpx 34rpx;
+    background-color: var(--color-bg-app, #f8faf9);
+    background-image: linear-gradient(
+        180deg,
+        rgba(var(--color-primary-rgb), 0.08),
+        rgba(var(--color-primary-rgb), 0)
+    );
+    padding: 18rpx 18rpx calc(env(safe-area-inset-bottom) + 34rpx);
 }
 
 .detail-header-bar {
@@ -837,7 +841,12 @@ onMounted(() => {
     gap: 24rpx;
     padding: 26rpx 28rpx;
     background: var(--color-surface);
-    will-change: transform;
+}
+
+/* App 端避免常驻 GPU 合成层导致内容偏移；屏蔽 premium-card 的触摸 transform 干扰滑动 */
+.detail-swipe-content.premium-card:hover,
+.detail-swipe-content.premium-card:active {
+    transform: none;
 }
 
 .detail-action-copy {

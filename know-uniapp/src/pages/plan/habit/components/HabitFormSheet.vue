@@ -666,7 +666,7 @@ const handleSave = async () => {
             reminderTime: payload.reminderTime,
             secondReminder: payload.secondReminder
         })
-        emit('saved')
+        emit('saved', payload.startDate)
         emit('close')
     } catch (error) {
         console.error(error)

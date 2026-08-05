@@ -27,6 +27,7 @@
                 :monthly-stats="monthlyStats"
                 :collapsed="collapsed"
                 :selected-date="selectedDateLabel"
+                :summary-date="selectedDateLabel"
                 :event-count="dayHabitRecords.length"
                 :quadrant-color="quadrantColor"
                 @date-tap="onDateTap"
@@ -874,27 +875,27 @@ const fetchCalendarData = async () => {
                 marks.push({
                     date: formatYYYYMMDD(currentYear.value, currentMonth.value, day),
                     quadrant: 2,
-                    status: 1,
+                    status: 0,
                     habitId: habit.habitId
                 })
             })
         })
         habitCalendarMarks.value = marks
-        if (selectedDateLabel.value) {
-            dayHabitRecords.value = mapHabitRecordsForDay(selectedDateLabel.value)
-        }
+        const date = selectedDateLabel.value || todayDate.value
+        dayHabitRecords.value = mapHabitRecordsForDay(date)
     } catch (error) {
         console.error('获取月历数据失败', error)
     }
 }
 
-const onMonthSwitch = async (year, month) => {
+const onMonthSwitch = async (year, month, targetDate) => {
     currentYear.value = year
     currentMonth.value = month
-    selectedDateLabel.value = ''
-    dayHabitRecords.value = []
     await fetchHolidays(year)
     await fetchCalendarData()
+    const nextDate =
+        targetDate || selectedDateLabel.value || `${year}-${String(month).padStart(2, '0')}-01`
+    onDateTap(nextDate)
 }
 
 const onDateTap = (dateStr) => {
@@ -1201,9 +1202,8 @@ const handleShareEntry = () => {
 const refreshHabitPage = async () => {
     await fetchStats()
     await fetchCalendarData()
-    if (selectedDateLabel.value) {
-        dayHabitRecords.value = mapHabitRecordsForDay(selectedDateLabel.value)
-    }
+    const date = selectedDateLabel.value || todayDate.value
+    dayHabitRecords.value = mapHabitRecordsForDay(date)
 }
 
 const goBack = () => {
@@ -1220,10 +1220,28 @@ const goAddHabit = () => {
     showForm.value = true
 }
 
-const onFormSaved = async () => {
+const onFormSaved = async (startDate) => {
     showForm.value = false
     editingHabit.value = null
     await refreshHabitPage()
+    // 新增习惯：若开始日期晚于当前查看日期（会被 startDate 过滤隐藏），跳转到该日期展示
+    if (startDate) {
+        const parts = startDate.split('-').map((item) => Number(item))
+        const startTs = new Date(parts[0], parts[1] - 1, parts[2]).getTime()
+        const currentDate = selectedDateLabel.value || todayDate.value
+        const curParts = currentDate.split('-').map((item) => Number(item))
+        const curTs = new Date(curParts[0], curParts[1] - 1, curParts[2]).getTime()
+        // 只有新增（startDate 晚于当前查看日期）才需要跳转
+        if (startTs > curTs) {
+            const y = parts[0]
+            const m = parts[1]
+            if (y !== currentYear.value || m !== currentMonth.value) {
+                await onMonthSwitch(y, m, startDate)
+            } else {
+                onDateTap(startDate)
+            }
+        }
+    }
 }
 
 const goStatsPage = () => {
