@@ -182,13 +182,19 @@ defineEmits(['change-range'])
 
 .audit-pie-mask {
     position: absolute;
-    inset: 0;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
     border-radius: 50%;
 }
 
 .audit-pie-center {
     position: absolute;
-    inset: 32rpx;
+    top: 32rpx;
+    left: 32rpx;
+    right: 32rpx;
+    bottom: 32rpx;
     border-radius: 50%;
     background: #fff;
     display: flex;

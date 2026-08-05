@@ -542,7 +542,10 @@
 .premium-swatch::after {
   content: '';
   position: absolute;
-  inset: 6rpx;
+  top: 6rpx;
+  left: 6rpx;
+  right: 6rpx;
+  bottom: 6rpx;
   border-radius: 50%;
 }
 .premium-swatch-white::after { background: #5b5bd6; }

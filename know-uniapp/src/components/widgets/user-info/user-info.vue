@@ -237,7 +237,10 @@ watch(
     &::after {
         content: '';
         position: absolute;
-        inset: -6rpx;
+        top: -6rpx;
+        left: -6rpx;
+        right: -6rpx;
+        bottom: -6rpx;
         border-radius: 50%;
         background: linear-gradient(135deg, rgba(255, 255, 255, 0.5), rgba(255, 255, 255, 0.1));
         z-index: -1;
