@@ -2037,13 +2037,15 @@ onShow(async () => {
     display: flex;
     justify-content: space-between;
     align-items: flex-start;
-    gap: 20rpx;
 }
 
 .habit-detail-hero {
     display: flex;
     align-items: center;
-    gap: 18rpx;
+}
+
+.habit-detail-hero .habit-detail-copy {
+    margin-left: 18rpx;
 }
 
 .habit-detail-icon {
@@ -2085,7 +2087,8 @@ onShow(async () => {
 .habit-detail-stats {
     margin-top: 24rpx;
     display: grid;
-    grid-template-columns: repeat(3, minmax(0, 1fr));
+    /* 旧内核兼容：minmax(0,1fr) 整条失效会挤成一列 */
+    grid-template-columns: 1fr 1fr 1fr;
     gap: 14rpx;
 }
 
@@ -2142,7 +2145,10 @@ onShow(async () => {
     margin-top: 18rpx;
     display: flex;
     flex-direction: column;
-    gap: 10rpx;
+}
+
+.habit-detail-lines .habit-detail-line + .habit-detail-line {
+    margin-top: 10rpx;
 }
 
 .habit-detail-line {
@@ -2198,7 +2204,6 @@ onShow(async () => {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    gap: 18rpx;
     padding: 10rpx 0;
 }
 
@@ -2215,7 +2220,10 @@ onShow(async () => {
 
 .habit-week-strip {
     display: flex;
-    gap: 8rpx;
+}
+
+.habit-week-day + .habit-week-day {
+    margin-left: 8rpx;
 }
 
 .habit-week-day {
@@ -2227,7 +2235,11 @@ onShow(async () => {
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    gap: 6rpx;
+}
+
+.habit-week-day .habit-week-date,
+.habit-week-day .habit-week-dot {
+    margin-top: 6rpx;
 }
 
 .habit-week-day.checked {
@@ -2262,7 +2274,6 @@ onShow(async () => {
 
 .habit-detail-actions {
     display: flex;
-    gap: 16rpx;
     margin-top: 26rpx;
 }
 
@@ -2278,6 +2289,18 @@ onShow(async () => {
     font-size: 26rpx;
     font-weight: 700;
     box-sizing: border-box;
+    /* 覆盖 uni-app button 默认 UA 样式：居中且撑满，避免旧内核下 flex:1 被默认样式覆盖 */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+    margin: 0;
+    line-height: 1;
+}
+
+/* 旧内核不支持 flex gap，改用 margin 提供按钮间距 */
+.detail-action-btn + .detail-action-btn {
+    margin-left: 16rpx;
 }
 
 .detail-action-btn-muted {
@@ -2301,6 +2324,13 @@ button.detail-action-btn-primary {
     color: var(--color-text-secondary, #64748b);
     font-size: 24rpx;
     font-weight: 700;
+    /* 覆盖 uni-app button 默认 UA 样式 */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0 20rpx;
+    margin: 0;
+    line-height: 1;
 }
 
 .achievement-emoji {
