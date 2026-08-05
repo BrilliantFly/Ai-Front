@@ -262,7 +262,7 @@
 import { computed, ref } from 'vue'
 import { onShow, onHide } from '@dcloudio/uni-app'
 import { useRouter } from 'uniapp-router-next'
-import { switchTabCompat } from '@/utils/util'
+import { switchTabCompat, requireLogin } from '@/utils/util'
 import PremiumBottomNav from '@/components/PremiumBottomNav.vue'
 import { useAppStore } from '@/stores/app'
 import { useUserStore } from '@/stores/user'
@@ -884,6 +884,7 @@ const formatChipDate = () => {
 }
 
 const goSearch = () => {
+    if (!requireLogin('/pages/search/search')) return
     router.navigateTo('/pages/search/search')
 }
 
@@ -893,6 +894,7 @@ const handleScan = () => {
 
 const goNotice = () => {
     if (noticeItems.value.length) {
+        if (!requireLogin('/pages/news/news')) return
         switchTabCompat('/pages/news/news')
         return
     }
@@ -910,6 +912,8 @@ const TABBAR_PAGES = [
 
 const goLink = (path?: string) => {
     if (!path) return
+    // 登录校验：未登录则跳转登录页并中止菜单跳转
+    if (!requireLogin(path)) return
     if (TABBAR_PAGES.includes(path)) {
         switchTabCompat(path)
         return
@@ -918,6 +922,7 @@ const goLink = (path?: string) => {
 }
 
 const goMore = (section: 'quick' | 'recommend' | 'tools') => {
+    if (!requireLogin(`/pages/index/more?section=${section}`)) return
     router.navigateTo(`/pages/index/more?section=${section}`)
 }
 

@@ -44,7 +44,7 @@ import { useUserStore } from '@/stores/user'
 import { useRouter } from 'uniapp-router-next'
 import { getTabbarMenu, getTabbarMenuByUser } from '@/api/system/menu'
 import { useHoverEffect } from '@/hooks/useHoverEffect'
-import { switchTabCompat } from '@/utils/util'
+import { switchTabCompat, requireLogin } from '@/utils/util'
 
 type NavItem = {
     key: string
@@ -316,6 +316,8 @@ const resolveNavPath = (item: NavItem): string => {
 const navigate = (item: NavItem) => {
     const path = resolveNavPath(item)
     if (!path || currentKey.value === item.key) return
+    // 登录校验：未登录则记录回跳地址并跳转登录页，中止本次导航
+    if (!requireLogin(path)) return
     if (item.navType === 'switchTab') {
         switchTabCompat(path)
         return

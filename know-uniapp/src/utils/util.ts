@@ -1,6 +1,8 @@
 import { isObject } from '@vue/shared'
 import { getToken } from './auth'
 import { parseQuery } from 'uniapp-router-next'
+import cache from './cache'
+import { BACK_URL } from '@/enums/constantEnums'
 
 /**
  * @description 获取元素节点信息（在组件中的元素必须要传ctx）
@@ -61,6 +63,21 @@ export function switchTabCompat(url: string) {
     // #ifndef APP-PLUS
     uni.switchTab({ url })
     // #endif
+}
+
+/**
+ * @description 登录拦截校验：
+ * - 已登录 → 返回 true，放行
+ * - 未登录 → 记录回跳地址到 BACK_URL 并跳转登录页，返回 false（调用方应中止跳转）
+ * @param targetPath 登录成功后希望回跳的页面路径（tab 页或普通页）
+ */
+export function requireLogin(targetPath?: string): boolean {
+    if (getToken()) return true
+    if (targetPath) {
+        cache.set(BACK_URL, targetPath)
+    }
+    uni.navigateTo({ url: '/pages/login/login' })
+    return false
 }
 
 /**
@@ -215,7 +232,9 @@ export const addUnit = (value: string | number, unit = 'rpx') => {
  * @param  { string } prec 小数位补
  */
 export function formatPrice({ price, take = 'all', prec = undefined }: any) {
-    let [integer, decimals = ''] = (price + '').split('.')
+    const priceParts = (price + '').split('.')
+    const integer = priceParts[0]
+    let decimals = priceParts[1] || ''
 
     // 小数位补
     if (prec !== undefined) {
