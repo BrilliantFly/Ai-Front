@@ -172,7 +172,7 @@
                                 <text class="g-note-icon">📝</text>
                                 <text class="g-note-text">{{ item.note }}</text>
                             </view>
-                            <view class="g-footer">
+                            <view v-show="false" class="g-footer">
                                 <view class="g-week">
                                     <view
                                         v-for="day in getCardWeekData(item).weekDays"
