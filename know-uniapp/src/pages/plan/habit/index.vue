@@ -516,7 +516,7 @@ const activeTab = ref('checkin')
 
 const currentYear = ref(new Date().getFullYear())
 const currentMonth = ref(new Date().getMonth() + 1)
-const collapsed = ref(false)
+const collapsed = ref(true)
 const selectedDateLabel = ref('')
 const habitCalendarMarks = ref([])
 const dayHabitRecords = ref([])
@@ -587,7 +587,11 @@ const weeks = computed(() =>
 )
 const monthlyStats = computed(() => {
     const daysInMonth = new Date(currentYear.value, currentMonth.value, 0).getDate()
-    const checkedDays = new Set(habitCalendarMarks.value.map((item) => item.date))
+    // 保持按真实打卡记录统计完成率，不受日历打点逻辑影响
+    const checkedDays = new Set()
+    allHabits.value.forEach((habit) => {
+        ;(habit.checkinDays || []).forEach((day) => checkedDays.add(day))
+    })
     const total = daysInMonth
     const completed = checkedDays.size
     return {
@@ -872,9 +876,14 @@ const fetchCalendarData = async () => {
             }
         })
 
+        // 日历小点：只要有习惯卡片（未结束且已到开始日期）的日期都打点，不依赖真实打卡记录
         const marks = []
-        allHabits.value.forEach((habit) => {
-            ;(habit.checkinDays || []).forEach((day) => {
+        const daysInMonth = new Date(currentYear.value, currentMonth.value, 0).getDate()
+        for (let day = 1; day <= daysInMonth; day++) {
+            const dayTs = new Date(currentYear.value, currentMonth.value - 1, day).getTime()
+            allHabits.value.forEach((habit) => {
+                if (habit.endDate) return
+                if (habit.startDate && dayTs < habit.startDate) return
                 marks.push({
                     date: formatYYYYMMDD(currentYear.value, currentMonth.value, day),
                     quadrant: 2,
@@ -882,7 +891,7 @@ const fetchCalendarData = async () => {
                     habitId: habit.habitId
                 })
             })
-        })
+        }
         habitCalendarMarks.value = marks
         const date = selectedDateLabel.value || todayDate.value
         dayHabitRecords.value = mapHabitRecordsForDay(date)
