@@ -35,7 +35,7 @@
                 @toggle-collapse="toggleCollapse"
             />
 
-            <view class="streak-cards premium-fade-in premium-d1">
+            <view v-show="false" class="streak-cards premium-fade-in premium-d1">
                 <view class="streak-card" style="--card-accent: #6366f1">
                     <text class="streak-num">{{ todayStats.completedCount }}</text>
                     <text class="streak-label">已完成</text>

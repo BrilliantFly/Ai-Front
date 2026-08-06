@@ -36,7 +36,7 @@
             />
 
             <!-- 今日已打卡统计：位于日历下方、tab 切换上方 -->
-            <view class="streak-cards premium-fade-in premium-d1">
+            <view v-show="false" class="streak-cards premium-fade-in premium-d1">
                 <view class="streak-card" style="--card-accent: #6366f1">
                     <text class="streak-num">{{ checkedCount }}</text>
                     <text class="streak-label">今日已打卡</text>
