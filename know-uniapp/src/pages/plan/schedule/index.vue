@@ -18,7 +18,7 @@
             </view>
         </view>
 
-        <scroll-view scroll-y class="calendar-scroll">
+        <view class="cal-fixed-area">
             <CalendarGrid
                 :year="currentYear"
                 :month="currentMonth"
@@ -54,8 +54,11 @@
                 <text class="batch-bar-text">批量操作模式</text>
                 <button class="batch-bar-btn" @tap="exitBatchMode">退出</button>
             </view>
+        </view>
 
+        <scroll-view scroll-y class="calendar-scroll">
             <view
+                v-show="false"
                 v-if="selectedDateLabel && filteredDayEvents.length > 0"
                 class="day-overview premium-card premium-fade-in premium-d2"
             >
@@ -514,9 +517,11 @@ onShow(async () => {
 
 <style scoped lang="scss">
 .plan-schedule-page {
-    min-height: 100vh;
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
     background: var(--color-bg-app);
-    padding-bottom: 150rpx;
+    overflow: hidden;
 }
 
 /* 顶部标题栏样式 */
@@ -579,7 +584,13 @@ onShow(async () => {
 }
 
 .calendar-scroll {
+    flex: 1;
+    min-height: 0;
     padding-bottom: 20rpx;
+}
+
+.cal-fixed-area {
+    flex: none;
 }
 
 .streak-cards {

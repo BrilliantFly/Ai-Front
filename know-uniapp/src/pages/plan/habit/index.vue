@@ -18,7 +18,7 @@
             </view>
         </view>
 
-        <scroll-view scroll-y class="calendar-scroll">
+        <view class="cal-fixed-area">
             <CalendarGrid
                 :year="currentYear"
                 :month="currentMonth"
@@ -68,6 +68,9 @@
                     管理 <text class="tab-badge">{{ allHabits.length }}</text>
                 </view>
             </view>
+        </view>
+
+        <scroll-view scroll-y class="calendar-scroll">
 
             <view
                 class="day-title premium-fade-in premium-d3"
@@ -165,7 +168,7 @@
                                 <text class="g-note-icon">📌</text>
                                 <text class="g-note-text">{{ item.description }}</text>
                             </view>
-                            <view v-if="item.note" class="g-note">
+                            <view v-if="false" class="g-note">
                                 <text class="g-note-icon">📝</text>
                                 <text class="g-note-text">{{ item.note }}</text>
                             </view>
@@ -513,7 +516,7 @@ const activeTab = ref('checkin')
 
 const currentYear = ref(new Date().getFullYear())
 const currentMonth = ref(new Date().getMonth() + 1)
-const collapsed = ref(true)
+const collapsed = ref(false)
 const selectedDateLabel = ref('')
 const habitCalendarMarks = ref([])
 const dayHabitRecords = ref([])
@@ -1266,9 +1269,11 @@ onShow(async () => {
 
 <style scoped>
 .plan-habit-page {
-    min-height: 100vh;
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
     background: var(--color-bg-app);
-    padding-bottom: 150rpx;
+    overflow: hidden;
 }
 
 .page-header {
@@ -1326,7 +1331,13 @@ onShow(async () => {
 }
 
 .calendar-scroll {
+    flex: 1;
+    min-height: 0;
     padding-bottom: 20rpx;
+}
+
+.cal-fixed-area {
+    flex: none;
 }
 
 .checkin-tabs {

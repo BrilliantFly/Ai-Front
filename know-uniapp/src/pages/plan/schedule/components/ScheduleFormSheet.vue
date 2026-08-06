@@ -119,6 +119,21 @@
                     </picker>
                 </view>
 
+                <view v-if="form.repeatType > 0" class="fgs-full">
+                    <text class="fg-label">⏹ 结束日期</text>
+                    <picker
+                        mode="date"
+                        :value="form.endDate || form.startDate"
+                        :start="form.startDate"
+                        @change="onRepeatEndDateChange"
+                    >
+                        <view class="fg-select">
+                            {{ form.endDate || '不限（永久重复）' }}
+                        </view>
+                    </picker>
+                    <text class="fg-tip">留空则永久重复</text>
+                </view>
+
                 <view class="fgs-full">
                     <text class="fg-label">🔔 提醒设置</text>
                     <view class="check-grid">
@@ -289,6 +304,7 @@ const form = reactive({
     startClock: '09:00',
     endClock: '10:00',
     repeatType: 0,
+    endDate: '',
     remindMinutes: [],
     cronExpr: '',
     eventType: 1
@@ -338,6 +354,7 @@ const resetForm = () => {
     form.startClock = '09:00'
     form.endClock = '10:00'
     form.repeatType = 0
+    form.endDate = ''
     form.remindMinutes = []
     form.cronExpr = ''
     form.eventType = 1
@@ -461,6 +478,9 @@ const loadDetail = async (id) => {
         form.startClock = detail.startTime ? formatClock(detail.startTime) : form.startClock
         form.endClock = detail.endTime ? formatClock(detail.endTime) : form.endClock
         form.repeatType = detail.isRepeat ? detail.repeatType || 0 : 0
+        form.endDate = detail.repeatEndDate
+            ? formatDateTimeText(detail.repeatEndDate).slice(0, 10)
+            : ''
         form.cronExpr = detail.cronExpr || ''
         if (detail.remindMinutesList) {
             try {
@@ -495,6 +515,10 @@ const onPriorityChange = (e) => {
 
 const onStartDateChange = (e) => {
     form.startDate = e.detail.value
+}
+
+const onRepeatEndDateChange = (e) => {
+    form.endDate = e.detail.value
 }
 
 const onStartClockChange = (e) => {
@@ -562,6 +586,9 @@ const buildPayload = () => {
         isRepeat: form.repeatType > 0 ? 1 : 0,
         repeatType: form.repeatType > 0 ? form.repeatType : null,
         repeatRule: form.repeatType > 0 ? JSON.stringify({ repeatType: form.repeatType }) : '',
+        repeatEndDate: form.repeatType > 0 && form.endDate
+            ? buildTimestamp(form.endDate, '23:59:59')
+            : null,
         remindTime,
         remindMinutes,
         remindMinutesList: form.remindMinutes.length > 0 ? JSON.stringify(form.remindMinutes) : '',
@@ -1009,6 +1036,13 @@ const handleSave = async () => {
     min-height: 132rpx;
     padding: 20rpx 22rpx;
     line-height: 1.6;
+}
+
+.fg-tip {
+    display: block;
+    margin-top: 10rpx;
+    font-size: 24rpx;
+    color: var(--color-text-2, #8c8c8f);
 }
 
 .quad-grid {
