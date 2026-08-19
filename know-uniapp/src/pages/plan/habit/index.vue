@@ -148,6 +148,10 @@
                                     {{ item.currentDays || 0 }} 天</text
                                 >
                             </view>
+                            <view v-if="item.description" class="g-note">
+                                <text class="g-note-icon">📌</text>
+                                <text class="g-note-text">{{ item.description }}</text>
+                            </view>
                             <view v-if="hasReminder(item)" class="g-reminder">
                                 <text class="g-reminder-icon">🔔</text>
                                 <text class="g-reminder-text">{{ buildReminderText(item) }}</text>
@@ -163,10 +167,6 @@
                                     <text>本周 {{ getCardWeekData(item).completed }}/7</text>
                                     <text>{{ getCardWeekData(item).rate }}%</text>
                                 </view>
-                            </view>
-                            <view v-if="item.description" class="g-note">
-                                <text class="g-note-icon">📌</text>
-                                <text class="g-note-text">{{ item.description }}</text>
                             </view>
                             <view v-if="false" class="g-note">
                                 <text class="g-note-icon">📝</text>
@@ -492,6 +492,7 @@ import {
     updateHabit
 } from '@/api/plan/habit'
 import { getHolidays } from '@/api/holiday'
+import { removeRemindersByBiz } from '@/utils/reminder'
 import {
     formatYYYYMMDD,
     generateWeeks,
@@ -1111,6 +1112,8 @@ const deleteHabitFromCheckin = (item) => {
             if (!res.confirm) return
             try {
                 await deleteHabit(habitId)
+                // 同步清理本地提醒队列中该习惯的定时通知（App 端），避免已删除习惯仍弹出提醒
+                removeRemindersByBiz('habit', String(habitId))
                 uni.showToast({ title: '已删除', icon: 'success' })
                 await refreshHabitPage()
             } catch (error) {
@@ -1133,6 +1136,8 @@ const deleteHabitFromManage = (habit) => {
             if (!res.confirm) return
             try {
                 await deleteHabit(habitId)
+                // 同步清理本地提醒队列中该习惯的定时通知（App 端），避免已删除习惯仍弹出提醒
+                removeRemindersByBiz('habit', String(habitId))
                 uni.showToast({ title: '已删除', icon: 'success' })
                 await refreshHabitPage()
             } catch (error) {
