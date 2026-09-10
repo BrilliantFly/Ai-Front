@@ -1,15 +1,15 @@
 import request from '@/utils/request'
 
 export function getScheduleList(params) {
-    return request.get({ url: '/plan/event/list', data: params })
+    return request.get({ url: '/plan/event/list', data: { ...params, execStatus: 1 } })
 }
 
 export function getScheduleByDate(params) {
-    return request.get({ url: '/plan/event/date', data: params })
+    return request.get({ url: '/plan/event/date', data: { ...params, execStatus: 1 } })
 }
 
 export function getTodayStats(params) {
-    return request.get({ url: '/plan/event/today', data: params })
+    return request.get({ url: '/plan/event/today', data: { ...params, execStatus: 1 } })
 }
 
 export function addSchedule(data) {
@@ -41,13 +41,13 @@ export function getCategoryList(params) {
 }
 
 export function getCalendarMonthly(params) {
-    return request.get({ url: '/plan/calendar/monthly', data: params })
+    return request.get({ url: '/plan/calendar/monthly', data: { ...params, execStatus: 1 } })
 }
 
 export function getScheduleByDateRange(params) {
-    return request.get({ url: '/plan/event/week', data: params })
+    return request.get({ url: '/plan/event/week', data: { ...params, execStatus: 1 } })
 }
 
 export function getScheduleByMonth(params) {
-    return request.get({ url: '/plan/event/month', data: params })
+    return request.get({ url: '/plan/event/month', data: { ...params, execStatus: 1 } })
 }

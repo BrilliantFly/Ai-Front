@@ -1,11 +1,11 @@
 import request from '@/utils/request'
 
 export function getHabitList(params) {
-    return request.get({ url: '/plan/habit/list', data: params })
+    return request.get({ url: '/plan/habit/list', data: { ...params, execStatus: 1 } })
 }
 
 export function getHabitStats(params) {
-    return request.get({ url: '/plan/habit/stats', data: params })
+    return request.get({ url: '/plan/habit/stats', data: { ...params, execStatus: 1 } })
 }
 
 export function addHabit(data) {
@@ -37,5 +37,5 @@ export function getHabitRecords(id, params) {
 }
 
 export function getCalendarMonthly(params) {
-    return request.get({ url: '/plan/calendar/monthly', data: params })
+    return request.get({ url: '/plan/calendar/monthly', data: { ...params, execStatus: 1 } })
 }

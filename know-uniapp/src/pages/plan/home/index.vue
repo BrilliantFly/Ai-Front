@@ -394,6 +394,7 @@ const quickItems = [
     { icon: '💳', label: '财务管理', bg: 'linear-gradient(135deg,#ec4899,#f472b6)', path: '' },
     { icon: '📋', label: '项目管理', bg: 'linear-gradient(135deg,#06b6d4,#22d3ee)', path: '' },
     { icon: '📄', label: '文档管理', bg: 'linear-gradient(135deg,#f0a020,#fbbf24)', path: '' },
+    { icon: '📋', label: '计划模板', bg: 'linear-gradient(135deg,#a855f7,#c084fc)', path: '/pages/plan/template/index' },
     { icon: '•••', label: '更多功能', bg: 'linear-gradient(135deg,#9ca3af,#d1d5db)', path: '' }
 ]
 

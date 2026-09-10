@@ -341,6 +341,48 @@
             }
         },
         {
+            "path": "pages/plan/template/index",
+            "style": {
+                "navigationStyle": "custom"
+            }
+        },
+        {
+            "path": "pages/plan/template/detail",
+            "style": {
+                "navigationBarTitleText": "模板详情"
+            }
+        },
+        {
+            "path": "pages/plan/template/use",
+            "style": {
+                "navigationBarTitleText": "使用模板"
+            }
+        },
+        {
+            "path": "pages/plan/habit-template/index",
+            "style": {
+                "navigationStyle": "custom"
+            }
+        },
+        {
+            "path": "pages/plan/habit-template/detail",
+            "style": {
+                "navigationBarTitleText": "习惯模板详情"
+            }
+        },
+        {
+            "path": "pages/plan/event-template/index",
+            "style": {
+                "navigationStyle": "custom"
+            }
+        },
+        {
+            "path": "pages/plan/event-template/detail",
+            "style": {
+                "navigationBarTitleText": "日程模板详情"
+            }
+        },
+        {
             "path": "pages/plan/slogan/index",
             "style": {
                 "navigationStyle": "custom"

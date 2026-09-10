@@ -525,7 +525,8 @@ const buildPayload = () => {
         remindTime,
         remindMinutes,
         progress: form.progress,
-        location: form.location.trim()
+        location: form.location.trim(),
+        execStatus: 1
     }
 }
 

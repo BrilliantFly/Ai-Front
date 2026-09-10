@@ -556,7 +556,8 @@ const buildPayload = () => {
         startDate: toTimestamp(form.startDate),
         endDate: toTimestamp(form.endDate),
         reminderTime: form.reminderTime || '',
-        secondReminder: form.secondReminder || ''
+        secondReminder: form.secondReminder || '',
+        execStatus: 1
     }
 }
 

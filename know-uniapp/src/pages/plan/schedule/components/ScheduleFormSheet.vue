@@ -593,7 +593,8 @@ const buildPayload = () => {
         remindMinutes,
         remindMinutesList: form.remindMinutes.length > 0 ? JSON.stringify(form.remindMinutes) : '',
         cronExpr: form.cronExpr || '',
-        location: form.location.trim()
+        location: form.location.trim(),
+        execStatus: 1
     }
 }
 
