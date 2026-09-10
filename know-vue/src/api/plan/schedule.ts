@@ -36,7 +36,7 @@ export function addSchedule(data, params) {
   return service({
     url: '/adminapi/plan/event',
     method: 'post',
-    data,
+    data: { ...data, execStatus: 0 },
     params
   })
 }

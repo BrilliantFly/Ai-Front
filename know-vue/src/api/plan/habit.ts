@@ -28,7 +28,7 @@ export function addHabit(data) {
   return service({
     url: '/adminapi/plan/habit',
     method: 'post',
-    data
+    data: { ...data, execStatus: 0 }
   })
 }
 
