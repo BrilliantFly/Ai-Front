@@ -129,6 +129,7 @@ import { ref, reactive, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { message } from 'ant-design-vue'
 import { SearchOutlined, ReloadOutlined, PlusOutlined, BarChartOutlined } from '@ant-design/icons-vue'
+import { getPlanInfoPage, addPlanInfo, updatePlanInfo, deletePlanInfo } from '@/api/plan/info'
 
 const router = useRouter()
 
@@ -177,7 +178,7 @@ const resetForm = () => {
 
 const buildParams = () => {
   const params: any = {}
-  if (queryParams.planName) params.title = queryParams.planName
+  if (queryParams.planName) params.planName = queryParams.planName
   if (queryParams.planType) params.planType = queryParams.planType
   if (queryParams.status !== undefined && queryParams.status !== null && queryParams.status !== '') params.status = queryParams.status
   return params
@@ -186,9 +187,9 @@ const buildParams = () => {
 const fetchData = async () => {
   loading.value = true
   try {
-    const { getScheduleList } = await import('@/api/plan/schedule')
-    const res = await getScheduleList(buildParams())
-    plans.value = (res?.data || []).map((item: any) => ({
+    const res = await getPlanInfoPage(buildParams())
+    const page = res?.data || res || {}
+    plans.value = (page.records || (Array.isArray(page) ? page : [])).map((item: any) => ({
       ...item,
       planName: item.planName || item.title || ''
     }))
@@ -237,6 +238,11 @@ const handleSave = async () => {
   }
   saving.value = true
   try {
+    if (isEdit.value && editId.value) {
+      await updatePlanInfo({ id: editId.value, ...form })
+    } else {
+      await addPlanInfo(form)
+    }
     message.success(isEdit.value ? '修改成功' : '新增成功')
     modalVisible.value = false
     await fetchData()
@@ -249,6 +255,7 @@ const handleSave = async () => {
 
 const handleDelete = async (id: number) => {
   try {
+    await deletePlanInfo(id)
     message.success('删除成功')
     await fetchData()
   } catch (e) {
