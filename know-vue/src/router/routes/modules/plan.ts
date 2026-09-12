@@ -52,6 +52,48 @@ const planRoute: AppRoute = {
         title: '甘特图',
         hideMenu: true
       }
+    },
+    {
+      path: 'template/info',
+      name: 'PlanTemplateInfo',
+      component: () => import('@/views/plan/template/info/index.vue'),
+      meta: {
+        title: '计划模板管理'
+      }
+    },
+    {
+      path: 'template/event',
+      name: 'PlanTemplateEvent',
+      component: () => import('@/views/plan/template/event/index.vue'),
+      meta: {
+        title: '日程模板管理'
+      }
+    },
+    {
+      path: 'template/habit',
+      name: 'PlanTemplateHabit',
+      component: () => import('@/views/plan/template/habit/index.vue'),
+      meta: {
+        title: '打卡模板管理'
+      }
+    },
+    {
+      path: 'template/use',
+      name: 'PlanTemplateUse',
+      component: () => import('@/views/plan/template/use/index.vue'),
+      meta: {
+        title: '使用模板',
+        icon: 'ant-design:plus-circle-outlined'
+      }
+    },
+    {
+      path: 'template/from-plan',
+      name: 'PlanTemplateFromPlan',
+      component: () => import('@/views/plan/template/from-plan/index.vue'),
+      meta: {
+        title: '从计划生成模板',
+        icon: 'ant-design:swap-outlined'
+      }
     }
   ]
 }
