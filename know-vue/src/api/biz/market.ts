@@ -19,6 +19,13 @@ export interface BizIndustryMarket {
   valueDistribution?: string
   competitionMethod?: string
   promoChannel?: string
+  dynamicInfo?: string
+  valueInfo?: string
+  strategy?: string
+  grossProfit?: number
+  grossMargin?: number
+  netProfit?: number
+  netMargin?: number
 }
 
 // 获取行业市场信息(该行业关联的首个市场)

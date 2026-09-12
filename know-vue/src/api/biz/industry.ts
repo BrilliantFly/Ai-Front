@@ -28,6 +28,9 @@ export interface BizIndustryProduct {
   midstreamChain?: string
   downstreamChannel?: string
   downstreamMarketing?: string
+  dynamicInfo?: string
+  valueInfo?: string
+  strategy?: string
 }
 
 export interface BizIndustryEnterprise {
@@ -55,6 +58,10 @@ export interface BizIndustryEnterprise {
   midstreamChain?: string
   downstreamChannel?: string
   downstreamMarketing?: string
+  dynamicInfo?: string
+  valueInfo?: string
+  industryResources?: string
+  strategy?: string
 }
 
 export interface BizIndustry {

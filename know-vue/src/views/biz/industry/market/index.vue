@@ -39,35 +39,25 @@
         </a-table>
 
         <a-space class="mb-4">
-          <a-button type="dashed" @click="handleAddMarket">新增市场</a-button>
+          <a-button type="primary" @click="handleAddMarket">新增市场</a-button>
         </a-space>
 
-        <a-form :label-col="{ style: { width: '120px' } }" :model="formData" layout="horizontal">
-          <a-row :gutter="16">
-            <a-col :span="24">
-              <template v-for="(field, index) in marketFields" :key="field.key">
-                <a-row v-if="index % 2 === 0" :gutter="16">
-                  <a-col :span="12">
-                    <a-form-item :label="field.label">
-                      <a-textarea v-model:value="formData[field.key]" :placeholder="`请输入${field.label}`" :auto-size="{ minRows: 3, maxRows: 6 }" />
-                    </a-form-item>
-                  </a-col>
-                  <a-col v-if="marketFields[index + 1]" :span="12">
-                    <a-form-item :label="marketFields[index + 1].label">
-                      <a-textarea v-model:value="formData[marketFields[index + 1].key]" :placeholder="`请输入${marketFields[index + 1].label}`" :auto-size="{ minRows: 3, maxRows: 6 }" />
-                    </a-form-item>
-                  </a-col>
-                </a-row>
-              </template>
-            </a-col>
-          </a-row>
+        <a-form :model="formData" layout="vertical">
+          <SectionCard
+            v-for="sec in marketSections"
+            :key="sec.title"
+            :section="sec"
+            :model="formData"
+            mode="form"
+            :options-map="optionsMap"
+          />
+          <a-form-item>
+            <a-button type="primary" :loading="saving" @click="handleSave">
+              <template #icon><save-outlined /></template>
+              保存
+            </a-button>
+          </a-form-item>
         </a-form>
-        <a-form-item>
-          <a-button type="primary" :loading="saving" @click="handleSave">
-            <template #icon><save-outlined /></template>
-            保存
-          </a-button>
-        </a-form-item>
       </template>
 
       <a-empty v-else description="请先选择行业" />
@@ -76,16 +66,13 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, onMounted } from 'vue'
+import { ref, reactive, computed, onMounted } from 'vue'
 import { message } from 'ant-design-vue'
 import { SaveOutlined } from '@ant-design/icons-vue'
 import { getIndustryList, type BizIndustry } from '@/api/biz/industry'
 import { getMarketsByIndustryId, saveMarket, type BizIndustryMarket } from '@/api/biz/market'
-
-interface MarketField {
-  key: keyof BizIndustryMarket
-  label: string
-}
+import SectionCard from '../../components/SectionCard.vue'
+import { marketSections } from '../market/sections'
 
 // 市场列表列
 const marketColumns = [
@@ -93,25 +80,6 @@ const marketColumns = [
   { title: '市场需求', dataIndex: 'demand', key: 'demand' },
   { title: '市场机会', dataIndex: 'opportunity', key: 'opportunity' },
   { title: '操作', key: 'action', width: 80 }
-]
-
-// 市场字段配置
-const marketFields: MarketField[] = [
-  { key: 'demand', label: '市场需求' },
-  { key: 'opportunity', label: '市场机会' },
-  { key: 'valueProposition', label: '价值主张' },
-  { key: 'customerSegment', label: '客户细分' },
-  { key: 'channel', label: '渠道' },
-  { key: 'customerRelation', label: '客户关系' },
-  { key: 'revenueSource', label: '收入来源' },
-  { key: 'keyResource', label: '核心资源' },
-  { key: 'keyPartner', label: '关键伙伴' },
-  { key: 'keyActivity', label: '关键活动' },
-  { key: 'costStructure', label: '成本结构' },
-  { key: 'valueEvaluation', label: '价值评估' },
-  { key: 'valueDistribution', label: '价值分配' },
-  { key: 'competitionMethod', label: '竞争方式' },
-  { key: 'promoChannel', label: '推广渠道' }
 ]
 
 // 行业下拉
@@ -139,27 +107,16 @@ const marketList = ref<BizIndustryMarket[]>([])
 // 当前正在编辑的市场(id 为空表示新增)
 const editingMarketId = ref<number | undefined>(undefined)
 
-// 表格列定义
-const formData = reactive<Partial<BizIndustryMarket>>({
-  demand: '',
-  opportunity: '',
-  valueProposition: '',
-  customerSegment: '',
-  channel: '',
-  customerRelation: '',
-  revenueSource: '',
-  keyResource: '',
-  keyPartner: '',
-  keyActivity: '',
-  costStructure: '',
-  valueEvaluation: '',
-  valueDistribution: '',
-  competitionMethod: '',
-  promoChannel: ''
-})
+// 动态下拉选项(关联行业)
+const optionsMap = computed<Record<string, { label: string; value: any }[]>>(() => ({
+  industryIds: industryOptions.value
+    .filter((item) => item.id != null)
+    .map((item) => ({ label: item.industryName || '', value: item.id as number }))
+}))
 
 // 表单数据
 const formData = reactive<Partial<BizIndustryMarket>>({
+  industryIds: [],
   demand: '',
   opportunity: '',
   valueProposition: '',
@@ -174,12 +131,20 @@ const formData = reactive<Partial<BizIndustryMarket>>({
   valueEvaluation: '',
   valueDistribution: '',
   competitionMethod: '',
-  promoChannel: ''
+  promoChannel: '',
+  dynamicInfo: '',
+  valueInfo: '',
+  strategy: '',
+  grossProfit: undefined,
+  grossMargin: undefined,
+  netProfit: undefined,
+  netMargin: undefined
 })
 
 // 清空表单
 const resetForm = () => {
   Object.assign(formData, {
+    industryIds: [],
     demand: '',
     opportunity: '',
     valueProposition: '',
@@ -194,7 +159,14 @@ const resetForm = () => {
     valueEvaluation: '',
     valueDistribution: '',
     competitionMethod: '',
-    promoChannel: ''
+    promoChannel: '',
+    dynamicInfo: '',
+    valueInfo: '',
+    strategy: '',
+    grossProfit: undefined,
+    grossMargin: undefined,
+    netProfit: undefined,
+    netMargin: undefined
   })
 }
 
@@ -228,6 +200,7 @@ const handleIndustryChange = async (val?: number) => {
 const applyMarket = (market: BizIndustryMarket) => {
   editingMarketId.value = market.id
   Object.assign(formData, {
+    industryIds: market.industryIds || [],
     demand: market.demand || '',
     opportunity: market.opportunity || '',
     valueProposition: market.valueProposition || '',
@@ -242,7 +215,14 @@ const applyMarket = (market: BizIndustryMarket) => {
     valueEvaluation: market.valueEvaluation || '',
     valueDistribution: market.valueDistribution || '',
     competitionMethod: market.competitionMethod || '',
-    promoChannel: market.promoChannel || ''
+    promoChannel: market.promoChannel || '',
+    dynamicInfo: market.dynamicInfo || '',
+    valueInfo: market.valueInfo || '',
+    strategy: market.strategy || '',
+    grossProfit: market.grossProfit ?? undefined,
+    grossMargin: market.grossMargin ?? undefined,
+    netProfit: market.netProfit ?? undefined,
+    netMargin: market.netMargin ?? undefined
   })
 }
 

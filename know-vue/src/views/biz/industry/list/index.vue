@@ -71,107 +71,16 @@
       :confirm-loading="confirmLoading"
       @ok="handleSubmit"
       @cancel="handleCancel"
-      width="800px"
+      width="900px"
     >
       <a-form ref="formRef" :model="formData" :rules="rules" layout="vertical">
-        <a-tabs v-model:activeKey="activeTab">
-          <a-tab-pane key="basic" tab="基本信息">
-            <a-row :gutter="16">
-              <a-col :span="12">
-                <a-form-item label="行业名称" name="industryName">
-                  <a-input v-model:value="formData.industryName" placeholder="请输入行业名称" />
-                </a-form-item>
-              </a-col>
-              <a-col :span="12">
-                <a-form-item label="行业代码" name="industryCode">
-                  <a-input v-model:value="formData.industryCode" placeholder="请输入行业代码" />
-                </a-form-item>
-              </a-col>
-            </a-row>
-            <a-row :gutter="16">
-              <a-col :span="12">
-                <a-form-item label="标签">
-                  <a-input v-model:value="formData.tags" placeholder="多个标签用逗号分隔" />
-                </a-form-item>
-              </a-col>
-              <a-col :span="12">
-                <a-form-item label="可见性">
-                  <a-select v-model:value="formData.visibility" placeholder="请选择可见性">
-                    <a-select-option :value="1">可见</a-select-option>
-                    <a-select-option :value="0">隐藏</a-select-option>
-                  </a-select>
-                </a-form-item>
-              </a-col>
-            </a-row>
-            <a-row :gutter="16">
-              <a-col :span="12">
-                <a-form-item label="排序">
-                  <a-input-number v-model:value="formData.sort" placeholder="排序值" style="width: 100%" />
-                </a-form-item>
-              </a-col>
-            </a-row>
-          </a-tab-pane>
-
-          <a-tab-pane key="chain" tab="产业链与概述">
-            <a-row :gutter="16">
-              <a-col :span="12">
-                <a-form-item label="上游产业链">
-                  <a-textarea v-model:value="formData.upstreamChain" placeholder="请输入上游产业链" :rows="3" />
-                </a-form-item>
-              </a-col>
-              <a-col :span="12">
-                <a-form-item label="中游产业链">
-                  <a-textarea v-model:value="formData.midstreamChain" placeholder="请输入中游产业链" :rows="3" />
-                </a-form-item>
-              </a-col>
-            </a-row>
-            <a-row :gutter="16">
-              <a-col :span="12">
-                <a-form-item label="下游渠道">
-                  <a-textarea v-model:value="formData.downstreamChannel" placeholder="请输入下游渠道" :rows="3" />
-                </a-form-item>
-              </a-col>
-              <a-col :span="12">
-                <a-form-item label="下游营销">
-                  <a-textarea v-model:value="formData.downstreamMarketing" placeholder="请输入下游营销" :rows="3" />
-                </a-form-item>
-              </a-col>
-            </a-row>
-            <a-form-item label="发展概述">
-              <a-textarea v-model:value="formData.developmentOverview" placeholder="请输入行业发展概述" :rows="3" />
-            </a-form-item>
-          </a-tab-pane>
-
-          <a-tab-pane key="finance" tab="财务与战略">
-            <a-row :gutter="16">
-              <a-col :span="12">
-                <a-form-item label="毛利额">
-                  <a-input-number v-model:value="formData.grossProfit" placeholder="毛利额" style="width: 100%" />
-                </a-form-item>
-              </a-col>
-              <a-col :span="12">
-                <a-form-item label="毛利率(%)">
-                  <a-input-number v-model:value="formData.grossMargin" placeholder="毛利率" style="width: 100%" />
-                </a-form-item>
-              </a-col>
-            </a-row>
-            <a-row :gutter="16">
-              <a-col :span="12">
-                <a-form-item label="净利额">
-                  <a-input-number v-model:value="formData.netProfit" placeholder="净利额" style="width: 100%" />
-                </a-form-item>
-              </a-col>
-              <a-col :span="12">
-                <a-form-item label="净利率(%)">
-                  <a-input-number v-model:value="formData.netMargin" placeholder="净利率" style="width: 100%" />
-                </a-form-item>
-              </a-col>
-            </a-row>
-            <a-form-item label="战略">
-              <a-textarea v-model:value="formData.strategy" placeholder="请输入行业战略" :rows="3" />
-            </a-form-item>
-          </a-tab-pane>
-        </a-tabs>
+        <SectionCard
+          v-for="sec in industrySections"
+          :key="sec.title"
+          :section="sec"
+          :model="formData"
+          mode="form"
+        />
       </a-form>
     </a-modal>
 
@@ -188,27 +97,13 @@
           <!-- 四个关联 tab: 行业信息 / 行业产品 / 行业企业 / 市场信息 -->
           <a-tabs v-model:activeKey="detailModal.tab">
             <a-tab-pane key="info" tab="行业信息">
-              <a-descriptions :column="2" bordered size="small">
-                <a-descriptions-item label="行业名称">{{ detailModal.industry.industryName || '-' }}</a-descriptions-item>
-                <a-descriptions-item label="行业代码">{{ detailModal.industry.industryCode || '-' }}</a-descriptions-item>
-                <a-descriptions-item label="标签">{{ detailModal.industry.tags || '-' }}</a-descriptions-item>
-                <a-descriptions-item label="可见性">
-                  <a-tag :color="detailModal.industry.visibility === 1 ? 'green' : 'default'">
-                    {{ detailModal.industry.visibility === 1 ? '可见' : '隐藏' }}
-                  </a-tag>
-                </a-descriptions-item>
-                <a-descriptions-item label="毛利率">{{ detailModal.industry.grossMargin ?? '-' }}</a-descriptions-item>
-                <a-descriptions-item label="净利率">{{ detailModal.industry.netMargin ?? '-' }}</a-descriptions-item>
-                <a-descriptions-item label="定义" :span="2">{{ detailModal.industry.definition || '-' }}</a-descriptions-item>
-                <a-descriptions-item label="上游产业链" :span="2">{{ detailModal.industry.upstreamChain || '-' }}</a-descriptions-item>
-                <a-descriptions-item label="中游产业链" :span="2">{{ detailModal.industry.midstreamChain || '-' }}</a-descriptions-item>
-                <a-descriptions-item label="下游渠道">{{ detailModal.industry.downstreamChannel || '-' }}</a-descriptions-item>
-                <a-descriptions-item label="下游营销">{{ detailModal.industry.downstreamMarketing || '-' }}</a-descriptions-item>
-                <a-descriptions-item label="发展概述" :span="2">{{ detailModal.industry.developmentOverview || '-' }}</a-descriptions-item>
-                <a-descriptions-item label="市场规模">{{ detailModal.industry.marketSize || '-' }}</a-descriptions-item>
-                <a-descriptions-item label="增长潜力">{{ detailModal.industry.growthPotential || '-' }}</a-descriptions-item>
-                <a-descriptions-item label="战略" :span="2">{{ detailModal.industry.strategy || '-' }}</a-descriptions-item>
-              </a-descriptions>
+              <SectionCard
+                v-for="sec in industrySections"
+                :key="sec.title"
+                :section="sec"
+                :model="(detailModal.industry as any) || {}"
+                mode="detail"
+              />
             </a-tab-pane>
             <a-tab-pane key="products" tab="行业产品">
               <a-table
@@ -229,23 +124,14 @@
               />
             </a-tab-pane>
             <a-tab-pane key="market" tab="市场信息">
-              <a-descriptions v-if="detailModal.market" :column="2" bordered size="small">
-                <a-descriptions-item label="市场需求" :span="2">{{ detailModal.market.demand || '-' }}</a-descriptions-item>
-                <a-descriptions-item label="市场机会" :span="2">{{ detailModal.market.opportunity || '-' }}</a-descriptions-item>
-                <a-descriptions-item label="价值主张" :span="2">{{ detailModal.market.valueProposition || '-' }}</a-descriptions-item>
-                <a-descriptions-item label="客户细分">{{ detailModal.market.customerSegment || '-' }}</a-descriptions-item>
-                <a-descriptions-item label="渠道">{{ detailModal.market.channel || '-' }}</a-descriptions-item>
-                <a-descriptions-item label="客户关系">{{ detailModal.market.customerRelation || '-' }}</a-descriptions-item>
-                <a-descriptions-item label="收入来源">{{ detailModal.market.revenueSource || '-' }}</a-descriptions-item>
-                <a-descriptions-item label="关键资源">{{ detailModal.market.keyResource || '-' }}</a-descriptions-item>
-                <a-descriptions-item label="关键伙伴">{{ detailModal.market.keyPartner || '-' }}</a-descriptions-item>
-                <a-descriptions-item label="关键活动">{{ detailModal.market.keyActivity || '-' }}</a-descriptions-item>
-                <a-descriptions-item label="成本结构">{{ detailModal.market.costStructure || '-' }}</a-descriptions-item>
-                <a-descriptions-item label="价值评估">{{ detailModal.market.valueEvaluation || '-' }}</a-descriptions-item>
-                <a-descriptions-item label="价值分配">{{ detailModal.market.valueDistribution || '-' }}</a-descriptions-item>
-                <a-descriptions-item label="竞争方式">{{ detailModal.market.competitionMethod || '-' }}</a-descriptions-item>
-                <a-descriptions-item label="推广渠道">{{ detailModal.market.promoChannel || '-' }}</a-descriptions-item>
-              </a-descriptions>
+              <SectionCard
+                v-if="detailModal.market"
+                v-for="sec in marketSections"
+                :key="sec.title"
+                :section="sec"
+                :model="(detailModal.market as any)"
+                mode="detail"
+              />
               <a-empty v-else description="暂无市场信息" />
             </a-tab-pane>
           </a-tabs>
@@ -262,6 +148,9 @@ import type { FormInstance } from 'ant-design-vue'
 import { PlusOutlined, SearchOutlined, RedoOutlined } from '@ant-design/icons-vue'
 import { getIndustryPage, getIndustryDetail, addIndustry, updateIndustry, deleteIndustry, type BizIndustry, type BizIndustryQuery } from '@/api/biz/industry'
 import type { BizIndustryMarket } from '@/api/biz/market'
+import SectionCard from '../../components/SectionCard.vue'
+import { industrySections } from '../sections'
+import { marketSections } from '../market/sections'
 
 // 表格列定义
 const columns = [
@@ -330,7 +219,6 @@ const confirmLoading = ref(false)
 const isEdit = ref(false)
 const editId = ref<number | undefined>(undefined)
 const formRef = ref<FormInstance>()
-const activeTab = ref('basic')
 
 // 表单数据
 const formData = reactive<Partial<BizIndustry>>({
@@ -339,15 +227,22 @@ const formData = reactive<Partial<BizIndustry>>({
   tags: '',
   visibility: 1,
   sort: 0,
+  definition: '',
+  technology: '',
   upstreamChain: '',
   midstreamChain: '',
   downstreamChannel: '',
   downstreamMarketing: '',
   developmentOverview: '',
+  marketSize: '',
+  growthPotential: '',
   grossProfit: undefined,
   grossMargin: undefined,
   netProfit: undefined,
   netMargin: undefined,
+  dynamicInfo: '',
+  valueInfo: '',
+  industryResources: '',
   strategy: ''
 })
 
@@ -407,21 +302,27 @@ const handleAdd = () => {
   isEdit.value = false
   editId.value = undefined
   modalTitle.value = '新增行业'
-  activeTab.value = 'basic'
   formData.industryName = ''
   formData.industryCode = ''
   formData.tags = ''
   formData.visibility = 1
   formData.sort = 0
+  formData.definition = ''
+  formData.technology = ''
   formData.upstreamChain = ''
   formData.midstreamChain = ''
   formData.downstreamChannel = ''
   formData.downstreamMarketing = ''
   formData.developmentOverview = ''
+  formData.marketSize = ''
+  formData.growthPotential = ''
   formData.grossProfit = undefined
   formData.grossMargin = undefined
   formData.netProfit = undefined
   formData.netMargin = undefined
+  formData.dynamicInfo = ''
+  formData.valueInfo = ''
+  formData.industryResources = ''
   formData.strategy = ''
   modalVisible.value = true
 }
@@ -431,8 +332,13 @@ const handleEdit = (record: BizIndustry) => {
   isEdit.value = true
   editId.value = record.id
   modalTitle.value = '编辑行业'
-  activeTab.value = 'basic'
-  Object.assign(formData, record)
+  Object.assign(formData, {
+    ...record,
+    dynamicInfo: record.dynamicInfo || '',
+    valueInfo: record.valueInfo || '',
+    industryResources: record.industryResources || '',
+    strategy: record.strategy || ''
+  })
   modalVisible.value = true
 }
 

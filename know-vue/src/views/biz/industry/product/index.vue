@@ -68,93 +68,31 @@
       :confirm-loading="confirmLoading"
       @ok="handleSubmit"
       @cancel="handleCancel"
-      width="700px"
+      width="900px"
     >
       <a-form ref="formRef" :model="formData" :rules="rules" layout="vertical">
-        <a-row :gutter="16">
-          <a-col :span="12">
-            <a-form-item label="关联行业" name="industryIds">
-              <a-select
-                v-model:value="formData.industryIds"
-                mode="multiple"
-                placeholder="请选择关联行业(可多选)"
-                allow-clear
-              >
-                <a-select-option v-for="item in industryOptions" :key="item.id" :value="item.id">
-                  {{ item.industryName }}
-                </a-select-option>
-              </a-select>
-            </a-form-item>
-          </a-col>
-          <a-col :span="12">
-            <a-form-item label="品类">
-              <a-input v-model:value="formData.category" placeholder="请输入品类" />
-            </a-form-item>
-          </a-col>
-        </a-row>
-        <a-row :gutter="16">
-          <a-col :span="12">
-            <a-form-item label="产品名称" name="productName">
-              <a-input v-model:value="formData.productName" placeholder="请输入产品名称" />
-            </a-form-item>
-          </a-col>
-          <a-col :span="12">
-            <a-form-item label="生命周期">
-              <a-input v-model:value="formData.lifeCycle" placeholder="如：导入期/成长期/成熟期" />
-            </a-form-item>
-          </a-col>
-        </a-row>
-        <a-row :gutter="16">
-          <a-col :span="12">
-            <a-form-item label="利益承诺">
-              <a-textarea v-model:value="formData.benefitPromise" placeholder="请输入利益承诺" :rows="2" />
-            </a-form-item>
-          </a-col>
-          <a-col :span="12">
-            <a-form-item label="支撑点">
-              <a-textarea v-model:value="formData.supportPoint" placeholder="请输入支撑点" :rows="2" />
-            </a-form-item>
-          </a-col>
-        </a-row>
-        <a-row :gutter="16">
-          <a-col :span="12">
-            <a-form-item label="核心产品">
-              <a-textarea v-model:value="formData.coreProduct" placeholder="请输入核心产品" :rows="2" />
-            </a-form-item>
-          </a-col>
-          <a-col :span="12">
-            <a-form-item label="基础产品">
-              <a-textarea v-model:value="formData.basicProduct" placeholder="请输入基础产品" :rows="2" />
-            </a-form-item>
-          </a-col>
-        </a-row>
-        <a-row :gutter="16">
-          <a-col :span="12">
-            <a-form-item label="附加产品">
-              <a-textarea v-model:value="formData.additionalProduct" placeholder="请输入附加产品" :rows="2" />
-            </a-form-item>
-          </a-col>
-          <a-col :span="12">
-            <a-form-item label="潜在产品">
-              <a-textarea v-model:value="formData.potentialProduct" placeholder="请输入潜在产品" :rows="2" />
-            </a-form-item>
-          </a-col>
-        </a-row>
-        <a-form-item label="产品概念">
-          <a-textarea v-model:value="formData.productConcept" placeholder="请输入产品概念" :rows="2" />
-        </a-form-item>
+        <SectionCard
+          v-for="sec in productSections"
+          :key="sec.title"
+          :section="sec"
+          :model="formData"
+          mode="form"
+          :options-map="optionsMap"
+        />
       </a-form>
     </a-modal>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, onMounted } from 'vue'
+import { ref, reactive, computed, onMounted } from 'vue'
 import { message } from 'ant-design-vue'
 import type { FormInstance } from 'ant-design-vue'
 import { PlusOutlined, SearchOutlined, RedoOutlined } from '@ant-design/icons-vue'
 import { getIndustryList, type BizIndustry, type BizIndustryProduct } from '@/api/biz/industry'
 import { getProductPage, addProduct, updateProduct, deleteProduct, type BizProductQuery } from '@/api/biz/product'
+import SectionCard from '../../components/SectionCard.vue'
+import { productSections } from '../product/sections'
 
 // 表格列定义
 const columns = [
@@ -212,14 +150,29 @@ const formData = reactive<Partial<BizIndustryProduct>>({
   category: '',
   productName: '',
   productConcept: '',
+  consumerInsight: '',
   benefitPromise: '',
   supportPoint: '',
   coreProduct: '',
   basicProduct: '',
   additionalProduct: '',
   potentialProduct: '',
-  lifeCycle: ''
+  lifeCycle: '',
+  upstreamChain: '',
+  midstreamChain: '',
+  downstreamChannel: '',
+  downstreamMarketing: '',
+  dynamicInfo: '',
+  valueInfo: '',
+  strategy: ''
 })
+
+// 动态下拉选项(关联行业)
+const optionsMap = computed<Record<string, { label: string; value: any }[]>>(() => ({
+  industryIds: industryOptions.value
+    .filter((item) => item.id != null)
+    .map((item) => ({ label: item.industryName || '', value: item.id as number }))
+}))
 
 // 表单校验规则
 const rules: Record<string, any> = {
@@ -279,6 +232,7 @@ const handleAdd = () => {
   formData.category = ''
   formData.productName = ''
   formData.productConcept = ''
+  formData.consumerInsight = ''
   formData.benefitPromise = ''
   formData.supportPoint = ''
   formData.coreProduct = ''
@@ -286,6 +240,13 @@ const handleAdd = () => {
   formData.additionalProduct = ''
   formData.potentialProduct = ''
   formData.lifeCycle = ''
+  formData.upstreamChain = ''
+  formData.midstreamChain = ''
+  formData.downstreamChannel = ''
+  formData.downstreamMarketing = ''
+  formData.dynamicInfo = ''
+  formData.valueInfo = ''
+  formData.strategy = ''
   modalVisible.value = true
 }
 
@@ -295,17 +256,26 @@ const handleEdit = (record: BizIndustryProduct) => {
   editId.value = record.id
   modalTitle.value = '编辑产品'
   Object.assign(formData, {
+    ...record,
     industryIds: record.industryIds || [],
     category: record.category || '',
     productName: record.productName || '',
     productConcept: record.productConcept || '',
+    consumerInsight: record.consumerInsight || '',
     benefitPromise: record.benefitPromise || '',
     supportPoint: record.supportPoint || '',
     coreProduct: record.coreProduct || '',
     basicProduct: record.basicProduct || '',
     additionalProduct: record.additionalProduct || '',
     potentialProduct: record.potentialProduct || '',
-    lifeCycle: record.lifeCycle || ''
+    lifeCycle: record.lifeCycle || '',
+    upstreamChain: record.upstreamChain || '',
+    midstreamChain: record.midstreamChain || '',
+    downstreamChannel: record.downstreamChannel || '',
+    downstreamMarketing: record.downstreamMarketing || '',
+    dynamicInfo: record.dynamicInfo || '',
+    valueInfo: record.valueInfo || '',
+    strategy: record.strategy || ''
   })
   modalVisible.value = true
 }

@@ -88,126 +88,32 @@
       :confirm-loading="confirmLoading"
       @ok="handleSubmit"
       @cancel="handleCancel"
-      width="700px"
+      width="900px"
     >
       <a-form ref="formRef" :model="formData" :rules="rules" layout="vertical">
-        <a-row :gutter="16">
-          <a-col :span="12">
-            <a-form-item label="关联行业" name="industryIds">
-              <a-select
-                v-model:value="formData.industryIds"
-                mode="multiple"
-                placeholder="请选择关联行业(可多选)"
-                allow-clear
-              >
-                <a-select-option v-for="item in industryOptions" :key="item.id" :value="item.id">
-                  {{ item.industryName }}
-                </a-select-option>
-              </a-select>
-            </a-form-item>
-          </a-col>
-          <a-col :span="12">
-            <a-form-item label="关联产品">
-              <a-select
-                v-model:value="formData.productIds"
-                mode="multiple"
-                placeholder="请选择关联产品(可多选)"
-                allow-clear
-              >
-                <a-select-option v-for="item in productOptions" :key="item.id" :value="item.id">
-                  {{ item.productName }}
-                </a-select-option>
-              </a-select>
-            </a-form-item>
-          </a-col>
-        </a-row>
-        <a-row :gutter="16">
-          <a-col :span="12">
-            <a-form-item label="企业类型">
-              <a-input v-model:value="formData.enterpriseType" placeholder="如：上市公司/国企/民企" />
-            </a-form-item>
-          </a-col>
-        </a-row>
-        <a-row :gutter="16">
-          <a-col :span="12">
-            <a-form-item label="企业名称" name="enterpriseName">
-              <a-input v-model:value="formData.enterpriseName" placeholder="请输入企业名称" />
-            </a-form-item>
-          </a-col>
-          <a-col :span="12">
-            <a-form-item label="成立日期">
-              <a-input v-model:value="formData.establishedDate" placeholder="如：2000-01-01" />
-            </a-form-item>
-          </a-col>
-        </a-row>
-        <a-row :gutter="16">
-          <a-col :span="12">
-            <a-form-item label="注册资本">
-              <a-input v-model:value="formData.registeredCapital" placeholder="请输入注册资本" />
-            </a-form-item>
-          </a-col>
-          <a-col :span="12">
-            <a-form-item label="实缴资本">
-              <a-input v-model:value="formData.paidCapital" placeholder="请输入实缴资本" />
-            </a-form-item>
-          </a-col>
-        </a-row>
-        <a-row :gutter="16">
-          <a-col :span="12">
-            <a-form-item label="规模">
-              <a-input v-model:value="formData.scale" placeholder="如：大型/中型/小型" />
-            </a-form-item>
-          </a-col>
-          <a-col :span="12">
-            <a-form-item label="参保人数">
-              <a-input-number v-model:value="formData.insuredCount" placeholder="参保人数" style="width: 100%" />
-            </a-form-item>
-          </a-col>
-        </a-row>
-        <a-row :gutter="16">
-          <a-col :span="12">
-            <a-form-item label="是否上市">
-              <a-select v-model:value="formData.isListed" placeholder="请选择是否上市">
-                <a-select-option :value="1">是</a-select-option>
-                <a-select-option :value="0">否</a-select-option>
-              </a-select>
-            </a-form-item>
-          </a-col>
-        </a-row>
-        <a-form-item label="主营业务">
-          <a-textarea v-model:value="formData.mainBusiness" placeholder="请输入主营业务" :rows="2" />
-        </a-form-item>
-        <a-form-item label="核心技术">
-          <a-textarea v-model:value="formData.coreTechnology" placeholder="请输入核心技术" :rows="2" />
-        </a-form-item>
-        <a-form-item label="市场表现">
-          <a-textarea v-model:value="formData.marketPerformance" placeholder="请输入市场表现" :rows="2" />
-        </a-form-item>
-        <a-row :gutter="16">
-          <a-col :span="12">
-            <a-form-item label="优势">
-              <a-textarea v-model:value="formData.advantage" placeholder="请输入优势" :rows="2" />
-            </a-form-item>
-          </a-col>
-          <a-col :span="12">
-            <a-form-item label="劣势">
-              <a-textarea v-model:value="formData.disadvantage" placeholder="请输入劣势" :rows="2" />
-            </a-form-item>
-          </a-col>
-        </a-row>
+        <SectionCard
+          v-for="sec in enterpriseSections"
+          :key="sec.title"
+          :section="sec"
+          :model="formData"
+          mode="form"
+          :options-map="optionsMap"
+        />
       </a-form>
     </a-modal>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, onMounted } from 'vue'
+import { ref, reactive, computed, onMounted } from 'vue'
 import { message } from 'ant-design-vue'
 import type { FormInstance } from 'ant-design-vue'
 import { PlusOutlined, SearchOutlined, RedoOutlined } from '@ant-design/icons-vue'
 import { getIndustryList, type BizIndustry, type BizIndustryEnterprise } from '@/api/biz/industry'
 import { getEnterprisePage, addEnterprise, updateEnterprise, deleteEnterprise, type BizEnterpriseQuery } from '@/api/biz/enterprise'
 import { getProductPage, type BizIndustryProduct } from '@/api/biz/product'
+import SectionCard from '../../components/SectionCard.vue'
+import { enterpriseSections } from '../enterprise/sections'
 
 // 表格列定义
 const columns = [
@@ -292,10 +198,30 @@ const formData = reactive<Partial<BizIndustryEnterprise>>({
   isListed: 0,
   mainBusiness: '',
   coreTechnology: '',
+  products: '',
   marketPerformance: '',
+  competitors: '',
   advantage: '',
-  disadvantage: ''
+  disadvantage: '',
+  upstreamChain: '',
+  midstreamChain: '',
+  downstreamChannel: '',
+  downstreamMarketing: '',
+  dynamicInfo: '',
+  valueInfo: '',
+  industryResources: '',
+  strategy: ''
 })
+
+// 动态下拉选项(关联行业/关联产品)
+const optionsMap = computed<Record<string, { label: string; value: any }[]>>(() => ({
+  industryIds: industryOptions.value
+    .filter((item) => item.id != null)
+    .map((item) => ({ label: item.industryName || '', value: item.id as number })),
+  productIds: productOptions.value
+    .filter((item) => item.id != null)
+    .map((item) => ({ label: item.productName || '', value: item.id as number }))
+}))
 
 // 表单校验规则
 const rules: Record<string, any> = {
@@ -364,9 +290,19 @@ const handleAdd = () => {
   formData.isListed = 0
   formData.mainBusiness = ''
   formData.coreTechnology = ''
+  formData.products = ''
   formData.marketPerformance = ''
+  formData.competitors = ''
   formData.advantage = ''
   formData.disadvantage = ''
+  formData.upstreamChain = ''
+  formData.midstreamChain = ''
+  formData.downstreamChannel = ''
+  formData.downstreamMarketing = ''
+  formData.dynamicInfo = ''
+  formData.valueInfo = ''
+  formData.industryResources = ''
+  formData.strategy = ''
   modalVisible.value = true
 }
 
@@ -388,9 +324,19 @@ const handleEdit = (record: BizIndustryEnterprise) => {
     isListed: record.isListed ?? 0,
     mainBusiness: record.mainBusiness || '',
     coreTechnology: record.coreTechnology || '',
+    products: record.products || '',
     marketPerformance: record.marketPerformance || '',
+    competitors: record.competitors || '',
     advantage: record.advantage || '',
-    disadvantage: record.disadvantage || ''
+    disadvantage: record.disadvantage || '',
+    upstreamChain: record.upstreamChain || '',
+    midstreamChain: record.midstreamChain || '',
+    downstreamChannel: record.downstreamChannel || '',
+    downstreamMarketing: record.downstreamMarketing || '',
+    dynamicInfo: record.dynamicInfo || '',
+    valueInfo: record.valueInfo || '',
+    industryResources: record.industryResources || '',
+    strategy: record.strategy || ''
   })
   modalVisible.value = true
 }

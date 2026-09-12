@@ -125,112 +125,24 @@
       :confirm-loading="confirmLoading"
       @ok="handleSubmit"
       @cancel="handleCancel"
-      width="760px"
+      width="900px"
     >
       <a-form ref="formRef" :model="formData" :rules="rules" layout="vertical">
-        <a-divider orientation="left" plain>基本信息</a-divider>
-        <a-row :gutter="16">
-          <a-col :span="12">
-            <a-form-item label="客户姓名" name="name">
-              <a-input v-model:value="formData.name" placeholder="请输入客户姓名" />
-            </a-form-item>
-          </a-col>
-          <a-col :span="12">
-            <a-form-item label="性别" name="gender">
-              <a-select v-model:value="formData.gender" placeholder="请选择性别">
-                <a-select-option :value="1">男</a-select-option>
-                <a-select-option :value="2">女</a-select-option>
-              </a-select>
-            </a-form-item>
-          </a-col>
-        </a-row>
-        <a-row :gutter="16">
-          <a-col :span="12">
-            <a-form-item label="年龄">
-              <a-input-number v-model:value="formData.age" placeholder="请输入年龄" :min="0" :max="120" style="width: 100%" />
-            </a-form-item>
-          </a-col>
-          <a-col :span="12">
-            <a-form-item label="手机号" name="phone">
-              <a-input v-model:value="formData.phone" placeholder="请输入手机号" />
-            </a-form-item>
-          </a-col>
-        </a-row>
-        <a-row :gutter="16">
-          <a-col :span="12">
-            <a-form-item label="邮箱">
-              <a-input v-model:value="formData.email" placeholder="请输入邮箱" />
-            </a-form-item>
-          </a-col>
-          <a-col :span="12">
-            <a-form-item label="联系地址">
-              <a-input v-model:value="formData.address" placeholder="请输入联系地址" />
-            </a-form-item>
-          </a-col>
-        </a-row>
-
-        <a-divider orientation="left" plain>公司信息</a-divider>
-        <a-row :gutter="16">
-          <a-col :span="12">
-            <a-form-item label="公司名称" name="company.name">
-              <a-input v-model:value="formData.company.name" placeholder="请输入公司名称" />
-            </a-form-item>
-          </a-col>
-          <a-col :span="12">
-            <a-form-item label="所属行业">
-              <a-input v-model:value="formData.company.industry" placeholder="请输入所属行业" />
-            </a-form-item>
-          </a-col>
-        </a-row>
-        <a-row :gutter="16">
-          <a-col :span="12">
-            <a-form-item label="联系人">
-              <a-input v-model:value="formData.company.contactName" placeholder="请输入联系人" />
-            </a-form-item>
-          </a-col>
-          <a-col :span="12">
-            <a-form-item label="联系电话">
-              <a-input v-model:value="formData.company.contactPhone" placeholder="请输入联系电话" />
-            </a-form-item>
-          </a-col>
-        </a-row>
-
-        <a-divider orientation="left" plain>需求信息</a-divider>
-        <a-row :gutter="16">
-          <a-col :span="12">
-            <a-form-item label="需求等级" name="demandLevel">
-              <a-select v-model:value="formData.demandLevel" placeholder="请选择需求等级">
-                <a-select-option :value="1">低</a-select-option>
-                <a-select-option :value="2">中</a-select-option>
-                <a-select-option :value="3">高</a-select-option>
-              </a-select>
-            </a-form-item>
-          </a-col>
-          <a-col :span="12">
-            <a-form-item label="需求标签">
-              <a-input v-model:value="formData.demandTags" placeholder="多个标签用逗号分隔" />
-            </a-form-item>
-          </a-col>
-        </a-row>
-        <a-form-item label="所属行业(多选)" name="industryIds">
-          <a-select
-            v-model:value="formData.industryIds"
-            mode="multiple"
-            placeholder="请选择所属行业"
-            :options="industryOptions"
-            allow-clear
-          />
-        </a-form-item>
-        <a-form-item label="需求描述">
-          <a-textarea v-model:value="formData.demandDesc" placeholder="请输入客户需求描述" :rows="3" />
-        </a-form-item>
+        <SectionCard
+          v-for="sec in customerSections"
+          :key="sec.title"
+          :section="sec"
+          :model="formData"
+          mode="form"
+          :options-map="optionsMap"
+        />
       </a-form>
     </a-modal>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, onMounted, nextTick } from 'vue'
+import { ref, reactive, computed, onMounted, nextTick } from 'vue'
 import { message } from 'ant-design-vue'
 import type { PaginationProps, FormInstance } from 'ant-design-vue'
 import type { Rule } from 'ant-design-vue/es/form'
@@ -250,6 +162,8 @@ import {
   type BizCustomerIndustry
 } from '@/api/biz/customer'
 import { getIndustryList, type BizIndustry } from '@/api/biz/industry'
+import SectionCard from '../../components/SectionCard.vue'
+import { customerSections } from '../sections'
 
 interface TableColumn {
   title: string
@@ -263,8 +177,17 @@ interface CustomerCompanyForm {
   id?: number
   name: string
   industry: string
+  scale?: string
+  business?: string
+  mainProducts?: string
+  establishedDate?: string
+  capital?: string
+  address?: string
+  marketPerformance?: string
+  competitiveAdvantage?: string
   contactName: string
   contactPhone: string
+  contactPosition?: string
 }
 
 interface CustomerFormData {
@@ -274,15 +197,32 @@ interface CustomerFormData {
   phone?: string
   email?: string
   address?: string
+  regionCode?: string
+  education?: string
+  educationRaw?: string
+  occupation?: string
+  position?: string
+  personality?: string
+  hobby?: string
+  valuesText?: string
+  lifestyle?: string
+  maritalStatus?: string
+  familySituation?: string
   customerType?: number
   companyId?: number
   status?: number
   source?: string
   demandLevel?: number
+  valueScore?: number
+  demandWillingness?: number
+  demandBudget?: number
+  demandDecision?: string
+  demandPriority?: number
   demandDesc?: string
   demandTags?: string
   company: CustomerCompanyForm
   industryIds: number[]
+  profile?: Partial<BizCustomerProfile>
 }
 
 // 表格列定义
@@ -344,21 +284,63 @@ const formData = reactive<CustomerFormData>({
   phone: '',
   email: '',
   address: '',
+  regionCode: '',
+  education: '',
+  educationRaw: '',
+  occupation: '',
+  position: '',
+  personality: '',
+  hobby: '',
+  valuesText: '',
+  lifestyle: '',
+  maritalStatus: '',
+  familySituation: '',
   customerType: 1,
   companyId: undefined,
   status: 1,
   source: '',
   demandLevel: 1,
+  valueScore: undefined,
+  demandWillingness: undefined,
+  demandBudget: undefined,
+  demandDecision: '',
+  demandPriority: undefined,
   demandDesc: '',
   demandTags: '',
   company: {
     id: undefined,
     name: '',
     industry: '',
+    scale: '',
+    business: '',
+    mainProducts: '',
+    establishedDate: '',
+    capital: '',
+    address: '',
+    marketPerformance: '',
+    competitiveAdvantage: '',
     contactName: '',
-    contactPhone: ''
+    contactPhone: '',
+    contactPosition: ''
   },
-  industryIds: []
+  industryIds: [],
+  profile: {
+    dynamicInfo: '',
+    valueLevel: undefined,
+    valueExpect: '',
+    valueInterest: '',
+    strategy: '',
+    talkScript: '',
+    analysis: ''
+  }
+})
+
+// 动态下拉选项(关联行业)
+const optionsMap = computed<Record<string, { label: string; value: any }[]>>(() => {
+  const industrySel = industryOptions.value
+  return {
+    industryIds: Array.isArray(industrySel) ? industrySel : []
+  }
 })
 
 // 表单校验规则
@@ -471,21 +453,55 @@ const resetFormData = () => {
   formData.phone = ''
   formData.email = ''
   formData.address = ''
+  formData.regionCode = ''
+  formData.education = ''
+  formData.educationRaw = ''
+  formData.occupation = ''
+  formData.position = ''
+  formData.personality = ''
+  formData.hobby = ''
+  formData.valuesText = ''
+  formData.lifestyle = ''
+  formData.maritalStatus = ''
+  formData.familySituation = ''
   formData.customerType = 1
   formData.companyId = undefined
   formData.status = 1
   formData.source = ''
   formData.demandLevel = 1
+  formData.valueScore = undefined
+  formData.demandWillingness = undefined
+  formData.demandBudget = undefined
+  formData.demandDecision = ''
+  formData.demandPriority = undefined
   formData.demandDesc = ''
   formData.demandTags = ''
   formData.company = {
     id: undefined,
     name: '',
     industry: '',
+    scale: '',
+    business: '',
+    mainProducts: '',
+    establishedDate: '',
+    capital: '',
+    address: '',
+    marketPerformance: '',
+    competitiveAdvantage: '',
     contactName: '',
-    contactPhone: ''
+    contactPhone: '',
+    contactPosition: ''
   }
   formData.industryIds = []
+  formData.profile = {
+    dynamicInfo: '',
+    valueLevel: undefined,
+    valueExpect: '',
+    valueInterest: '',
+    strategy: '',
+    talkScript: '',
+    analysis: ''
+  }
 }
 
 // 新增
@@ -516,19 +532,53 @@ const handleEdit = async (record: BizCustomer) => {
     formData.phone = detail.phone || ''
     formData.email = detail.email || ''
     formData.address = detail.address || ''
+    formData.regionCode = detail.regionCode || ''
+    formData.education = detail.education || ''
+    formData.educationRaw = detail.educationRaw || ''
+    formData.occupation = detail.occupation || ''
+    formData.position = detail.position || ''
+    formData.personality = detail.personality || ''
+    formData.hobby = detail.hobby || ''
+    formData.valuesText = detail.valuesText || ''
+    formData.lifestyle = detail.lifestyle || ''
+    formData.maritalStatus = detail.maritalStatus || ''
+    formData.familySituation = detail.familySituation || ''
     formData.customerType = detail.customerType ?? 1
     formData.companyId = detail.companyId
     formData.status = detail.status ?? 1
     formData.source = detail.source || ''
     formData.demandLevel = detail.demandLevel ?? 1
+    formData.valueScore = detail.valueScore
+    formData.demandWillingness = detail.demandWillingness
+    formData.demandBudget = detail.demandBudget
+    formData.demandDecision = detail.demandDecision || ''
+    formData.demandPriority = detail.demandPriority
     formData.demandDesc = detail.demandDesc || ''
     formData.demandTags = detail.demandTags || ''
     formData.company = {
       id: detail.company?.id,
       name: detail.company?.name || '',
       industry: detail.company?.industry || '',
+      scale: detail.company?.scale || '',
+      business: detail.company?.business || '',
+      mainProducts: detail.company?.mainProducts || '',
+      establishedDate: detail.company?.establishedDate || '',
+      capital: detail.company?.capital || '',
+      address: detail.company?.address || '',
+      marketPerformance: detail.company?.marketPerformance || '',
+      competitiveAdvantage: detail.company?.competitiveAdvantage || '',
       contactName: detail.company?.contactName || '',
-      contactPhone: detail.company?.contactPhone || ''
+      contactPhone: detail.company?.contactPhone || '',
+      contactPosition: detail.company?.contactPosition || ''
+    }
+    formData.profile = {
+      dynamicInfo: detail.profile?.dynamicInfo || '',
+      valueLevel: detail.profile?.valueLevel,
+      valueExpect: detail.profile?.valueExpect || '',
+      valueInterest: detail.profile?.valueInterest || '',
+      strategy: detail.profile?.strategy || '',
+      talkScript: detail.profile?.talkScript || '',
+      analysis: detail.profile?.analysis || ''
     }
     const industries: BizCustomerIndustry[] = detail.industries || []
     const idsFromIndustries = industries.flatMap((item) => (item.industryId != null ? [item.industryId] : []))
