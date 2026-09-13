@@ -345,20 +345,23 @@ const fieldCount = computed(() => {
   flex: 1;
 }
 
-/* 输入控件统一定宽(与设计稿一致): input/textarea 220px, 内容居中 */
+/* 输入控件统一定宽(与设计稿一致): input/textarea 220px, 内容居中; flex:none 防止双字段行压缩 */
 .biz-matrix-content :deep(.ant-form-item-control-input-content > input.ant-input) {
   width: 220px;
+  flex: none;
   text-align: center;
 }
 
 .biz-matrix-content :deep(.ant-form-item-control-input-content > textarea.ant-input) {
   width: 220px;
+  flex: none;
   min-height: 72px;
   text-align: center;
 }
 
 .biz-matrix-content :deep(.ant-form-item-control-input-content .ant-input-affix-wrapper) {
   width: 220px;
+  flex: none;
 }
 
 .biz-matrix-content :deep(.ant-form-item-control-input-content .ant-input-affix-wrapper input.ant-input) {

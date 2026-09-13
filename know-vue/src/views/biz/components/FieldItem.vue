@@ -17,7 +17,7 @@
       v-else-if="field.type === 'textarea'"
       v-model:value="value"
       :placeholder="field.placeholder || `请输入${field.label}`"
-      :auto-size="{ minRows: 2, maxRows: 6 }"
+      :rows="2"
     />
     <a-select
       v-else-if="field.type === 'select'"
