@@ -1,4 +1,4 @@
-<template>
+﻿<template>
   <div>
     <a-card title="行业市场" :bordered="false">
       <a-form layout="inline" class="mb-4">
@@ -43,7 +43,7 @@
         </a-space>
 
         <a-form :model="formData" layout="vertical">
-          <SectionCard
+          <MatrixTable
             v-for="sec in marketSections"
             :key="sec.title"
             :section="sec"
@@ -71,7 +71,7 @@ import { message } from 'ant-design-vue'
 import { SaveOutlined } from '@ant-design/icons-vue'
 import { getIndustryList, type BizIndustry } from '@/api/biz/industry'
 import { getMarketsByIndustryId, saveMarket, type BizIndustryMarket } from '@/api/biz/market'
-import SectionCard from '../../components/SectionCard.vue'
+import MatrixTable from '../../components/MatrixTable.vue'
 import { marketSections } from '../market/sections'
 
 // 市场列表列

@@ -1,4 +1,4 @@
-<template>
+﻿<template>
   <div>
     <a-card title="行业管理" :bordered="false">
       <template #extra>
@@ -74,7 +74,7 @@
       width="900px"
     >
       <a-form ref="formRef" :model="formData" :rules="rules" layout="vertical">
-        <SectionCard
+        <MatrixTable
           v-for="sec in industrySections"
           :key="sec.title"
           :section="sec"
@@ -97,7 +97,7 @@
           <!-- 四个关联 tab: 行业信息 / 行业产品 / 行业企业 / 市场信息 -->
           <a-tabs v-model:activeKey="detailModal.tab">
             <a-tab-pane key="info" tab="行业信息">
-              <SectionCard
+              <MatrixTable
                 v-for="sec in industrySections"
                 :key="sec.title"
                 :section="sec"
@@ -124,7 +124,7 @@
               />
             </a-tab-pane>
             <a-tab-pane key="market" tab="市场信息">
-              <SectionCard
+              <MatrixTable
                 v-if="detailModal.market"
                 v-for="sec in marketSections"
                 :key="sec.title"
@@ -148,7 +148,7 @@ import type { FormInstance } from 'ant-design-vue'
 import { PlusOutlined, SearchOutlined, RedoOutlined } from '@ant-design/icons-vue'
 import { getIndustryPage, getIndustryDetail, addIndustry, updateIndustry, deleteIndustry, type BizIndustry, type BizIndustryQuery } from '@/api/biz/industry'
 import type { BizIndustryMarket } from '@/api/biz/market'
-import SectionCard from '../../components/SectionCard.vue'
+import MatrixTable from '../../components/MatrixTable.vue'
 import { industrySections } from '../sections'
 import { marketSections } from '../market/sections'
 

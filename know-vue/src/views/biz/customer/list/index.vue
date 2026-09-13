@@ -1,4 +1,4 @@
-<template>
+﻿<template>
   <div>
     <!-- 统计卡片 -->
     <a-row :gutter="16" class="mb-4">
@@ -128,7 +128,7 @@
       width="900px"
     >
       <a-form ref="formRef" :model="formData" :rules="rules" layout="vertical">
-        <SectionCard
+        <MatrixTable
           v-for="sec in customerSections"
           :key="sec.title"
           :section="sec"
@@ -162,7 +162,7 @@ import {
   type BizCustomerIndustry
 } from '@/api/biz/customer'
 import { getIndustryList, type BizIndustry } from '@/api/biz/industry'
-import SectionCard from '../../components/SectionCard.vue'
+import MatrixTable from '../../components/MatrixTable.vue'
 import { customerSections } from '../sections'
 
 interface TableColumn {

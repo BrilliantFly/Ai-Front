@@ -1,4 +1,4 @@
-<template>
+﻿<template>
   <div>
     <a-card title="行业企业" :bordered="false">
       <template #extra>
@@ -91,7 +91,7 @@
       width="900px"
     >
       <a-form ref="formRef" :model="formData" :rules="rules" layout="vertical">
-        <SectionCard
+        <MatrixTable
           v-for="sec in enterpriseSections"
           :key="sec.title"
           :section="sec"
@@ -112,7 +112,7 @@ import { PlusOutlined, SearchOutlined, RedoOutlined } from '@ant-design/icons-vu
 import { getIndustryList, type BizIndustry, type BizIndustryEnterprise } from '@/api/biz/industry'
 import { getEnterprisePage, addEnterprise, updateEnterprise, deleteEnterprise, type BizEnterpriseQuery } from '@/api/biz/enterprise'
 import { getProductPage, type BizIndustryProduct } from '@/api/biz/product'
-import SectionCard from '../../components/SectionCard.vue'
+import MatrixTable from '../../components/MatrixTable.vue'
 import { enterpriseSections } from '../enterprise/sections'
 
 // 表格列定义

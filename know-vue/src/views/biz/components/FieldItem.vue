@@ -25,7 +25,7 @@
       :options="options"
       :placeholder="field.placeholder || `请选择${field.label}`"
       allow-clear
-      style="width: 100%"
+      style="width: 220px"
     />
     <a-select
       v-else-if="field.type === 'selectMultiple'"
@@ -34,13 +34,13 @@
       :placeholder="field.placeholder || `请选择${field.label}(可多选)`"
       mode="multiple"
       allow-clear
-      style="width: 100%"
+      style="width: 220px"
     />
     <a-input-number
       v-else-if="field.type === 'number'"
       v-model:value="value"
       :placeholder="field.placeholder || `请输入${field.label}`"
-      style="width: 100%"
+      style="width: 220px"
     />
   </a-form-item>
 </template>
@@ -126,7 +126,7 @@ const displayValue = computed(() => {
 
 .biz-field-label {
   flex-shrink: 0;
-  width: 105px;
+  width: 120px;
   text-align: right;
   color: rgba(0, 0, 0, 0.65);
   font-size: 13px;
@@ -135,6 +135,7 @@ const displayValue = computed(() => {
 
 .biz-field-value {
   flex: 1;
+  text-align: center;
   color: rgba(0, 0, 0, 0.88);
   font-size: 13px;
   line-height: 22px;
