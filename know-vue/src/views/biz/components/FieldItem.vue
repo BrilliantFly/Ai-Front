@@ -6,7 +6,7 @@
   </div>
 
   <!-- 表单模式: label + 控件 -->
-  <a-form-item v-else :label="stripLabel(field.label)" :name="field.key" :required="field.required" class="biz-field-item">
+  <a-form-item v-else :label="stripLabel(field.label)" :name="field.key" :required="field.required" class="biz-field-item biz-field-form">
     <a-input
       v-if="!field.type || field.type === 'input'"
       v-model:value="value"
@@ -146,5 +146,15 @@ const displayValue = computed(() => {
   line-height: 24px;
   word-break: break-all;
   white-space: pre-wrap;
+}
+
+/* 表单模式: 撤销 .biz-field-item 的 flex 容器(专为详情 label+值横排), 使 ant-form-item-row 撑满整行,
+   控件(100%宽)随之撑满内容列并可跟随弹窗全屏/宽度变化自动伸缩 */
+.biz-field-form {
+  display: block;
+}
+
+.biz-field-form :deep(.ant-form-item-row) {
+  width: 100%;
 }
 </style>

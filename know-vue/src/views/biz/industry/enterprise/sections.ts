@@ -58,15 +58,9 @@ export const enterpriseSections: SectionDef[] = [
           },
           {
             title: '下游（销售渠道、营销）',
-            subSections: [
-              {
-                title: '渠道',
-                fields: [{ label: '下游渠道', key: 'downstreamChannel', type: 'textarea', span: 24 }]
-              },
-              {
-                title: '营销',
-                fields: [{ label: '下游营销', key: 'downstreamMarketing', type: 'textarea', span: 24 }]
-              }
+            fields: [
+              { label: '下游渠道', key: 'downstreamChannel', type: 'textarea', span: 24 },
+              { label: '下游营销', key: 'downstreamMarketing', type: 'textarea', span: 24 }
             ]
           }
         ]
