@@ -232,6 +232,8 @@ const formData = reactive<Partial<BizIndustry>>({
   technology: '',
   upstreamChain: '',
   midstreamChain: '',
+  downstreamChannel: '',
+  downstreamMarketing: '',
   developmentOverview: '',
   marketSize: '',
   growthPotential: '',
@@ -310,6 +312,8 @@ const handleAdd = () => {
   formData.technology = ''
   formData.upstreamChain = ''
   formData.midstreamChain = ''
+  formData.downstreamChannel = ''
+  formData.downstreamMarketing = ''
   formData.developmentOverview = ''
   formData.marketSize = ''
   formData.growthPotential = ''

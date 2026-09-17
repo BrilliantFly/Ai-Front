@@ -102,10 +102,12 @@ interface SubTable {
   rows: MatrixRow[]
 }
 
-/** 递归收集字段块(携带层级路径, 从二级区域标题开始) */
+/** 递归收集字段块(携带层级路径, 从二级区域标题开始); 无字段且无子区域时生成空占位行以保留层级列 */
 const collectRows = (sec: SectionDef, path: string[], out: { path: string[]; blocks: FieldDef[][] }[]) => {
   if (sec.fields && sec.fields.length) {
     out.push({ path, blocks: packFields(sec.fields) })
+  } else if (!sec.subSections || !sec.subSections.length) {
+    out.push({ path, blocks: [[]] })
   }
   if (sec.subSections && sec.subSections.length) {
     for (const sub of sec.subSections) {
@@ -316,6 +318,11 @@ const fieldCount = computed(() => {
 
 .biz-field-row:last-child {
   border-bottom: none;
+}
+
+/* 空占位行(如"下游"仅保留层级列、右侧无字段): 用 min-height 保持行高 */
+.biz-field-row:empty {
+  min-height: 40px;
 }
 
 .biz-field-cell {
