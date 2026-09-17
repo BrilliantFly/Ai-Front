@@ -49,7 +49,7 @@
             <span v-else>-</span>
           </template>
           <template v-if="column.key === 'action'">
-            <a-space>
+            <a-space style="white-space: nowrap">
               <a @click="handleEdit(record)">编辑</a>
               <a-divider type="vertical" />
               <a-popconfirm title="确定删除该产品吗？" @confirm="handleDelete(record)">
@@ -62,13 +62,13 @@
     </a-card>
 
     <!-- 新增/编辑弹窗 -->
-    <a-modal
+    <BizFullscreenModal
       v-model:open="modalVisible"
       :title="modalTitle"
       :confirm-loading="confirmLoading"
       @ok="handleSubmit"
       @cancel="handleCancel"
-      width="900px"
+      width="960px"
     >
       <a-form ref="formRef" :model="formData" :rules="rules" layout="vertical">
         <MatrixTable
@@ -80,7 +80,7 @@
           :options-map="optionsMap"
         />
       </a-form>
-    </a-modal>
+    </BizFullscreenModal>
   </div>
 </template>
 
@@ -92,6 +92,7 @@ import { PlusOutlined, SearchOutlined, RedoOutlined } from '@ant-design/icons-vu
 import { getIndustryList, type BizIndustry, type BizIndustryProduct } from '@/api/biz/industry'
 import { getProductPage, addProduct, updateProduct, deleteProduct, type BizProductQuery } from '@/api/biz/product'
 import MatrixTable from '../../components/MatrixTable.vue'
+import BizFullscreenModal from '@/components/BizFullscreenModal.vue'
 import { productSections } from '../product/sections'
 
 // 表格列定义

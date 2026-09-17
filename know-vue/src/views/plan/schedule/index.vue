@@ -82,7 +82,7 @@
     </a-card>
 
     <!-- 新增/编辑弹窗 -->
-    <a-modal
+    <BizFullscreenModal
       v-model:visible="modalVisible"
       :title="isEdit ? '编辑日程' : '新增日程'"
       @ok="handleSave"
@@ -120,11 +120,12 @@
           <a-input v-model:value="form.location" />
         </a-form-item>
       </a-form>
-    </a-modal>
+    </BizFullscreenModal>
   </div>
 </template>
 
 <script setup lang="ts">
+import BizFullscreenModal from '@/components/BizFullscreenModal.vue'
 import { ref, reactive, onMounted } from 'vue'
 import { getScheduleList, addSchedule, updateSchedule, completeSchedule, deleteSchedule, getTodayStats, getScheduleCategoryList } from '@/api/plan/schedule'
 import { message } from 'ant-design-vue'

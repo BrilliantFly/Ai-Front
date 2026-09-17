@@ -74,7 +74,7 @@
     </a-card>
 
     <!-- 新增/编辑弹窗 -->
-    <a-modal
+    <BizFullscreenModal
       v-model:open="modalVisible"
       :title="modalTitle"
       width="600px"
@@ -105,10 +105,10 @@
           </a-select>
         </a-form-item>
       </a-form>
-    </a-modal>
+    </BizFullscreenModal>
 
     <!-- 分配角色弹窗 -->
-    <a-modal
+    <BizFullscreenModal
       v-model:open="roleModalVisible"
       title="分配角色"
       width="500px"
@@ -122,10 +122,10 @@
           {{ role.roleName }}
         </a-checkbox>
       </a-checkbox-group>
-    </a-modal>
+    </BizFullscreenModal>
 
     <!-- 分配用户弹窗 -->
-    <a-modal
+    <BizFullscreenModal
       v-model:open="userModalVisible"
       title="分配用户"
       width="500px"
@@ -139,11 +139,12 @@
           {{ user.username }} ({{ user.realname }})
         </a-checkbox>
       </a-checkbox-group>
-    </a-modal>
+    </BizFullscreenModal>
   </div>
 </template>
 
 <script setup lang="ts">
+import BizFullscreenModal from '@/components/BizFullscreenModal.vue'
 import { ref, reactive, onMounted } from 'vue'
 import dayjs from 'dayjs'
 import { message, Modal } from 'ant-design-vue'

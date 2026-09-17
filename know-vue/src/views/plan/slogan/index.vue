@@ -75,7 +75,7 @@
     </a-card>
 
     <!-- 新增/编辑弹窗 -->
-    <a-modal
+    <BizFullscreenModal
       v-model:open="modalVisible"
       :title="modalTitle"
       @ok="handleOk"
@@ -116,11 +116,12 @@
           />
         </a-form-item>
       </a-form>
-    </a-modal>
+    </BizFullscreenModal>
   </div>
 </template>
 
 <script setup lang="ts">
+import BizFullscreenModal from '@/components/BizFullscreenModal.vue'
   import { ref, reactive, onMounted } from 'vue'
   import { message } from 'ant-design-vue'
   import { SearchOutlined, ReloadOutlined, PlusOutlined } from '@ant-design/icons-vue'

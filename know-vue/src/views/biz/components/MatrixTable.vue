@@ -63,7 +63,7 @@ const props = withDefaults(
   { mode: 'form', optionsMap: undefined }
 )
 
-const open = ref(true)
+const open = ref(props.section.defaultOpen ?? false)
 
 /** 将字段按 span 打包为行内块: span>=24(textarea/整行)独占一块; span<24 两个并排 */
 const packFields = (fields: FieldDef[]): FieldDef[][] => {
@@ -269,21 +269,21 @@ const fieldCount = computed(() => {
 
 .biz-matrix-level.level-2 {
   width: 12%;
-  background: #d6e4ff;
+  background: #e6f4ff;
   color: #003eb3;
   font-weight: 600;
 }
 
 .biz-matrix-level.level-3 {
   width: 13%;
-  background: #fafafa;
-  color: #555;
+  background: #f0f5ff;
+  color: #1d39c4;
 }
 
 .biz-matrix-level.level-4 {
   width: 15%;
-  background: #fffbe6;
-  color: #874d00;
+  background: #fafafa;
+  color: #595959;
 }
 
 .biz-matrix-level.level-5,
@@ -305,8 +305,13 @@ const fieldCount = computed(() => {
 .biz-field-row {
   display: flex;
   gap: 16px;
-  padding: 6px 12px;
+  padding: 8px 12px;
   border-bottom: 1px dashed #f0f0f0;
+  transition: background 0.2s;
+}
+
+.biz-field-row:hover {
+  background: #f5f9ff;
 }
 
 .biz-field-row:last-child {
@@ -323,12 +328,13 @@ const fieldCount = computed(() => {
    注意: antdv 内部 .ant-form-item-row 才是真正承载 label/control 的 flex 容器 */
 .biz-matrix-content :deep(.ant-form-item-row) {
   flex-direction: row;
+  align-items: flex-start;
 }
 
 .biz-matrix-content :deep(.ant-form-item-row .ant-form-item-label) {
-  flex: 0 0 120px;
-  text-align: right;
-  padding: 0 8px 0 0;
+  flex: 0 0 140px;
+  text-align: left;
+  padding: 5px 12px 0 0;
   overflow: visible;
 }
 
@@ -345,26 +351,26 @@ const fieldCount = computed(() => {
   flex: 1;
 }
 
-/* 输入控件统一定宽(与设计稿一致): input/textarea 220px, 内容居中; flex:none 防止双字段行压缩 */
+/* 输入控件栅格内自适应宽度, 内容左对齐; flex:none 防止双字段行压缩 */
 .biz-matrix-content :deep(.ant-form-item-control-input-content > input.ant-input) {
-  width: 220px;
+  width: 100%;
   flex: none;
-  text-align: center;
+  text-align: left;
 }
 
 .biz-matrix-content :deep(.ant-form-item-control-input-content > textarea.ant-input) {
-  width: 220px;
+  width: 100%;
   flex: none;
   min-height: 72px;
-  text-align: center;
+  text-align: left;
 }
 
 .biz-matrix-content :deep(.ant-form-item-control-input-content .ant-input-affix-wrapper) {
-  width: 220px;
+  width: 100%;
   flex: none;
 }
 
 .biz-matrix-content :deep(.ant-form-item-control-input-content .ant-input-affix-wrapper input.ant-input) {
-  text-align: center;
+  text-align: left;
 }
 </style>

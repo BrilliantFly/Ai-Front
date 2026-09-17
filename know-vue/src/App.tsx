@@ -1,6 +1,7 @@
 import { defineComponent, unref, watch } from 'vue'
 import { RouterView } from 'vue-router'
 import { ConfigProvider } from 'ant-design-vue'
+import zhCN from 'ant-design-vue/es/locale/zh_CN'
 import { useBaseSetting } from '@/hooks/setting/useBaseSetting'
 import { useDarkModeSetting } from '@/hooks/setting/useDarkModeSetting'
 import { useTitle } from '@/hooks/web/useTitle'
@@ -24,6 +25,7 @@ export default defineComponent({
 
     return () => (
       <ConfigProvider
+        locale={zhCN}
         theme={{
           token: {
             colorPrimary: unref(getThemeColor),

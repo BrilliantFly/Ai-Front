@@ -30,19 +30,6 @@ export const industrySections: SectionDef[] = [
           {
             title: '中游（产品制造商）',
             fields: [{ label: '中游产业链', key: 'midstreamChain', type: 'textarea', span: 24 }]
-          },
-          {
-            title: '下游（销售渠道、营销）',
-            subSections: [
-              {
-                title: '渠道',
-                fields: [{ label: '下游渠道', key: 'downstreamChannel', type: 'textarea', span: 24 }]
-              },
-              {
-                title: '营销',
-                fields: [{ label: '下游营销', key: 'downstreamMarketing', type: 'textarea', span: 24 }]
-              }
-            ]
           }
         ]
       },

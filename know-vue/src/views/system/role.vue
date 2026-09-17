@@ -71,7 +71,7 @@
     </a-card>
 
     <!-- 新增/编辑弹窗 -->
-    <a-modal
+    <BizFullscreenModal
       v-model:open="modalVisible"
       :title="modalTitle"
       width="600px"
@@ -100,10 +100,10 @@
           </a-select>
         </a-form-item>
       </a-form>
-    </a-modal>
+    </BizFullscreenModal>
 
     <!-- 分配权限弹窗 -->
-    <a-modal
+    <BizFullscreenModal
       v-model:open="menuModalVisible"
       title="分配菜单权限"
       width="500px"
@@ -116,10 +116,10 @@
         checkable
         default-expand-all
       />
-    </a-modal>
+    </BizFullscreenModal>
 
     <!-- 数据权限配置弹窗 -->
-    <a-modal
+    <BizFullscreenModal
       v-model:open="dataScopeModalVisible"
       title="配置数据权限"
       width="600px"
@@ -145,11 +145,12 @@
           />
         </a-form-item>
       </a-form>
-    </a-modal>
+    </BizFullscreenModal>
   </div>
 </template>
 
 <script setup lang="ts">
+import BizFullscreenModal from '@/components/BizFullscreenModal.vue'
 import { ref, reactive, onMounted } from 'vue'
 import { message, Modal } from 'ant-design-vue'
 import { SearchOutlined, ReloadOutlined, PlusOutlined, DeleteOutlined } from '@ant-design/icons-vue'

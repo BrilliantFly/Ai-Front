@@ -63,7 +63,7 @@
       </a-table>
     </a-card>
 
-    <a-modal
+    <BizFullscreenModal
       v-model:visible="modalVisible"
       :title="isEdit ? '编辑日程模板' : '新增日程模板'"
       @ok="handleSave"
@@ -153,11 +153,12 @@
           <a-input-number v-model:value="form.sort" :min="0" />
         </a-form-item>
       </a-form>
-    </a-modal>
+    </BizFullscreenModal>
   </div>
 </template>
 
 <script setup lang="ts">
+import BizFullscreenModal from '@/components/BizFullscreenModal.vue'
 import { ref, reactive, onMounted } from 'vue'
 import { message } from 'ant-design-vue'
 import { SearchOutlined, ReloadOutlined, PlusOutlined } from '@ant-design/icons-vue'

@@ -59,7 +59,7 @@
     </a-card>
 
     <!-- 字典类型 - 新增/编辑弹窗 -->
-    <a-modal v-model:open="modalVisible" :title="modalTitle" width="500px" @ok="handleModalOk" @cancel="handleModalCancel">
+    <BizFullscreenModal v-model:open="modalVisible" :title="modalTitle" width="500px" @ok="handleModalOk" @cancel="handleModalCancel">
       <a-form ref="formRef" :model="formData" :label-col="{ span: 5 }" :rules="formRules">
         <a-form-item label="字典名称" name="dictName">
           <a-input v-model:value="formData.dictName" placeholder="请输入字典名称" />
@@ -74,10 +74,10 @@
           </a-radio-group>
         </a-form-item>
       </a-form>
-    </a-modal>
+    </BizFullscreenModal>
 
     <!-- 字典数据 - 弹窗 -->
-    <a-modal v-model:open="dictDataVisible" :title="'字典数据 - ' + currentDictTypeName" width="800px" :footer="null">
+    <BizFullscreenModal v-model:open="dictDataVisible" :title="'字典数据 - ' + currentDictTypeName" width="800px" :footer="null">
       <div class="dict-data-toolbar">
         <a-button type="primary" size="small" @click="handleAddDictData">
           <template #icon><PlusOutlined /></template>
@@ -106,10 +106,10 @@
           </template>
         </template>
       </a-table>
-    </a-modal>
+    </BizFullscreenModal>
 
     <!-- 字典数据 - 新增/编辑弹窗 -->
-    <a-modal v-model:open="dictDataModalVisible" :title="dictDataModalTitle" width="500px" @ok="handleDictDataModalOk" @cancel="handleDictDataModalCancel">
+    <BizFullscreenModal v-model:open="dictDataModalVisible" :title="dictDataModalTitle" width="500px" @ok="handleDictDataModalOk" @cancel="handleDictDataModalCancel">
       <a-form ref="dictDataFormRef" :model="dictDataForm" :label-col="{ span: 5 }" :rules="dictDataFormRules">
         <a-form-item label="字典标签" name="dictLabel">
           <a-input v-model:value="dictDataForm.dictLabel" placeholder="请输入字典标签" />
@@ -127,11 +127,12 @@
           </a-radio-group>
         </a-form-item>
       </a-form>
-    </a-modal>
+    </BizFullscreenModal>
   </div>
 </template>
 
 <script setup lang="ts">
+import BizFullscreenModal from '@/components/BizFullscreenModal.vue'
 import { ref, reactive, onMounted } from 'vue'
 import { message, Modal } from 'ant-design-vue'
 import { SearchOutlined, ReloadOutlined, PlusOutlined } from '@ant-design/icons-vue'

@@ -58,7 +58,7 @@
     </a-card>
 
     <!-- 新增/编辑弹窗 -->
-    <a-modal v-model:open="modalVisible" :title="modalTitle" width="500px" @ok="handleModalOk" @cancel="handleModalCancel">
+    <BizFullscreenModal v-model:open="modalVisible" :title="modalTitle" width="500px" @ok="handleModalOk" @cancel="handleModalCancel">
       <a-form ref="formRef" :model="formData" :label-col="{ span: 5 }" :rules="formRules">
         <a-form-item label="岗位名称" name="jobName">
           <a-input v-model:value="formData.jobName" placeholder="请输入岗位名称" />
@@ -76,11 +76,12 @@
           </a-radio-group>
         </a-form-item>
       </a-form>
-    </a-modal>
+    </BizFullscreenModal>
   </div>
 </template>
 
 <script setup lang="ts">
+import BizFullscreenModal from '@/components/BizFullscreenModal.vue'
 import { ref, reactive, onMounted } from 'vue'
 import { message, Modal } from 'ant-design-vue'
 import { SearchOutlined, ReloadOutlined, PlusOutlined } from '@ant-design/icons-vue'

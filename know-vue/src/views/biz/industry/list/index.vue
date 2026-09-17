@@ -50,7 +50,7 @@
             </a-tag>
           </template>
           <template v-if="column.key === 'action'">
-            <a-space>
+            <a-space style="white-space: nowrap">
               <a @click="openDetailModal(record)">行业详情</a>
               <a-divider type="vertical" />
               <a @click="handleEdit(record)">编辑</a>
@@ -65,13 +65,13 @@
     </a-card>
 
     <!-- 新增/编辑弹窗 -->
-    <a-modal
+    <BizFullscreenModal
       v-model:open="modalVisible"
       :title="modalTitle"
       :confirm-loading="confirmLoading"
       @ok="handleSubmit"
       @cancel="handleCancel"
-      width="900px"
+      width="960px"
     >
       <a-form ref="formRef" :model="formData" :rules="rules" layout="vertical">
         <MatrixTable
@@ -82,10 +82,10 @@
           mode="form"
         />
       </a-form>
-    </a-modal>
+    </BizFullscreenModal>
 
     <!-- 行业详情弹窗 -->
-    <a-modal
+    <BizFullscreenModal
       v-model:open="detailModal.visible"
       :title="detailModal.title"
       :footer="null"
@@ -137,7 +137,7 @@
           </a-tabs>
         </template>
       </a-spin>
-    </a-modal>
+    </BizFullscreenModal>
   </div>
 </template>
 
@@ -149,6 +149,7 @@ import { PlusOutlined, SearchOutlined, RedoOutlined } from '@ant-design/icons-vu
 import { getIndustryPage, getIndustryDetail, addIndustry, updateIndustry, deleteIndustry, type BizIndustry, type BizIndustryQuery } from '@/api/biz/industry'
 import type { BizIndustryMarket } from '@/api/biz/market'
 import MatrixTable from '../../components/MatrixTable.vue'
+import BizFullscreenModal from '@/components/BizFullscreenModal.vue'
 import { industrySections } from '../sections'
 import { marketSections } from '../market/sections'
 
@@ -231,8 +232,6 @@ const formData = reactive<Partial<BizIndustry>>({
   technology: '',
   upstreamChain: '',
   midstreamChain: '',
-  downstreamChannel: '',
-  downstreamMarketing: '',
   developmentOverview: '',
   marketSize: '',
   growthPotential: '',
@@ -311,8 +310,6 @@ const handleAdd = () => {
   formData.technology = ''
   formData.upstreamChain = ''
   formData.midstreamChain = ''
-  formData.downstreamChannel = ''
-  formData.downstreamMarketing = ''
   formData.developmentOverview = ''
   formData.marketSize = ''
   formData.growthPotential = ''

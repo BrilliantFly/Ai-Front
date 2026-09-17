@@ -57,7 +57,7 @@
     </a-card>
 
     <!-- 新增/编辑弹窗 -->
-    <a-modal v-model:open="modalVisible" :title="modalTitle" @ok="handleOk" :confirmLoading="confirmLoading" width="700px">
+    <BizFullscreenModal v-model:open="modalVisible" :title="modalTitle" @ok="handleOk" :confirmLoading="confirmLoading" width="700px">
       <a-form :model="formData" :label-col="{ span: 4 }" :wrapper-col="{ span: 18 }">
         <a-form-item label="内容" required>
           <a-textarea v-model:value="formData.content" placeholder="请输入小记内容" :rows="6" />
@@ -66,11 +66,12 @@
           <a-input v-model:value="formData.tags" placeholder="多个标签用逗号分隔，如：学习,笔记" />
         </a-form-item>
       </a-form>
-    </a-modal>
+    </BizFullscreenModal>
   </div>
 </template>
 
 <script setup lang="ts">
+import BizFullscreenModal from '@/components/BizFullscreenModal.vue'
 import { ref, reactive, onMounted } from 'vue'
 import { message } from 'ant-design-vue'
 import { SearchOutlined, ReloadOutlined, PlusOutlined } from '@ant-design/icons-vue'

@@ -49,7 +49,7 @@
       </a-row>
     </a-card>
 
-    <a-modal
+    <BizFullscreenModal
       v-model:visible="modalVisible"
       :title="isEdit ? '编辑习惯' : '新增习惯'"
       @ok="handleSave"
@@ -72,11 +72,12 @@
           <a-time-picker v-model:value="form.reminderTime" format="HH:mm" value-format="HH:mm" />
         </a-form-item>
       </a-form>
-    </a-modal>
+    </BizFullscreenModal>
   </div>
 </template>
 
 <script setup lang="ts">
+import BizFullscreenModal from '@/components/BizFullscreenModal.vue'
 import { ref, reactive, onMounted } from 'vue'
 import { getHabitList, getHabitStats, addHabit, updateHabit, deleteHabit, checkinHabit } from '@/api/plan/habit'
 import { message } from 'ant-design-vue'

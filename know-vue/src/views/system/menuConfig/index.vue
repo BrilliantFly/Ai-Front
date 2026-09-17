@@ -97,7 +97,7 @@
     </a-card>
 
     <!-- 新增/编辑弹窗 -->
-    <a-modal
+    <BizFullscreenModal
       v-model:open="modalVisible"
       :title="modalTitle"
       width="600px"
@@ -198,10 +198,10 @@
           <a-input-number v-model:value="formData.sort" :min="0" style="width: 100%" />
         </a-form-item>
       </a-form>
-    </a-modal>
+    </BizFullscreenModal>
 
     <!-- 图标选择弹窗 -->
-    <a-modal
+    <BizFullscreenModal
       v-model:open="iconPickerVisible"
       title="选择图标"
       width="640px"
@@ -222,11 +222,12 @@
           <span class="icon-picker-name">{{ icon.name }}</span>
         </div>
       </div>
-    </a-modal>
+    </BizFullscreenModal>
   </div>
 </template>
 
 <script setup lang="ts">
+import BizFullscreenModal from '@/components/BizFullscreenModal.vue'
   import { ref, reactive, onMounted } from 'vue'
   import { useRoute } from 'vue-router'
   import { message, Modal } from 'ant-design-vue'

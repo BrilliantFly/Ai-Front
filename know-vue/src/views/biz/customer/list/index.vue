@@ -106,7 +106,7 @@
             {{ demandLevelText(record.demandLevel) }}
           </template>
           <template v-if="column.key === 'action'">
-            <a-space>
+            <a-space style="white-space: nowrap">
               <a @click="handleEdit(record)">编辑</a>
               <a-divider type="vertical" />
               <a-popconfirm title="确定删除该客户吗？" @confirm="handleDelete(record)">
@@ -119,13 +119,13 @@
     </a-card>
 
     <!-- 新增/编辑弹窗 -->
-    <a-modal
+    <BizFullscreenModal
       v-model:open="modalVisible"
       :title="modalTitle"
       :confirm-loading="confirmLoading"
       @ok="handleSubmit"
       @cancel="handleCancel"
-      width="900px"
+      width="960px"
     >
       <a-form ref="formRef" :model="formData" :rules="rules" layout="vertical">
         <MatrixTable
@@ -137,7 +137,7 @@
           :options-map="optionsMap"
         />
       </a-form>
-    </a-modal>
+    </BizFullscreenModal>
   </div>
 </template>
 
@@ -163,6 +163,7 @@ import {
 } from '@/api/biz/customer'
 import { getIndustryList, type BizIndustry } from '@/api/biz/industry'
 import MatrixTable from '../../components/MatrixTable.vue'
+import BizFullscreenModal from '@/components/BizFullscreenModal.vue'
 import { customerSections } from '../sections'
 
 interface TableColumn {

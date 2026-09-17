@@ -58,7 +58,7 @@
       </a-table>
     </a-card>
 
-    <a-modal
+    <BizFullscreenModal
       v-model:visible="modalVisible"
       :title="isEdit ? '编辑计划模板' : '新增计划模板'"
       @ok="handleSave"
@@ -137,9 +137,9 @@
           <a-input-number v-model:value="form.useCount" :disabled="true" style="width: 100%" />
         </a-form-item>
       </a-form>
-    </a-modal>
+    </BizFullscreenModal>
 
-    <a-modal v-model:visible="detailModalVisible" title="模板详情预览" width="800px" :footer="null">
+    <BizFullscreenModal v-model:visible="detailModalVisible" title="模板详情预览" width="800px" :footer="null">
       <a-spin :spinning="detailLoading">
         <template v-if="detailInfo">
           <a-descriptions :column="2" size="small" bordered>
@@ -182,11 +182,12 @@
           <a-empty v-else description="无子计划" />
         </template>
       </a-spin>
-    </a-modal>
+    </BizFullscreenModal>
   </div>
 </template>
 
 <script setup lang="ts">
+import BizFullscreenModal from '@/components/BizFullscreenModal.vue'
 import { ref, reactive, onMounted, computed } from 'vue'
 import { message } from 'ant-design-vue'
 import { SearchOutlined, ReloadOutlined, PlusOutlined } from '@ant-design/icons-vue'

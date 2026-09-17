@@ -42,7 +42,7 @@
       >
         <template #bodyCell="{ column, record }: { column: TableColumn; record: BizCustomerCompany }">
           <template v-if="column.key === 'action'">
-            <a-space>
+            <a-space style="white-space: nowrap">
               <a @click="handleEdit(record)">编辑</a>
               <a-divider type="vertical" />
               <a-popconfirm title="确定删除该公司吗？" @confirm="handleDelete(record)">
@@ -55,7 +55,7 @@
     </a-card>
 
     <!-- 新增/编辑弹窗 -->
-    <a-modal
+    <BizFullscreenModal
       v-model:open="modalVisible"
       :title="modalTitle"
       :confirm-loading="confirmLoading"
@@ -135,7 +135,7 @@
           <a-textarea v-model:value="formData.competitiveAdvantage" placeholder="请输入竞争优势" :rows="2" />
         </a-form-item>
       </a-form>
-    </a-modal>
+    </BizFullscreenModal>
   </div>
 </template>
 
@@ -145,6 +145,7 @@ import { message } from 'ant-design-vue'
 import type { PaginationProps, FormInstance } from 'ant-design-vue'
 import type { Rule } from 'ant-design-vue/es/form'
 import { PlusOutlined, SearchOutlined, RedoOutlined } from '@ant-design/icons-vue'
+import BizFullscreenModal from '@/components/BizFullscreenModal.vue'
 import { getCompanyPage, addCompany, updateCompany, deleteCompany, type BizCompanyQuery } from '@/api/biz/company'
 import type { BizCustomerCompany } from '@/api/biz/customer'
 

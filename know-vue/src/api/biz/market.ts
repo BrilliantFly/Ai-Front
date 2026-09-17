@@ -62,3 +62,27 @@ export function addMarket(data: BizIndustryMarket): Promise<any> {
     data
   })
 }
+
+export interface BizMarketQuery {
+  industryId?: number
+  keyword?: string
+  pageNum: number
+  pageSize: number
+}
+
+// 分页查询行业市场(列表页)
+export function getMarketPage(params: BizMarketQuery): Promise<any> {
+  return service({
+    url: '/api/biz/industry/market/page',
+    method: 'get',
+    params
+  })
+}
+
+// 删除行业市场(逻辑删除)
+export function deleteMarket(id: number): Promise<any> {
+  return service({
+    url: `/api/biz/industry/market/${id}`,
+    method: 'delete'
+  })
+}

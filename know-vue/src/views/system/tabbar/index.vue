@@ -60,7 +60,7 @@
     </a-card>
 
     <!-- 新增/编辑弹窗 -->
-    <a-modal v-model:open="modalVisible" :title="modalTitle" width="500px" @ok="handleModalOk" @cancel="handleModalCancel">
+    <BizFullscreenModal v-model:open="modalVisible" :title="modalTitle" width="500px" @ok="handleModalOk" @cancel="handleModalCancel">
 <a-form ref="formRef" :model="formData" :label-col="{ span: 6 }" :rules="formRules">
         <a-form-item label="名称" name="name">
           <a-input v-model:value="formData.name" placeholder="请输入名称" />
@@ -105,11 +105,12 @@
           <a-input-number v-model:value="formData.sort" :min="0" style="width: 100%" />
         </a-form-item>
       </a-form>
-    </a-modal>
+    </BizFullscreenModal>
   </div>
 </template>
 
 <script setup lang="ts">
+import BizFullscreenModal from '@/components/BizFullscreenModal.vue'
 import { ref, reactive, onMounted } from 'vue'
 import { message, Modal } from 'ant-design-vue'
 import { SearchOutlined, ReloadOutlined, PlusOutlined } from '@ant-design/icons-vue'

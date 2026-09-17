@@ -83,7 +83,7 @@
       </a-table>
     </a-card>
 
-    <a-modal
+    <BizFullscreenModal
       v-model:visible="modalVisible"
       :title="isEdit ? '编辑计划' : '新增计划'"
       @ok="handleSave"
@@ -120,11 +120,12 @@
           <a-textarea v-model:value="form.remark" :rows="2" />
         </a-form-item>
       </a-form>
-    </a-modal>
+    </BizFullscreenModal>
   </div>
 </template>
 
 <script setup lang="ts">
+import BizFullscreenModal from '@/components/BizFullscreenModal.vue'
 import { ref, reactive, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { message } from 'ant-design-vue'

@@ -69,7 +69,7 @@
             </a-tag>
           </template>
           <template v-if="column.key === 'action'">
-            <a-space>
+            <a-space style="white-space: nowrap">
               <a @click="handleEdit(record)">编辑</a>
               <a-divider type="vertical" />
               <a-popconfirm title="确定删除该企业吗？" @confirm="handleDelete(record)">
@@ -82,13 +82,13 @@
     </a-card>
 
     <!-- 新增/编辑弹窗 -->
-    <a-modal
+    <BizFullscreenModal
       v-model:open="modalVisible"
       :title="modalTitle"
       :confirm-loading="confirmLoading"
       @ok="handleSubmit"
       @cancel="handleCancel"
-      width="900px"
+      width="960px"
     >
       <a-form ref="formRef" :model="formData" :rules="rules" layout="vertical">
         <MatrixTable
@@ -100,7 +100,7 @@
           :options-map="optionsMap"
         />
       </a-form>
-    </a-modal>
+    </BizFullscreenModal>
   </div>
 </template>
 
@@ -113,6 +113,7 @@ import { getIndustryList, type BizIndustry, type BizIndustryEnterprise } from '@
 import { getEnterprisePage, addEnterprise, updateEnterprise, deleteEnterprise, type BizEnterpriseQuery } from '@/api/biz/enterprise'
 import { getProductPage, type BizIndustryProduct } from '@/api/biz/product'
 import MatrixTable from '../../components/MatrixTable.vue'
+import BizFullscreenModal from '@/components/BizFullscreenModal.vue'
 import { enterpriseSections } from '../enterprise/sections'
 
 // 表格列定义

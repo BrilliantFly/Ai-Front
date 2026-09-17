@@ -70,7 +70,7 @@
     </a-card>
 
     <!-- 新增/编辑弹窗 -->
-    <a-modal v-model:open="modalVisible" :title="modalTitle" @ok="handleOk" :confirmLoading="confirmLoading" width="800px">
+    <BizFullscreenModal v-model:open="modalVisible" :title="modalTitle" @ok="handleOk" :confirmLoading="confirmLoading" width="800px">
       <a-form :model="formData" :label-col="{ span: 4 }" :wrapper-col="{ span: 18 }">
         <a-form-item label="文档标题" required>
           <a-input v-model:value="formData.title" placeholder="请输入文档标题" />
@@ -105,11 +105,12 @@
           <a-textarea v-model:value="formData.content" placeholder="请输入文档内容" :rows="10" />
         </a-form-item>
       </a-form>
-    </a-modal>
+    </BizFullscreenModal>
   </div>
 </template>
 
 <script setup lang="ts">
+import BizFullscreenModal from '@/components/BizFullscreenModal.vue'
 import { ref, reactive, onMounted } from 'vue'
 import { message } from 'ant-design-vue'
 import { SearchOutlined, ReloadOutlined, PlusOutlined } from '@ant-design/icons-vue'

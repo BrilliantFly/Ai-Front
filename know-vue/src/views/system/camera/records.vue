@@ -74,7 +74,7 @@
     </a-card>
 
     <!-- 详情弹窗 -->
-    <a-modal v-model:visible="detailVisible" title="录像详情" :footer="null" width="640px">
+    <BizFullscreenModal v-model:visible="detailVisible" title="录像详情" :footer="null" width="640px">
       <a-descriptions bordered size="small" :column="1">
         <a-descriptions-item label="ID">{{ detailData?.id ?? '-' }}</a-descriptions-item>
         <a-descriptions-item label="设备ID">{{ detailData?.deviceId ?? '-' }}</a-descriptions-item>
@@ -88,11 +88,12 @@
         <a-descriptions-item label="状态">{{ statusText(detailData?.status) }}</a-descriptions-item>
         <a-descriptions-item label="创建时间">{{ formatTime(detailData?.createTime) }}</a-descriptions-item>
       </a-descriptions>
-    </a-modal>
+    </BizFullscreenModal>
   </div>
 </template>
 
 <script setup lang="ts">
+import BizFullscreenModal from '@/components/BizFullscreenModal.vue'
 import { ref, reactive, computed, onMounted } from 'vue'
 import { message } from 'ant-design-vue'
 import { SearchOutlined, RedoOutlined, DeleteOutlined } from '@ant-design/icons-vue'

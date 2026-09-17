@@ -6,7 +6,7 @@
   </div>
 
   <!-- 表单模式: label + 控件 -->
-  <a-form-item v-else :label="field.label" :name="field.key" class="biz-field-item">
+  <a-form-item v-else :label="field.label" :name="field.key" :required="field.required" class="biz-field-item">
     <a-input
       v-if="!field.type || field.type === 'input'"
       v-model:value="value"
@@ -17,7 +17,7 @@
       v-else-if="field.type === 'textarea'"
       v-model:value="value"
       :placeholder="field.placeholder || `请输入${field.label}`"
-      :rows="2"
+      :rows="field.rows || 2"
     />
     <a-select
       v-else-if="field.type === 'select'"
@@ -25,7 +25,7 @@
       :options="options"
       :placeholder="field.placeholder || `请选择${field.label}`"
       allow-clear
-      style="width: 220px"
+      style="width: 100%"
     />
     <a-select
       v-else-if="field.type === 'selectMultiple'"
@@ -34,13 +34,13 @@
       :placeholder="field.placeholder || `请选择${field.label}(可多选)`"
       mode="multiple"
       allow-clear
-      style="width: 220px"
+      style="width: 100%"
     />
     <a-input-number
       v-else-if="field.type === 'number'"
       v-model:value="value"
       :placeholder="field.placeholder || `请输入${field.label}`"
-      style="width: 220px"
+      style="width: 100%"
     />
   </a-form-item>
 </template>
@@ -121,24 +121,26 @@ const displayValue = computed(() => {
 .biz-field-item {
   display: flex;
   gap: 12px;
-  margin-bottom: 12px;
+  margin-bottom: 8px;
 }
 
 .biz-field-label {
   flex-shrink: 0;
-  width: 120px;
-  text-align: right;
+  align-self: flex-start;
+  width: 140px;
+  text-align: left;
+  overflow-wrap: break-word;
   color: rgba(0, 0, 0, 0.65);
   font-size: 13px;
-  line-height: 22px;
+  line-height: 24px;
 }
 
 .biz-field-value {
   flex: 1;
-  text-align: center;
+  text-align: left;
   color: rgba(0, 0, 0, 0.88);
   font-size: 13px;
-  line-height: 22px;
+  line-height: 24px;
   word-break: break-all;
   white-space: pre-wrap;
 }

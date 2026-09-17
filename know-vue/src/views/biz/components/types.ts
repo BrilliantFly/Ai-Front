@@ -15,6 +15,8 @@ export interface FieldDef {
   span?: number
   /** textarea 行数 */
   rows?: number
+  /** 是否必填(表单模式 label 前显示红色星号) */
+  required?: boolean
 }
 
 /** 区域定义(一级/二级/三级区域共用) */

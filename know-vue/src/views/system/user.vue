@@ -77,7 +77,7 @@
     </a-card>
 
     <!-- 新增/编辑弹窗 -->
-    <a-modal
+    <BizFullscreenModal
       v-model:open="modalVisible"
       :title="modalTitle"
       width="600px"
@@ -119,10 +119,10 @@
           </a-select>
         </a-form-item>
       </a-form>
-    </a-modal>
+    </BizFullscreenModal>
 
     <!-- 分配租户弹窗 -->
-    <a-modal
+    <BizFullscreenModal
       v-model:open="tenantModalVisible"
       title="分配租户"
       width="500px"
@@ -136,10 +136,10 @@
           {{ tenant.name }} ({{ tenant.code }})
         </a-checkbox>
       </a-checkbox-group>
-    </a-modal>
+    </BizFullscreenModal>
 
     <!-- 分配角色弹窗 -->
-    <a-modal
+    <BizFullscreenModal
       v-model:open="roleModalVisible"
       title="分配角色"
       width="500px"
@@ -153,10 +153,10 @@
           {{ role.roleName }} ({{ role.roleCode }})
         </a-checkbox>
       </a-checkbox-group>
-    </a-modal>
+    </BizFullscreenModal>
 
     <!-- 分配部门弹窗 -->
-    <a-modal
+    <BizFullscreenModal
       v-model:open="deptModalVisible"
       title="分配部门"
       width="500px"
@@ -170,10 +170,10 @@
           {{ dept.deptName }}
         </a-checkbox>
       </a-checkbox-group>
-    </a-modal>
+    </BizFullscreenModal>
 
     <!-- 分配岗位弹窗 -->
-    <a-modal
+    <BizFullscreenModal
       v-model:open="jobModalVisible"
       title="分配岗位"
       width="500px"
@@ -187,11 +187,12 @@
           {{ job.jobName }} ({{ job.code }})
         </a-checkbox>
       </a-checkbox-group>
-    </a-modal>
+    </BizFullscreenModal>
   </div>
 </template>
 
 <script setup lang="ts">
+import BizFullscreenModal from '@/components/BizFullscreenModal.vue'
 import { ref, reactive, onMounted, nextTick } from 'vue'
 import { message, Modal } from 'ant-design-vue'
 import { SearchOutlined, ReloadOutlined, PlusOutlined, DeleteOutlined } from '@ant-design/icons-vue'

@@ -53,7 +53,7 @@
             {{ formatTime(record.createTime) }}
           </template>
           <template v-if="column.key === 'action'">
-            <a-space>
+            <a-space style="white-space: nowrap">
               <a @click="handleEdit(record)">编辑</a>
               <a-divider type="vertical" />
               <a-popconfirm title="确定删除该跟进记录吗？" @confirm="handleDelete(record)">
@@ -66,7 +66,7 @@
     </a-card>
 
     <!-- 新增/编辑弹窗 -->
-    <a-modal
+    <BizFullscreenModal
       v-model:open="modalVisible"
       :title="modalTitle"
       :confirm-loading="confirmLoading"
@@ -102,7 +102,7 @@
           <a-input-number v-model:value="formData.nextTime" placeholder="请输入下次跟进时间的毫秒时间戳" :min="0" style="width: 100%" />
         </a-form-item>
       </a-form>
-    </a-modal>
+    </BizFullscreenModal>
   </div>
 </template>
 
@@ -112,6 +112,7 @@ import { message } from 'ant-design-vue'
 import type { PaginationProps, FormInstance } from 'ant-design-vue'
 import type { Rule } from 'ant-design-vue/es/form'
 import { PlusOutlined, SearchOutlined, RedoOutlined } from '@ant-design/icons-vue'
+import BizFullscreenModal from '@/components/BizFullscreenModal.vue'
 import dayjs from 'dayjs'
 import {
   getFollowupPage,

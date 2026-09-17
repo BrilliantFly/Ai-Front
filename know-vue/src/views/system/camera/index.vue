@@ -59,7 +59,7 @@
     </a-card>
 
     <!-- 新增/编辑弹窗 -->
-    <a-modal
+    <BizFullscreenModal
       v-model:visible="modalVisible"
       :title="modalTitle"
       :confirm-loading="confirmLoading"
@@ -135,11 +135,12 @@
           <a-textarea v-model:value="formData.remark" placeholder="备注信息" :rows="2" />
         </a-form-item>
       </a-form>
-    </a-modal>
+    </BizFullscreenModal>
   </div>
 </template>
 
 <script setup lang="ts">
+import BizFullscreenModal from '@/components/BizFullscreenModal.vue'
 import { ref, reactive, onMounted, computed } from 'vue'
 import { message } from 'ant-design-vue'
 import type { FormInstance } from 'ant-design-vue'

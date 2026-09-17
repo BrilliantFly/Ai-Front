@@ -76,7 +76,7 @@
     </a-card>
 
     <!-- 新增/编辑弹窗 -->
-    <a-modal
+    <BizFullscreenModal
       v-model:open="modalVisible"
       :title="modalTitle"
       width="700px"
@@ -136,10 +136,10 @@
           </a-radio-group>
         </a-form-item>
       </a-form>
-    </a-modal>
+    </BizFullscreenModal>
 
     <!-- 图标选择弹窗 -->
-    <a-modal v-model:open="iconPickerVisible" title="选择图标" width="640px" :footer="null">
+    <BizFullscreenModal v-model:open="iconPickerVisible" title="选择图标" width="640px" :footer="null">
       <div class="icon-picker-grid">
         <div
           v-for="icon in menuIcons"
@@ -154,11 +154,12 @@
           <span class="icon-picker-name">{{ icon }}</span>
         </div>
       </div>
-    </a-modal>
+    </BizFullscreenModal>
   </div>
 </template>
 
 <script setup lang="ts">
+import BizFullscreenModal from '@/components/BizFullscreenModal.vue'
   import { ref, reactive, onMounted } from 'vue'
   import { message, Modal } from 'ant-design-vue'
   import { SearchOutlined, PlusOutlined, AppstoreOutlined } from '@ant-design/icons-vue'

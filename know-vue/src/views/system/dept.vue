@@ -133,7 +133,7 @@
     </a-row>
 
     <!-- 新增/编辑部门弹窗 -->
-    <a-modal
+    <BizFullscreenModal
       v-model:open="deptModalVisible"
       :title="deptModalTitle"
       width="500px"
@@ -181,10 +181,10 @@
           </a-radio-group>
         </a-form-item>
       </a-form>
-    </a-modal>
+    </BizFullscreenModal>
 
     <!-- 分配岗位弹窗 -->
-    <a-modal
+    <BizFullscreenModal
       v-model:open="jobModalVisible"
       title="分配岗位"
       width="500px"
@@ -196,10 +196,10 @@
           {{ job.jobName }} ({{ job.code }})
         </a-checkbox>
       </a-checkbox-group>
-    </a-modal>
+    </BizFullscreenModal>
 
     <!-- 分配用户弹窗 -->
-    <a-modal
+    <BizFullscreenModal
       v-model:open="userModalVisible"
       title="分配用户"
       width="700px"
@@ -222,10 +222,10 @@
           </template>
         </template>
       </a-table>
-    </a-modal>
+    </BizFullscreenModal>
 
     <!-- 编辑用户弹窗 -->
-    <a-modal
+    <BizFullscreenModal
       v-model:open="editUserModalVisible"
       title="编辑用户"
       width="500px"
@@ -264,11 +264,12 @@
           </a-select>
         </a-form-item>
       </a-form>
-    </a-modal>
+    </BizFullscreenModal>
   </div>
 </template>
 
 <script setup lang="ts">
+import BizFullscreenModal from '@/components/BizFullscreenModal.vue'
 import { ref, reactive, onMounted, computed } from 'vue'
 import { message, Modal } from 'ant-design-vue'
 import {
