@@ -118,6 +118,7 @@
 <script setup lang="ts">
 import { ref, reactive, computed, onMounted } from 'vue'
 import { message } from 'ant-design-vue'
+import dayjs from 'dayjs'
 import type { FormInstance } from 'ant-design-vue'
 import { PlusOutlined, SearchOutlined, RedoOutlined } from '@ant-design/icons-vue'
 import { getIndustryList, type BizIndustry, type BizIndustryEnterprise } from '@/api/biz/industry'
@@ -331,7 +332,7 @@ const handleEdit = (record: BizIndustryEnterprise) => {
         ? record.enterpriseType.split(',')
         : [],
     enterpriseName: record.enterpriseName || '',
-    establishedDate: record.establishedDate || '',
+    establishedDate: record.establishedDate ? dayjs(record.establishedDate) : undefined,
     registeredCapital: record.registeredCapital || '',
     paidCapital: record.paidCapital || '',
     scale: record.scale || '',
@@ -370,6 +371,9 @@ const handleSubmit = async () => {
     const payload: any = { ...formData }
     if (Array.isArray(payload.enterpriseType)) {
       payload.enterpriseType = payload.enterpriseType.join(',')
+    }
+    if (payload.establishedDate && typeof payload.establishedDate !== 'string') {
+      payload.establishedDate = dayjs(payload.establishedDate).format('YYYY-MM-DD')
     }
     if (isEdit.value && editId.value) {
       await updateEnterprise({ ...payload, id: editId.value } as BizIndustryEnterprise)

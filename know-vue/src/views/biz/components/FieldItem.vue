@@ -42,6 +42,13 @@
       :placeholder="field.placeholder || `请输入${field.label}`"
       style="width: 100%"
     />
+    <a-date-picker
+      v-else-if="field.type === 'date'"
+      v-model:value="value"
+      :placeholder="field.placeholder || `请选择${field.label}`"
+      allow-clear
+      style="width: 100%"
+    />
   </a-form-item>
 </template>
 

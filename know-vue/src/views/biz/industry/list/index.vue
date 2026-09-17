@@ -112,7 +112,13 @@
                 :pagination="false"
                 :row-key="(record: any) => record.id!"
                 size="small"
-              />
+              >
+                <template #bodyCell="{ column, record }: { column: any; record: any }">
+                  <template v-if="column.key === 'action'">
+                    <a @click="openProductDetail(record)">详情</a>
+                  </template>
+                </template>
+              </a-table>
             </a-tab-pane>
             <a-tab-pane key="enterprises" tab="行业企业">
               <a-table
@@ -121,7 +127,13 @@
                 :pagination="false"
                 :row-key="(record: any) => record.id!"
                 size="small"
-              />
+              >
+                <template #bodyCell="{ column, record }: { column: any; record: any }">
+                  <template v-if="column.key === 'action'">
+                    <a @click="openEnterpriseDetail(record)">详情</a>
+                  </template>
+                </template>
+              </a-table>
             </a-tab-pane>
             <a-tab-pane key="market" tab="市场信息">
               <MatrixTable
@@ -138,6 +150,23 @@
         </template>
       </a-spin>
     </BizFullscreenModal>
+
+    <!-- 嵌套详情弹窗: 行业详情内 产品/企业 记录的完整字段 -->
+    <BizFullscreenModal
+      v-model:open="subDetail.visible"
+      :title="subDetail.title"
+      :footer="null"
+      width="960px"
+    >
+      <MatrixTable
+        v-for="sec in subDetail.sections"
+        :key="sec.title"
+        :section="sec"
+        :model="subDetail.data"
+        mode="detail"
+        :options-map="subDetail.optionsMap"
+      />
+    </BizFullscreenModal>
   </div>
 </template>
 
@@ -152,6 +181,9 @@ import MatrixTable from '../../components/MatrixTable.vue'
 import BizFullscreenModal from '@/components/BizFullscreenModal.vue'
 import { industrySections } from '../sections'
 import { marketSections } from '../market/sections'
+import { productSections } from '../product/sections'
+import { enterpriseSections } from '../enterprise/sections'
+import type { SectionDef } from '../../components/types'
 
 // 表格列定义
 const columns = [
@@ -168,7 +200,8 @@ const productColumns = [
   { title: '产品名称', dataIndex: 'productName', key: 'productName', width: 150 },
   { title: '类别', dataIndex: 'category', key: 'category', width: 100 },
   { title: '产品概念', dataIndex: 'productConcept', key: 'productConcept', ellipsis: true },
-  { title: '生命周期', dataIndex: 'lifeCycle', key: 'lifeCycle', width: 90 }
+  { title: '生命周期', dataIndex: 'lifeCycle', key: 'lifeCycle', width: 90 },
+  { title: '操作', key: 'action', width: 80 }
 ]
 
 // 行业企业表格列
@@ -177,7 +210,8 @@ const enterpriseColumns = [
   { title: '类型', dataIndex: 'enterpriseType', key: 'enterpriseType', width: 100 },
   { title: '规模', dataIndex: 'scale', key: 'scale', width: 90 },
   { title: '是否上市', dataIndex: 'isListed', key: 'isListed', width: 90 },
-  { title: '主营业务', dataIndex: 'mainBusiness', key: 'mainBusiness', ellipsis: true }
+  { title: '主营业务', dataIndex: 'mainBusiness', key: 'mainBusiness', ellipsis: true },
+  { title: '操作', key: 'action', width: 80 }
 ]
 
 // 行业详情弹窗状态
@@ -409,6 +443,49 @@ const openDetailModal = async (record: BizIndustry) => {
 // 关闭行业详情
 const handleDetailClose = () => {
   detailModal.visible = false
+  subDetail.visible = false
+}
+
+// 嵌套详情弹窗状态(行业详情内 产品/企业 记录的完整字段)
+const subDetail = reactive({
+  visible: false,
+  title: '',
+  sections: [] as SectionDef[],
+  data: {} as Record<string, any>,
+  optionsMap: {} as Record<string, { label: string; value: any }[]>
+})
+
+/** 名称数组 -> 等值下拉选项(值即名称, 直接命中映射) */
+const nameOptions = (names?: string[]): { label: string; value: any }[] =>
+  (names || []).map((n) => ({ label: n, value: n }))
+
+// 打开行业详情弹窗内的产品详情
+const openProductDetail = (record: any) => {
+  const names = record.industryNames || []
+  subDetail.visible = true
+  subDetail.title = `产品详情 - ${record.productName || ''}`
+  subDetail.sections = productSections
+  subDetail.optionsMap = { industryIds: nameOptions(names) }
+  subDetail.data = {
+    ...record,
+    industryIds: names.length ? names : record.industryIds,
+    productIds: record.productIds || []
+  }
+}
+
+// 打开行业详情弹窗内的企业详情
+const openEnterpriseDetail = (record: any) => {
+  const inames = record.industryNames || []
+  const pnames = record.productNames || []
+  subDetail.visible = true
+  subDetail.title = `企业详情 - ${record.enterpriseName || ''}`
+  subDetail.sections = enterpriseSections
+  subDetail.optionsMap = { industryIds: nameOptions(inames), productIds: nameOptions(pnames) }
+  subDetail.data = {
+    ...record,
+    industryIds: inames.length ? inames : record.industryIds,
+    productIds: pnames.length ? pnames : record.productIds
+  }
 }
 
 onMounted(() => {

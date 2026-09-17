@@ -7,7 +7,7 @@ export interface FieldDef {
   /** 绑定 key(支持点路径,如 company.name / profile.dynamicInfo) */
   key: string
   /** 控件类型 */
-  type?: 'input' | 'textarea' | 'select' | 'selectMultiple' | 'number'
+  type?: 'input' | 'textarea' | 'select' | 'selectMultiple' | 'number' | 'date'
   placeholder?: string
   /** 下拉/多选选项(静态可选;动态选项通过 optionsMap 注入) */
   options?: { label: string; value: any }[]

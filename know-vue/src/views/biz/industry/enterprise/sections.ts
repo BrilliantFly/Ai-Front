@@ -25,7 +25,7 @@ export const enterpriseSections: SectionDef[] = [
       {
         title: '工商信息',
         fields: [
-          { label: '成立时间', key: 'establishedDate', placeholder: '如: 2000-01-01', span: 12 },
+          { label: '成立时间', key: 'establishedDate', type: 'date', placeholder: '请选择成立日期', span: 12 },
           { label: '注册资本', key: 'registeredCapital', span: 12 },
           { label: '实缴资本', key: 'paidCapital', span: 12 },
           { label: '企业规模', key: 'scale', type: 'select', options: [
