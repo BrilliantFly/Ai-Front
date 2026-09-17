@@ -3,7 +3,7 @@
     <!-- 一级区域主标题(左对齐可折叠, 数量在右) -->
     <div class="biz-matrix-header" @click="open = !open">
       <caret-right-outlined class="biz-matrix-arrow" :class="{ rotated: open }" />
-      <span class="biz-matrix-title">{{ section.title }}</span>
+      <span class="biz-matrix-title">{{ stripBracket(section.title) }}</span>
       <span class="biz-matrix-count">共 {{ fieldCount }} 项</span>
     </div>
 
@@ -18,7 +18,7 @@
                 :class="['biz-matrix-level', 'level-' + (ci + 2)]"
                 :rowspan="cell.rowspan"
               >
-                {{ cell.title }}
+                {{ stripBracket(cell.title) }}
               </td>
               <td
                 v-else-if="cell.rowspan === 0"
@@ -64,6 +64,9 @@ const props = withDefaults(
 )
 
 const open = ref(props.section.defaultOpen ?? false)
+
+/** 去掉标题中括号及括号内容(如 "下游（销售渠道、营销）" -> "下游"), 并清理首尾空格 */
+const stripBracket = (s?: string) => (s ?? '').replace(/[（(][^（）()]*[）)]/g, '').trim()
 
 /** 将字段按 span 打包为行内块: span>=24(textarea/整行)独占一块; span<24 两个并排 */
 const packFields = (fields: FieldDef[]): FieldDef[][] => {

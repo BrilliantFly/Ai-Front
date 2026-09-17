@@ -1,12 +1,12 @@
 <template>
   <!-- 详情模式: 静态 label + 值 -->
   <div v-if="mode === 'detail'" class="biz-field-item">
-    <span class="biz-field-label">{{ field.label }}</span>
+    <span class="biz-field-label">{{ stripLabel(field.label) }}</span>
     <span class="biz-field-value">{{ displayValue }}</span>
   </div>
 
   <!-- 表单模式: label + 控件 -->
-  <a-form-item v-else :label="field.label" :name="field.key" :required="field.required" class="biz-field-item">
+  <a-form-item v-else :label="stripLabel(field.label)" :name="field.key" :required="field.required" class="biz-field-item">
     <a-input
       v-if="!field.type || field.type === 'input'"
       v-model:value="value"
@@ -58,6 +58,9 @@ const props = withDefaults(
   }>(),
   { mode: 'form', options: undefined }
 )
+
+/** 去掉 label 中括号及括号内容(如 "动态信息（社会/文化/行业变化）" -> "动态信息") */
+const stripLabel = (s?: string) => (s ?? '').replace(/[（(][^（）()]*[）)]/g, '').trim()
 
 /** 按点路径取值: company.name / profile.dynamicInfo */
 const resolvePath = (obj: Record<string, any>, key: string): any => {
