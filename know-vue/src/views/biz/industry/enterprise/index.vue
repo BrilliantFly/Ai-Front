@@ -61,15 +61,14 @@
             <span v-else>-</span>
           </template>
           <template v-if="column.key === 'isListed'">
-            <span>{{ record.isListed === 1 ? '是' : '否' }}</span>
-          </template>
-          <template v-if="column.key === 'isListed'">
             <a-tag :color="record.isListed === 1 ? 'green' : 'default'">
               {{ record.isListed === 1 ? '已上市' : '未上市' }}
             </a-tag>
           </template>
           <template v-if="column.key === 'action'">
             <a-space style="white-space: nowrap">
+              <a @click="openDetail(record)">详情</a>
+              <a-divider type="vertical" />
               <a @click="handleEdit(record)">编辑</a>
               <a-divider type="vertical" />
               <a-popconfirm title="确定删除该企业吗？" @confirm="handleDelete(record)">
@@ -101,6 +100,18 @@
         />
       </a-form>
     </BizFullscreenModal>
+
+    <!-- 详情弹窗 -->
+    <BizFullscreenModal v-model:open="detailVisible" :title="detailTitle" width="960px">
+      <MatrixTable
+        v-for="sec in enterpriseSections"
+        :key="sec.title"
+        :section="sec"
+        :model="detailData"
+        mode="detail"
+        :options-map="optionsMap"
+      />
+    </BizFullscreenModal>
   </div>
 </template>
 
@@ -124,8 +135,7 @@ const columns = [
   { title: '企业类型', dataIndex: 'enterpriseType', key: 'enterpriseType', width: 120 },
   { title: '规模', dataIndex: 'scale', key: 'scale', width: 100 },
   { title: '是否上市', dataIndex: 'isListed', key: 'isListed', width: 100 },
-  { title: '参保人数', dataIndex: 'insuredCount', key: 'insuredCount', width: 110 },
-  { title: '操作', key: 'action', width: 120, fixed: 'right' }
+  { title: '操作', key: 'action', width: 160, fixed: 'right' }
 ]
 
 // 行业下拉
@@ -189,7 +199,7 @@ const formRef = ref<FormInstance>()
 const formData = reactive<Partial<BizIndustryEnterprise>>({
   industryIds: [],
   productIds: [],
-  enterpriseType: '',
+  enterpriseType: [],
   enterpriseName: '',
   establishedDate: '',
   registeredCapital: '',
@@ -281,7 +291,7 @@ const handleAdd = () => {
   modalTitle.value = '新增企业'
   formData.industryIds = []
   formData.productIds = []
-  formData.enterpriseType = ''
+  formData.enterpriseType = []
   formData.enterpriseName = ''
   formData.establishedDate = ''
   formData.registeredCapital = ''
@@ -315,7 +325,11 @@ const handleEdit = (record: BizIndustryEnterprise) => {
   Object.assign(formData, {
     industryIds: record.industryIds || [],
     productIds: record.productIds || [],
-    enterpriseType: record.enterpriseType || '',
+    enterpriseType: Array.isArray(record.enterpriseType)
+      ? record.enterpriseType
+      : record.enterpriseType
+        ? record.enterpriseType.split(',')
+        : [],
     enterpriseName: record.enterpriseName || '',
     establishedDate: record.establishedDate || '',
     registeredCapital: record.registeredCapital || '',
@@ -352,11 +366,16 @@ const handleSubmit = async () => {
 
   confirmLoading.value = true
   try {
+    // 多选类型转逗号分隔字符串（后端字段为文本）
+    const payload: any = { ...formData }
+    if (Array.isArray(payload.enterpriseType)) {
+      payload.enterpriseType = payload.enterpriseType.join(',')
+    }
     if (isEdit.value && editId.value) {
-      await updateEnterprise({ ...formData, id: editId.value } as BizIndustryEnterprise)
+      await updateEnterprise({ ...payload, id: editId.value } as BizIndustryEnterprise)
       message.success('修改成功')
     } else {
-      await addEnterprise(formData as BizIndustryEnterprise)
+      await addEnterprise(payload as BizIndustryEnterprise)
       message.success('新增成功')
     }
     modalVisible.value = false
@@ -371,6 +390,18 @@ const handleSubmit = async () => {
 // 取消
 const handleCancel = () => {
   modalVisible.value = false
+}
+
+// 详情弹窗状态
+const detailVisible = ref(false)
+const detailTitle = ref('企业详情')
+const detailData = ref<Partial<BizIndustryEnterprise>>({})
+
+// 打开详情
+const openDetail = (record: BizIndustryEnterprise) => {
+  detailTitle.value = `企业详情 - ${record.enterpriseName || ''}`
+  detailData.value = record
+  detailVisible.value = true
 }
 
 // 删除

@@ -13,7 +13,12 @@ export const enterpriseSections: SectionDef[] = [
         fields: [
           { label: '所属行业', key: 'industryIds', type: 'selectMultiple', span: 12, placeholder: '请选择关联行业(可多选)' },
           { label: '相关产品', key: 'productIds', type: 'selectMultiple', span: 12, placeholder: '请选择关联产品(可多选)' },
-          { label: '企业/平台类型', key: 'enterpriseType', placeholder: '如: 生产商/经销商/平台/SaaS服务商', span: 12 },
+          { label: '企业/平台类型', key: 'enterpriseType', type: 'selectMultiple', options: [
+            { label: '生产商', value: '生产商' },
+            { label: '经销商', value: '经销商' },
+            { label: '平台', value: '平台' },
+            { label: 'SaaS服务商', value: 'SaaS服务商' }
+          ], placeholder: '请选择企业/平台类型(可多选)', span: 12 },
           { label: '企业/平台名称', key: 'enterpriseName', span: 12 }
         ]
       },
@@ -23,7 +28,11 @@ export const enterpriseSections: SectionDef[] = [
           { label: '成立时间', key: 'establishedDate', placeholder: '如: 2000-01-01', span: 12 },
           { label: '注册资本', key: 'registeredCapital', span: 12 },
           { label: '实缴资本', key: 'paidCapital', span: 12 },
-          { label: '企业规模', key: 'scale', placeholder: '如: 大型/中型/小型', span: 12 },
+          { label: '企业规模', key: 'scale', type: 'select', options: [
+            { label: '大型', value: '大型' },
+            { label: '中型', value: '中型' },
+            { label: '小型', value: '小型' }
+          ], span: 12 },
           { label: '参保人数', key: 'insuredCount', type: 'number', span: 12 },
           { label: '是否上市', key: 'isListed', type: 'select', options: [{ label: '是', value: 1 }, { label: '否', value: 0 }], span: 12 }
         ]

@@ -43,6 +43,8 @@
         <template #bodyCell="{ column, record }: { column: TableColumn; record: BizCustomerCompany }">
           <template v-if="column.key === 'action'">
             <a-space style="white-space: nowrap">
+              <a @click="openDetail(record)">详情</a>
+              <a-divider type="vertical" />
               <a @click="handleEdit(record)">编辑</a>
               <a-divider type="vertical" />
               <a-popconfirm title="确定删除该公司吗？" @confirm="handleDelete(record)">
@@ -136,6 +138,25 @@
         </a-form-item>
       </a-form>
     </BizFullscreenModal>
+
+    <!-- 详情弹窗 -->
+    <BizFullscreenModal v-model:open="detailVisible" :title="detailTitle" width="720px">
+      <a-descriptions :column="2" bordered size="small">
+        <a-descriptions-item label="公司名称" :span="2">{{ detailData.name || '-' }}</a-descriptions-item>
+        <a-descriptions-item label="所属行业">{{ detailData.industry || '-' }}</a-descriptions-item>
+        <a-descriptions-item label="规模">{{ detailData.scale || '-' }}</a-descriptions-item>
+        <a-descriptions-item label="联系人">{{ detailData.contactName || '-' }}</a-descriptions-item>
+        <a-descriptions-item label="联系电话">{{ detailData.contactPhone || '-' }}</a-descriptions-item>
+        <a-descriptions-item label="联系人职位">{{ detailData.contactPosition || '-' }}</a-descriptions-item>
+        <a-descriptions-item label="业务范围" :span="2">{{ detailData.business || '-' }}</a-descriptions-item>
+        <a-descriptions-item label="主要产品">{{ detailData.mainProducts || '-' }}</a-descriptions-item>
+        <a-descriptions-item label="成立日期">{{ detailData.establishedDate || '-' }}</a-descriptions-item>
+        <a-descriptions-item label="注册资本">{{ detailData.capital || '-' }}</a-descriptions-item>
+        <a-descriptions-item label="公司地址">{{ detailData.address || '-' }}</a-descriptions-item>
+        <a-descriptions-item label="市场表现" :span="2">{{ detailData.marketPerformance || '-' }}</a-descriptions-item>
+        <a-descriptions-item label="竞争优势" :span="2">{{ detailData.competitiveAdvantage || '-' }}</a-descriptions-item>
+      </a-descriptions>
+    </BizFullscreenModal>
   </div>
 </template>
 
@@ -165,7 +186,7 @@ const columns: TableColumn[] = [
   { title: '业务范围', dataIndex: 'business', key: 'business', width: 200 },
   { title: '联系人', dataIndex: 'contactName', key: 'contactName', width: 100 },
   { title: '联系电话', dataIndex: 'contactPhone', key: 'contactPhone', width: 130 },
-  { title: '操作', key: 'action', width: 120, fixed: 'right' }
+  { title: '操作', key: 'action', width: 160, fixed: 'right' }
 ]
 
 // 查询参数
@@ -333,6 +354,18 @@ const handleSubmit = async () => {
 // 取消
 const handleCancel = () => {
   modalVisible.value = false
+}
+
+// 详情弹窗状态
+const detailVisible = ref(false)
+const detailTitle = ref('公司详情')
+const detailData = ref<Partial<BizCustomerCompany>>({})
+
+// 打开详情
+const openDetail = (record: BizCustomerCompany) => {
+  detailTitle.value = `公司详情 - ${record.name || ''}`
+  detailData.value = record
+  detailVisible.value = true
 }
 
 // 删除

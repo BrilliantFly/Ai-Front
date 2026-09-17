@@ -107,6 +107,8 @@
           </template>
           <template v-if="column.key === 'action'">
             <a-space style="white-space: nowrap">
+              <a @click="openDetail(record)">详情</a>
+              <a-divider type="vertical" />
               <a @click="handleEdit(record)">编辑</a>
               <a-divider type="vertical" />
               <a-popconfirm title="确定删除该客户吗？" @confirm="handleDelete(record)">
@@ -137,6 +139,18 @@
           :options-map="optionsMap"
         />
       </a-form>
+    </BizFullscreenModal>
+
+    <!-- 详情弹窗 -->
+    <BizFullscreenModal v-model:open="detailVisible" :title="detailTitle" width="960px">
+      <MatrixTable
+        v-for="sec in customerSections"
+        :key="sec.title"
+        :section="sec"
+        :model="detailData"
+        mode="detail"
+        :options-map="optionsMap"
+      />
     </BizFullscreenModal>
   </div>
 </template>
@@ -236,7 +250,7 @@ const columns: TableColumn[] = [
   { title: '行业', dataIndex: 'industries', key: 'industry', width: 180 },
   { title: '状态', dataIndex: 'status', key: 'status', width: 110 },
   { title: '需求等级', dataIndex: 'demandLevel', key: 'demand', width: 90 },
-  { title: '操作', key: 'action', width: 120, fixed: 'right' }
+  { title: '操作', key: 'action', width: 160, fixed: 'right' }
 ]
 
 // 查询参数
@@ -637,6 +651,18 @@ const handleSubmit = async () => {
 // 取消
 const handleCancel = () => {
   modalVisible.value = false
+}
+
+// 详情弹窗状态
+const detailVisible = ref(false)
+const detailTitle = ref('客户详情')
+const detailData = ref<Partial<BizCustomer>>({})
+
+// 打开详情
+const openDetail = (record: BizCustomer) => {
+  detailTitle.value = `客户详情 - ${record.name || ''}`
+  detailData.value = record
+  detailVisible.value = true
 }
 
 // 删除

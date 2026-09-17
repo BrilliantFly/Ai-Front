@@ -54,7 +54,13 @@ export const productSections: SectionDef[] = [
       {
         title: '产品生命周期',
         fields: [
-          { label: '产品生命周期', key: 'lifeCycle', placeholder: '如: 导入期/成长期/成熟期/衰退期', span: 24 }
+          { label: '产品生命周期', key: 'lifeCycle', type: 'select', options: [
+            { label: '产品研发', value: '产品研发' },
+            { label: '引入期', value: '引入期' },
+            { label: '成长期', value: '成长期' },
+            { label: '饱和期', value: '饱和期' },
+            { label: '衰退期', value: '衰退期' }
+          ], span: 24 }
         ]
       },
       {

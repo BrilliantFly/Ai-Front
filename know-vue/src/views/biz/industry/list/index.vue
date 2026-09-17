@@ -157,12 +157,9 @@ import { marketSections } from '../market/sections'
 const columns = [
   { title: '行业名称', dataIndex: 'industryName', key: 'industryName', width: 160 },
   { title: '行业代码', dataIndex: 'industryCode', key: 'industryCode', width: 140 },
-  { title: '标签', dataIndex: 'tags', key: 'tags', width: 180 },
-  { title: '毛利率', dataIndex: 'grossMargin', key: 'grossMargin', width: 100 },
-  { title: '净利率', dataIndex: 'netMargin', key: 'netMargin', width: 100 },
-  { title: '客户数', dataIndex: 'customerCount', key: 'customerCount', width: 100 },
-  { title: '排序', dataIndex: 'sort', key: 'sort', width: 80 },
+  { title: '行业标签', dataIndex: 'tags', key: 'tags', width: 180 },
   { title: '可见性', dataIndex: 'visibility', key: 'visibility', width: 90 },
+  { title: '排序', dataIndex: 'sort', key: 'sort', width: 80 },
   { title: '操作', key: 'action', width: 160, fixed: 'right' }
 ]
 

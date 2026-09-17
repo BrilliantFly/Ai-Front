@@ -50,6 +50,8 @@
           </template>
           <template v-if="column.key === 'action'">
             <a-space style="white-space: nowrap">
+              <a @click="openDetail(record)">详情</a>
+              <a-divider type="vertical" />
               <a @click="handleEdit(record)">编辑</a>
               <a-divider type="vertical" />
               <a-popconfirm title="确定删除该市场吗？" @confirm="handleDelete(record)">
@@ -82,6 +84,23 @@
         />
       </a-form>
     </BizFullscreenModal>
+
+    <!-- 详情弹窗 -->
+    <BizFullscreenModal
+      v-model:open="detailVisible"
+      :title="detailTitle"
+      width="960px"
+      wrap-class-name="biz-market-modal"
+    >
+      <MatrixTable
+        v-for="sec in marketSections"
+        :key="sec.title"
+        :section="sec"
+        :model="detailData"
+        mode="detail"
+        :options-map="optionsMap"
+      />
+    </BizFullscreenModal>
   </div>
 </template>
 
@@ -102,7 +121,7 @@ const columns = [
   { title: '市场需求', dataIndex: 'demand', key: 'demand', ellipsis: true },
   { title: '市场机会', dataIndex: 'opportunity', key: 'opportunity', ellipsis: true },
   { title: '价值主张', dataIndex: 'valueProposition', key: 'valueProposition', ellipsis: true },
-  { title: '操作', key: 'action', width: 120, fixed: 'right' }
+  { title: '操作', key: 'action', width: 160, fixed: 'right' }
 ]
 
 // 行业下拉
@@ -322,6 +341,18 @@ const handleSubmit = async () => {
 // 取消
 const handleCancel = () => {
   modalVisible.value = false
+}
+
+// 详情弹窗状态
+const detailVisible = ref(false)
+const detailTitle = ref('市场详情')
+const detailData = ref<Partial<BizIndustryMarket>>({})
+
+// 打开详情
+const openDetail = (record: BizIndustryMarket) => {
+  detailTitle.value = record.id != null ? `市场详情 - #${record.id}` : '市场详情'
+  detailData.value = record
+  detailVisible.value = true
 }
 
 // 删除
