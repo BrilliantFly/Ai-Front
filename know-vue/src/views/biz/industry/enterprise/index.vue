@@ -102,7 +102,7 @@
     </BizFullscreenModal>
 
     <!-- 详情弹窗 -->
-    <BizFullscreenModal v-model:open="detailVisible" :title="detailTitle" width="960px">
+    <BizFullscreenModal v-model:open="detailVisible" :title="detailTitle" width="960px" scrolling>
       <MatrixTable
         v-for="sec in enterpriseSections"
         :key="sec.title"

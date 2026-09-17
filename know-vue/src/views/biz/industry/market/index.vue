@@ -91,6 +91,7 @@
       :title="detailTitle"
       width="960px"
       wrap-class-name="biz-market-modal"
+      scrolling
     >
       <MatrixTable
         v-for="sec in marketSections"

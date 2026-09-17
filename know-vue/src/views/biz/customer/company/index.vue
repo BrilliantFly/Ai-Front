@@ -140,7 +140,7 @@
     </BizFullscreenModal>
 
     <!-- 详情弹窗 -->
-    <BizFullscreenModal v-model:open="detailVisible" :title="detailTitle" width="720px">
+    <BizFullscreenModal v-model:open="detailVisible" :title="detailTitle" width="720px" scrolling>
       <a-descriptions :column="2" bordered size="small">
         <a-descriptions-item label="公司名称" :span="2">{{ detailData.name || '-' }}</a-descriptions-item>
         <a-descriptions-item label="所属行业">{{ detailData.industry || '-' }}</a-descriptions-item>

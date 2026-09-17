@@ -90,6 +90,7 @@
       :title="detailModal.title"
       :footer="null"
       width="1000px"
+      scrolling
       @cancel="handleDetailClose"
     >
       <a-spin :spinning="detailModal.loading">
@@ -157,6 +158,7 @@
       :title="subDetail.title"
       :footer="null"
       width="960px"
+      scrolling
     >
       <MatrixTable
         v-for="sec in subDetail.sections"

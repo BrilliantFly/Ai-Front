@@ -33,6 +33,8 @@ defineOptions({ inheritAttrs: false })
 
 const props = defineProps<{
   open?: boolean
+  /** 非全屏时固定弹窗高度(body 内部滚动), 适用于内容较多的详情弹窗 */
+  scrolling?: boolean
 }>()
 
 const emit = defineEmits<{
@@ -59,7 +61,11 @@ const fullscreen = ref(false)
 
 const wrapClass = computed(() => {
   const base = (attrs as Record<string, any>)['wrap-class-name'] || (attrs as Record<string, any>).wrapClassName || ''
-  return fullscreen.value ? `${base ? base + ' ' : ''}biz-modal-fullscreen` : base || undefined
+  const extra = [
+    fullscreen.value ? 'biz-modal-fullscreen' : '',
+    props.scrolling ? 'biz-modal-scroll' : ''
+  ].filter(Boolean)
+  return [base, ...extra].join(' ') || undefined
 })
 
 const toggleFullscreen = () => {
@@ -103,6 +109,28 @@ const toggleFullscreen = () => {
 .biz-modal-fullscreen .ant-modal-footer {
   flex-shrink: 0;
   margin-top: 16px;
+}
+
+/* 限期滚动弹窗(非全屏): 弹窗高度受限, 内容超高时 body 内部滚动 */
+.biz-modal-scroll:not(.biz-modal-fullscreen) .ant-modal {
+  top: 32px;
+  padding-bottom: 32px;
+  max-height: calc(100vh - 64px);
+  display: flex;
+  flex-direction: column;
+}
+
+.biz-modal-scroll:not(.biz-modal-fullscreen) .ant-modal-content {
+  max-height: calc(100vh - 64px);
+  display: flex;
+  flex-direction: column;
+  box-sizing: border-box;
+}
+
+.biz-modal-scroll:not(.biz-modal-fullscreen) .ant-modal-body {
+  overflow-y: auto;
+  min-height: 0;
+  flex: 1;
 }
 
 /* 标题栏: 文字 + 全屏切换按钮 */
