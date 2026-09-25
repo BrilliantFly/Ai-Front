@@ -6,7 +6,7 @@
   </div>
 
   <!-- 表单模式: label + 控件 -->
-  <a-form-item v-else :label="stripLabel(field.label)" :name="field.key" :required="field.required" class="biz-field-item biz-field-form">
+  <a-form-item v-else :label="stripLabel(field.label)" :name="formFieldName" :required="field.required" class="biz-field-item biz-field-form">
     <a-input
       v-if="!field.type || field.type === 'input'"
       v-model:value="value"
@@ -66,6 +66,18 @@ const props = withDefaults(
   { mode: 'form', options: undefined }
 )
 
+/**
+ * ant-design-vue 3.x 的 getNamePath 仅做 toArray, 不拆分点路径:
+ * name="company.name" 会被当作扁平 key 从 model['company.name'] 取值(undefined),
+ * 导致嵌套字段(company.* / profile.*)的必填/取值校验必然失败。
+ * 这里将点路径拆为数组: 'company.name' -> ['company', 'name'], 使校验按嵌套结构取值。
+ */
+const formFieldName = computed(() => {
+  const key = props.field.key
+  if (!key || !key.includes('.')) return key
+  return key.split('.')
+})
+
 /** 去掉 label 中括号及括号内容(如 "动态信息（社会/文化/行业变化）" -> "动态信息") */
 const stripLabel = (s?: string) => (s ?? '').replace(/[（(][^（）()]*[）)]/g, '').trim()
 
@@ -118,6 +130,17 @@ const displayValue = computed(() => {
         .join('、')
     }
     return raw.join('、')
+  }
+  // selectMultiple 详情模式: 兼容后端逗号分隔字符串存储
+  if (props.field.type === 'selectMultiple' && typeof raw === 'string') {
+    const list = raw.split(',').filter(Boolean)
+    if (!list.length) return '-'
+    if (props.options?.length) {
+      return list
+        .map((v) => props.options!.find((o) => o.value === v)?.label ?? v)
+        .join('、')
+    }
+    return list.join('、')
   }
   // 数字格式化
   if (typeof raw === 'number') {

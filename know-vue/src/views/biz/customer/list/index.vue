@@ -221,8 +221,18 @@ interface CustomerFormData {
   hobby?: string
   valuesText?: string
   lifestyle?: string
+  appearance?: string
+  earningWay?: string[]
+  socialClass?: string[]
+  socialCircle?: string
   maritalStatus?: string
   familySituation?: string
+  familyAddress?: string
+  basicLifeSkill?: string
+  vocationalSkill?: string
+  sportsSkill?: string
+  artSkill?: string
+  techSkill?: string
   customerType?: number
   companyId?: number
   status?: number
@@ -308,8 +318,18 @@ const formData = reactive<CustomerFormData>({
   hobby: '',
   valuesText: '',
   lifestyle: '',
+  appearance: '',
+  earningWay: [],
+  socialClass: [],
+  socialCircle: '',
   maritalStatus: '',
   familySituation: '',
+  familyAddress: '',
+  basicLifeSkill: '',
+  vocationalSkill: '',
+  sportsSkill: '',
+  artSkill: '',
+  techSkill: '',
   customerType: 1,
   companyId: undefined,
   status: 1,
@@ -358,11 +378,14 @@ const optionsMap = computed<Record<string, { label: string; value: any }[]>>(() 
   }
 })
 
-// 表单校验规则
-const rules: Record<string, Rule[]> = {
+// 表单校验规则(嵌套路径与 FieldItem 拆分后的 name 数组对应:
+// 'company.name' 实际会被 FieldItem 拆为 ['company', 'name'], 故 rules 也需嵌套结构)
+const rules: Record<string, Rule[] | Record<string, Rule[]>> = {
   name: [{ required: true, message: '请输入客户姓名', trigger: 'blur' }],
   phone: [{ required: true, message: '请输入手机号', trigger: 'blur' }],
-  'company.name': [{ required: true, message: '请输入公司名称', trigger: 'blur' }]
+  company: {
+    name: [{ required: true, message: '请输入公司名称', trigger: 'blur' }]
+  }
 }
 
 // 从多组候选值中取第一个可用的数字(统计字段防御转换)
@@ -477,8 +500,18 @@ const resetFormData = () => {
   formData.hobby = ''
   formData.valuesText = ''
   formData.lifestyle = ''
+  formData.appearance = ''
+  formData.earningWay = []
+  formData.socialClass = []
+  formData.socialCircle = ''
   formData.maritalStatus = ''
   formData.familySituation = ''
+  formData.familyAddress = ''
+  formData.basicLifeSkill = ''
+  formData.vocationalSkill = ''
+  formData.sportsSkill = ''
+  formData.artSkill = ''
+  formData.techSkill = ''
   formData.customerType = 1
   formData.companyId = undefined
   formData.status = 1
@@ -556,8 +589,26 @@ const handleEdit = async (record: BizCustomer) => {
     formData.hobby = detail.hobby || ''
     formData.valuesText = detail.valuesText || ''
     formData.lifestyle = detail.lifestyle || ''
+    formData.appearance = detail.appearance || ''
+    formData.earningWay = detail.earningWay
+      ? Array.isArray(detail.earningWay)
+        ? detail.earningWay
+        : String(detail.earningWay).split(',').filter(Boolean)
+      : []
+    formData.socialClass = detail.socialClass
+      ? Array.isArray(detail.socialClass)
+        ? detail.socialClass
+        : String(detail.socialClass).split(',').filter(Boolean)
+      : []
+    formData.socialCircle = detail.socialCircle || ''
     formData.maritalStatus = detail.maritalStatus || ''
     formData.familySituation = detail.familySituation || ''
+    formData.familyAddress = detail.familyAddress || ''
+    formData.basicLifeSkill = detail.basicLifeSkill || ''
+    formData.vocationalSkill = detail.vocationalSkill || ''
+    formData.sportsSkill = detail.sportsSkill || ''
+    formData.artSkill = detail.artSkill || ''
+    formData.techSkill = detail.techSkill || ''
     formData.customerType = detail.customerType ?? 1
     formData.companyId = detail.companyId
     formData.status = detail.status ?? 1
@@ -619,7 +670,9 @@ const handleSubmit = async () => {
     const payload: BizCustomer = {
       ...formData,
       company: { ...formData.company } as BizCustomerCompany,
-      industryIds: [...formData.industryIds]
+      industryIds: [...formData.industryIds],
+      earningWay: formData.earningWay?.length ? formData.earningWay.join(',') : '',
+      socialClass: formData.socialClass?.length ? formData.socialClass.join(',') : ''
     }
     if (isEdit.value && editId.value) {
       payload.id = editId.value
@@ -658,11 +711,18 @@ const detailVisible = ref(false)
 const detailTitle = ref('客户详情')
 const detailData = ref<Partial<BizCustomer>>({})
 
-// 打开详情
-const openDetail = (record: BizCustomer) => {
+// 打开详情(拉取详情接口,保证 company/profile/industries 完整)
+const openDetail = async (record: BizCustomer) => {
   detailTitle.value = `客户详情 - ${record.name || ''}`
   detailData.value = record
   detailVisible.value = true
+  if (!record.id) return
+  try {
+    const res = await getCustomerDetail(record.id)
+    detailData.value = (res?.data || res || {}) as BizCustomer
+  } catch (e) {
+    console.error('获取客户详情失败', e)
+  }
 }
 
 // 删除

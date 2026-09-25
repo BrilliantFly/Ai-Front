@@ -68,8 +68,18 @@ export interface BizCustomer {
   hobby?: string
   valuesText?: string
   lifestyle?: string
+  appearance?: string
+  earningWay?: string
+  socialClass?: string
+  socialCircle?: string
   maritalStatus?: string
   familySituation?: string
+  familyAddress?: string
+  basicLifeSkill?: string
+  vocationalSkill?: string
+  sportsSkill?: string
+  artSkill?: string
+  techSkill?: string
   customerType?: number
   companyId?: number
   status?: number
