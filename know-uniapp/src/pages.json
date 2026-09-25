@@ -224,7 +224,7 @@
         {
             "path": "pages/customer/info",
             "style": {
-                "navigationBarTitleText": "客户详情",
+                "navigationBarTitleText": "客户管理",
                 "navigationBarBackgroundColor": "#ffffff"
             },
             "meta": {
@@ -235,6 +235,26 @@
             "path": "pages/customer/followup",
             "style": {
                 "navigationBarTitleText": "添加跟进",
+                "navigationBarBackgroundColor": "#ffffff"
+            },
+            "meta": {
+                "auth": true
+            }
+        },
+        {
+            "path": "pages/customer/detail",
+            "style": {
+                "navigationBarTitleText": "客户详情",
+                "navigationBarBackgroundColor": "#ffffff"
+            },
+            "meta": {
+                "auth": true
+            }
+        },
+        {
+            "path": "pages/customer/form",
+            "style": {
+                "navigationBarTitleText": "客户资料",
                 "navigationBarBackgroundColor": "#ffffff"
             },
             "meta": {
