@@ -142,6 +142,13 @@
             </view>
         </uni-popup>
 
+        <!-- 新增客户表单（底部弹出，参考首页标语弹出方式） -->
+        <CustomerFormSheet
+            v-model:show="formShow"
+            mode="create"
+            @saved="onFormSaved"
+        />
+
         <PremiumBottomNav active="customer" />
     </view>
 </template>
@@ -151,6 +158,7 @@ import { ref, shallowRef } from 'vue'
 import { onShow } from '@dcloudio/uni-app'
 import { useRouter } from 'uniapp-router-next'
 import PremiumBottomNav from '@/components/PremiumBottomNav.vue'
+import CustomerFormSheet from '@/components/customer/CustomerFormSheet.vue'
 import { getCustomerPage, getCustomerStats, type CustomerInfo } from '@/api/customer'
 import { maskPhone } from '@/utils/format'
 
@@ -187,6 +195,7 @@ const customerStats = ref<{ total: number | string; monthly: number | string; fo
     following: '--'
 })
 const filterPopup = shallowRef()
+const formShow = ref(false)
 
 let keywordTimer: ReturnType<typeof setTimeout> | undefined
 
@@ -302,7 +311,12 @@ const goDetail = (customer: CustomerInfo) => {
 }
 
 const goCreate = () => {
-    router.navigateTo('/pages/customer/form?mode=create')
+    formShow.value = true
+}
+
+const onFormSaved = () => {
+    paging.value?.reload()
+    loadStats()
 }
 
 onShow(() => {
