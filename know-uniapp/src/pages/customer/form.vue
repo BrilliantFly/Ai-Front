@@ -1,5 +1,18 @@
 <template>
     <view class="form-page">
+        <!-- hero 渐变头部卡（参考首页标语/欢迎语视觉） -->
+        <view class="form-hero">
+            <view class="deco-ring"></view>
+            <view class="deco-dot"></view>
+            <view class="form-hero-top">
+                <view class="form-hero-avatar">{{ heroInitial }}</view>
+                <view class="form-hero-main">
+                    <text class="form-hero-title">{{ heroTitle }}</text>
+                    <text class="form-hero-sub">{{ heroSub }}</text>
+                </view>
+            </view>
+        </view>
+
         <!-- 区段（配置驱动） -->
         <view v-for="section in customerSections" :key="section.title">
             <SectionCard :title="section.title" :collapsible="true" :default-collapsed="false">
@@ -202,6 +215,20 @@ const saving = ref(false)
 
 const mode = ref<'create' | 'edit'>('create')
 const customerId = ref(0)
+const customerName = ref('')
+
+/* hero 页头文案（参考首页欢迎语标语） */
+const heroTitle = computed(() => (mode.value === 'edit' ? '编辑客户资料' : '新增客户'))
+const heroSub = computed(() =>
+    mode.value === 'edit' ? '更新客户档案，让跟进更有据可循' : '完善客户档案，建立长期联系'
+)
+const heroInitial = computed(() => {
+    if (mode.value === 'edit') {
+        const n = (customerName.value || '').trim()
+        if (n) return n.charAt(0).toUpperCase()
+    }
+    return '新'
+})
 
 const allFields = computed<UniFieldDef[]>(() => collectFields(customerSections))
 const multiFields = computed<Set<string>>(
@@ -271,6 +298,7 @@ const fillForm = async () => {
         }
         if (flat.industryIds === undefined) flat.industryIds = []
         formData.value = flat
+        customerName.value = detail?.name || ''
     } catch (error) {
         console.error('加载客户资料失败', error)
         uni.showToast({ title: '加载客户资料失败', icon: 'none' })
@@ -366,6 +394,107 @@ onLoad((options) => {
 .form-page {
     min-height: 100vh;
     background: var(--color-bg-app);
+}
+
+/* ===== hero 页头（参考首页标语/欢迎语视觉标准） ===== */
+.form-hero {
+    position: relative;
+    overflow: hidden;
+    padding: 44rpx 40rpx 56rpx;
+    background: var(--gradient-primary);
+
+    /* #ifdef APP-PLUS */
+    padding-top: calc(44rpx + var(--status-bar-height));
+    /* #endif */
+
+    &::before {
+        content: '';
+        position: absolute;
+        right: -60rpx;
+        top: -60rpx;
+        width: 260rpx;
+        height: 260rpx;
+        border-radius: 50%;
+        background: rgba(255, 255, 255, 0.06);
+    }
+
+    &::after {
+        content: '';
+        position: absolute;
+        left: -100rpx;
+        bottom: -90rpx;
+        width: 220rpx;
+        height: 220rpx;
+        border-radius: 50%;
+        background: rgba(255, 255, 255, 0.04);
+    }
+}
+
+.deco-ring {
+    position: absolute;
+    top: -56rpx;
+    right: 34rpx;
+    width: 140rpx;
+    height: 140rpx;
+    border-radius: 50%;
+    border: 3rpx solid rgba(255, 255, 255, 0.16);
+    pointer-events: none;
+}
+
+.deco-dot {
+    position: absolute;
+    right: 70rpx;
+    bottom: 32rpx;
+    width: 16rpx;
+    height: 16rpx;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.3);
+    box-shadow: 28rpx -18rpx 0 rgba(255, 255, 255, 0.12), -18rpx 24rpx 0 rgba(255, 255, 255, 0.12);
+    pointer-events: none;
+}
+
+.form-hero-top {
+    position: relative;
+    z-index: 2;
+    display: flex;
+    align-items: center;
+    gap: 24rpx;
+}
+
+.form-hero-avatar {
+    width: 108rpx;
+    height: 108rpx;
+    border-radius: 54rpx;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(255, 255, 255, 0.2);
+    box-shadow: inset 0 0 0 2rpx rgba(255, 255, 255, 0.14);
+    color: var(--color-btn-text);
+    font-size: 40rpx;
+    font-weight: 700;
+    flex-shrink: 0;
+}
+
+.form-hero-main {
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+}
+
+.form-hero-title {
+    font-size: 38rpx;
+    font-weight: 700;
+    line-height: 1.2;
+    color: var(--color-btn-text);
+}
+
+.form-hero-sub {
+    margin-top: 8rpx;
+    font-size: 24rpx;
+    line-height: 1.5;
+    color: var(--color-btn-text);
+    opacity: 0.78;
 }
 
 .sub-block {
@@ -535,6 +664,7 @@ onLoad((options) => {
     background: rgba(0, 0, 0, 0.45);
     display: flex;
     align-items: flex-end;
+    animation: select-mask-in 0.2s ease-out;
 }
 
 .select-panel {
@@ -545,6 +675,7 @@ onLoad((options) => {
     max-height: 60vh;
     display: flex;
     flex-direction: column;
+    animation: select-panel-in 0.24s ease-out;
 }
 
 .select-options-wrap {
@@ -591,5 +722,24 @@ onLoad((options) => {
 .select-option-check {
     font-size: 32rpx;
     color: var(--color-primary);
+}
+
+/* ===== 弹层动画（底部滑出） ===== */
+@keyframes select-mask-in {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
+}
+
+@keyframes select-panel-in {
+    from {
+        transform: translateY(60%);
+    }
+    to {
+        transform: translateY(0);
+    }
 }
 </style>
