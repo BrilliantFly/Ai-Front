@@ -105,7 +105,7 @@ import { createFollowup } from '@/api/customer'
 
 const router = useRouter()
 
-const customerId = ref(0)
+const customerId = ref<string | number>('')
 
 /* ---------- 表单 ---------- */
 const typeOptions = ['电话', '微信', '拜访', '邮件', '其他']
@@ -179,7 +179,8 @@ const goBack = () => {
 }
 
 onLoad((options) => {
-    customerId.value = Number(options?.customerId || 0)
+    // 雪花 ID 超出 JS 安全整数，保留字符串（禁止 Number() 转换）
+    customerId.value = String(options?.customerId || '')
 })
 </script>
 

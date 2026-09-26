@@ -214,7 +214,7 @@ const formData = ref<Record<string, any>>({})
 const saving = ref(false)
 
 const mode = ref<'create' | 'edit'>('create')
-const customerId = ref(0)
+const customerId = ref<string | number>('')
 const customerName = ref('')
 
 /* hero 页头文案（参考首页欢迎语标语） */
@@ -354,7 +354,7 @@ const submit = async () => {
             uni.showToast({ title: '保存成功', icon: 'success' })
         } else {
             const newId = await createCustomer(payload)
-            id = Number(newId)
+            id = newId as any
             uni.showToast({ title: '创建成功', icon: 'success' })
         }
         // 行业关系：create 时后端已落库（BizCustomerServiceImpl.create L141）；
@@ -383,7 +383,8 @@ const goBack = () => {
 
 onLoad((options) => {
     mode.value = options?.mode === 'edit' ? 'edit' : 'create'
-    customerId.value = Number(options?.id || 0)
+    // 雪花 ID 超出 JS 安全整数，保留字符串（禁止 Number() 转换）
+    customerId.value = String(options?.id || '')
     if (mode.value === 'edit' && customerId.value) {
         fillForm()
     }

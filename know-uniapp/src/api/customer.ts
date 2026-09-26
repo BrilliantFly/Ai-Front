@@ -66,9 +66,11 @@ export interface IndustryItem {
     sort?: number
 }
 
-/** 客户实体（列表 record 与详情 base 均为此结构） */
+/** 客户实体（列表 record 与详情 base 均为此结构）
+ * id 为雪花 ID（如 2103742838915026946）超出 JS 安全整数，后端序列化为 string，故类型为 number | string
+ */
 export interface CustomerInfo {
-    id: number
+    id: number | string
     name: string
     gender?: number
     age?: number
@@ -224,34 +226,34 @@ export function getCustomerPage(params: {
 }
 
 /** 客户详情（全量：customer + profile + company + industries） */
-export function getCustomerDetail(id: number) {
+export function getCustomerDetail(id: number | string) {
     return request.get<CustomerDetail>({ url: `/biz/customer/${id}` })
 }
 
-/** 新增客户 */
+/** 新增客户（返回雪花 ID，字符串以避免精度丢失） */
 export function createCustomer(data: CustomerFormData) {
-    return request.post<number>({ url: '/biz/customer', data })
+    return request.post<number | string>({ url: '/biz/customer', data })
 }
 
 /** 更新客户 */
-export function updateCustomer(data: CustomerFormData & { id: number }) {
+export function updateCustomer(data: CustomerFormData & { id: number | string }) {
     return request.put<boolean>({ url: '/biz/customer', data })
 }
 
 /** 删除客户（逻辑删除）
  * @deprecated 列表暂不提供删除入口，保留供长按操作扩展
  */
-export function deleteCustomer(id: number) {
+export function deleteCustomer(id: number | string) {
     return request.delete<boolean>({ url: `/biz/customer/${id}` })
 }
 
 /** 更新客户状态 */
-export function updateCustomerStatus(id: number, status: number) {
+export function updateCustomerStatus(id: number | string, status: number) {
     return request.put<boolean>({ url: `/biz/customer/${id}/status`, data: { status } })
 }
 
 /** 设置客户行业（全量覆盖关系；relations 至少带 industryId，isMain 首项为 1） */
-export function setCustomerIndustries(id: number, relations: { industryId: number; isMain?: number }[]) {
+export function setCustomerIndustries(id: number | string, relations: { industryId: number; isMain?: number }[]) {
     return request.post<boolean>({ url: `/biz/customer/${id}/industries`, data: relations })
 }
 
@@ -283,7 +285,7 @@ export async function getCustomerStats(): Promise<CustomerStats> {
 }
 
 /** 跟进记录分页（详情页时间线 / 跟进页历史列表，时间倒序） */
-export function getFollowupPage(params: { customerId: number; pageNum: number; pageSize: number; type?: string }) {
+export function getFollowupPage(params: { customerId: number | string; pageNum: number; pageSize: number; type?: string }) {
     return request.get<PageResult<CustomerFollowup>>({
         url: '/biz/customer/followup/page',
         data: params as any
@@ -292,7 +294,7 @@ export function getFollowupPage(params: { customerId: number; pageNum: number; p
 
 /** 新增跟进记录 */
 export function createFollowup(data: {
-    customerId: number
+    customerId: number | string
     content: string
     type?: string
     result?: string

@@ -26,13 +26,13 @@
 
         <!-- 企业信息（常显，未关联时兜底） -->
         <SectionCard title="企业信息">
-            <template v-if="company">
-                <FieldItem label="企业名称" :value="company.name" />
-                <FieldItem label="所属行业" :value="company.industry" />
-                <FieldItem label="企业规模" :value="company.scale" />
-                <FieldItem label="成立时间" :value="company.establishedDate" />
-                <FieldItem label="注册资本" :value="company.capital" />
-                <FieldItem label="企业地址" :value="company.address" />
+            <template v-if="company()">
+                <FieldItem label="企业名称" :value="company()?.name" />
+                <FieldItem label="所属行业" :value="company()?.industry" />
+                <FieldItem label="企业规模" :value="company()?.scale" />
+                <FieldItem label="成立时间" :value="company()?.establishedDate" />
+                <FieldItem label="注册资本" :value="company()?.capital" />
+                <FieldItem label="企业地址" :value="company()?.address" />
             </template>
             <view v-else class="company-empty">
                 <text class="company-empty-icon">企</text>
@@ -89,6 +89,14 @@
             <view class="bottom-btn primary" @tap="goAddFollowup">添加跟进</view>
             <view class="bottom-btn ghost" @tap="goEdit">编辑资料</view>
         </view>
+
+        <!-- 编辑表单（底部弹出，参考首页标语弹出方式） -->
+        <CustomerFormSheet
+            v-model:show="formShow"
+            mode="edit"
+            :customer-id="customerId"
+            @saved="onFormSaved"
+        />
     </view>
 </template>
 
@@ -98,13 +106,15 @@ import { onLoad, onShow } from '@dcloudio/uni-app'
 import { useRouter } from 'uniapp-router-next'
 import SectionCard from '@/components/customer/SectionCard.vue'
 import FieldItem from '@/components/customer/FieldItem.vue'
+import CustomerFormSheet from '@/components/customer/CustomerFormSheet.vue'
 import { getCustomerDetail, getFollowupPage, type CustomerInfo, type CustomerFollowup } from '@/api/customer'
 import { maskPhone, maskEmail } from '@/utils/format'
 
 const router = useRouter()
-const customerId = ref(0)
+const customerId = ref<string | number>('')
 const detail = ref<CustomerInfo>({} as CustomerInfo)
 const followups = ref<CustomerFollowup[]>([])
+const formShow = ref(false)
 
 const followupTypeMap: Record<string, string> = {
     电话: '📞',
@@ -214,8 +224,13 @@ const loadFollowups = async () => {
 
 const goEdit = () => {
     if (customerId.value) {
-        router.navigateTo(`/pages/customer/form?mode=edit&id=${customerId.value}`)
+        formShow.value = true
     }
+}
+
+const onFormSaved = () => {
+    loadDetail()
+    loadFollowups()
 }
 
 const goAddFollowup = () => {
@@ -223,7 +238,8 @@ const goAddFollowup = () => {
 }
 
 onLoad((options) => {
-    customerId.value = Number(options?.id || 0)
+    // 雪花 ID 超出 JS 安全整数范围，必须保留字符串，禁止 Number() 转换（否则精度丢失请求错误 ID）
+    customerId.value = String(options?.id || '')
     if (!customerId.value) {
         uni.showToast({ title: '缺少客户ID', icon: 'none' })
     }
