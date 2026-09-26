@@ -1,12 +1,15 @@
 <template>
     <view class="field-row">
         <text class="field-label">{{ label }}</text>
-        <text class="field-value" :class="{ empty: isEmpty }">{{ displayValue }}</text>
+        <text v-if="!hasSlot" class="field-value" :class="{ empty: isEmpty }">{{ displayValue }}</text>
+        <view v-else class="field-value">
+            <slot />
+        </view>
     </view>
 </template>
 
 <script setup lang="ts">
-import { computed } from 'vue'
+import { computed, useSlots } from 'vue'
 
 const props = withDefaults(
     defineProps<{
@@ -17,6 +20,9 @@ const props = withDefaults(
     }>(),
     { value: null, emptyText: '--' }
 )
+
+const slots = useSlots()
+const hasSlot = computed(() => !!slots.default)
 
 const isEmpty = computed(() => {
     const v = props.value

@@ -24,32 +24,138 @@
             </view>
         </view>
 
-        <!-- 企业信息（常显，未关联时兜底） -->
-        <SectionCard title="企业信息">
+        <!-- 1. 客户个人资料（基础认识 / 详细认识） -->
+        <SectionCard title="客户个人资料" default-expanded>
+            <SubSection title="基础认识">
+                <text class="sub-heading">基础信息</text>
+                <FieldItem label="姓名" :value="detail.name" />
+                <FieldItem label="性别" :value="genderText()" />
+                <FieldItem label="年龄" :value="detail.age" />
+                <FieldItem label="手机号" :value="maskPhone(detail.phone)" />
+                <FieldItem label="邮箱" :value="maskEmail(detail.email)" />
+                <FieldItem label="联系地址" :value="detail.address" />
+
+                <text class="sub-heading">个人信息</text>
+                <FieldItem label="外貌" :value="detail.appearance" />
+                <FieldItem label="性格" :value="detail.personality" />
+                <FieldItem label="衣食住行" :value="detail.lifestyle" />
+                <FieldItem label="兴趣爱好" :value="detail.hobby" />
+
+                <text class="sub-heading">职业信息</text>
+                <FieldItem label="职业" :value="detail.occupation" />
+                <FieldItem label="职务" :value="detail.position" />
+                <FieldItem label="赚钱方式">
+                    <view class="tag-wrap">
+                        <text v-for="t in splitTags(detail.earningWay)" :key="t" class="tag-chip">{{ t }}</text>
+                        <text v-if="!splitTags(detail.earningWay).length" class="field-empty">--</text>
+                    </view>
+                </FieldItem>
+
+                <text class="sub-heading">圈子</text>
+                <FieldItem label="社会阶层">
+                    <view class="tag-wrap">
+                        <text v-for="t in splitTags(detail.socialClass)" :key="t" class="tag-chip">{{ t }}</text>
+                        <text v-if="!splitTags(detail.socialClass).length" class="field-empty">--</text>
+                    </view>
+                </FieldItem>
+                <FieldItem label="社交圈" :value="detail.socialCircle" />
+            </SubSection>
+
+            <SubSection title="详细认识">
+                <text class="sub-heading">家庭状态</text>
+                <FieldItem label="婚姻状态" :value="detail.maritalStatus" />
+                <FieldItem label="家庭状况" :value="detail.familySituation" />
+                <FieldItem label="家庭住址" :value="detail.familyAddress" />
+
+                <text class="sub-heading">教育背景</text>
+                <FieldItem label="教育背景" :value="detail.education" />
+                <FieldItem label="价值观" :value="detail.valuesText" />
+
+                <text class="sub-heading">生活技能</text>
+                <FieldItem label="基础生活技能" :value="detail.basicLifeSkill" />
+                <FieldItem label="职业技能" :value="detail.vocationalSkill" />
+                <FieldItem label="运动和户外" :value="detail.sportsSkill" />
+                <FieldItem label="艺术和创意" :value="detail.artSkill" />
+                <FieldItem label="技术和数字" :value="detail.techSkill" />
+            </SubSection>
+        </SectionCard>
+
+        <!-- 2. 基础情况 -->
+        <SectionCard title="基础情况" collapsible default-collapsed>
+            <FieldItem label="客户类型" :value="typeText()" />
+            <FieldItem label="来源" :value="detail.source" />
+            <FieldItem label="状态" :value="statusText(status())" />
+            <FieldItem label="区域" :value="detail.regionCode || detail.address" />
+        </SectionCard>
+
+        <!-- 3. 业务情况 -->
+        <SectionCard title="业务情况" collapsible default-collapsed>
+            <FieldItem label="需求等级" :value="levelText(detail.demandLevel)" />
+            <FieldItem label="价值评分" :value="valueScoreText(detail.valueScore)" />
+            <FieldItem label="需求意愿" :value="levelText(detail.demandWillingness)" />
+            <FieldItem label="预算" :value="formatMoney(detail.demandBudget)" />
+            <FieldItem label="决策人" :value="detail.demandDecision" />
+            <FieldItem label="优先级" :value="levelText(detail.demandPriority)" />
+            <FieldItem label="需求标签" :value="detail.demandTags" />
+            <FieldItem label="需求描述" :value="detail.demandDesc" />
+        </SectionCard>
+
+        <!-- 4. 客户企业与行业情况 -->
+        <SectionCard title="客户企业与行业情况" collapsible default-collapsed>
             <template v-if="company()">
-                <FieldItem label="企业名称" :value="company()?.name" />
-                <FieldItem label="所属行业" :value="company()?.industry" />
-                <FieldItem label="企业规模" :value="company()?.scale" />
-                <FieldItem label="成立时间" :value="company()?.establishedDate" />
-                <FieldItem label="注册资本" :value="company()?.capital" />
-                <FieldItem label="企业地址" :value="company()?.address" />
+                <SubSection title="企业情况">
+                    <text class="sub-heading">工商信息</text>
+                    <FieldItem label="企业名称" :value="company()?.name" />
+                    <FieldItem label="所属行业" :value="company()?.industry" />
+                    <FieldItem label="企业规模" :value="company()?.scale" />
+                    <FieldItem label="成立时间" :value="company()?.establishedDate" />
+                    <FieldItem label="注册资本" :value="company()?.capital" />
+                    <FieldItem label="企业地址" :value="company()?.address" />
+
+                    <text class="sub-heading">联系信息</text>
+                    <FieldItem label="联系人" :value="company()?.contactName" />
+                    <FieldItem label="联系电话" :value="company()?.contactPhone" />
+                    <FieldItem label="联系人职务" :value="company()?.contactPosition" />
+
+                    <text class="sub-heading">经营情况</text>
+                    <FieldItem label="主要业务" :value="company()?.business" />
+                    <FieldItem label="主要产品" :value="company()?.mainProducts" />
+                    <FieldItem label="市场表现" :value="company()?.marketPerformance" />
+                    <FieldItem label="竞争优势" :value="company()?.competitiveAdvantage" />
+                </SubSection>
             </template>
             <view v-else class="company-empty">
                 <text class="company-empty-icon">企</text>
                 <text class="company-empty-text">未关联企业</text>
                 <text class="company-empty-desc">编辑客户资料时可选配所属企业</text>
             </view>
+
+            <SubSection title="行业情况">
+                <view v-if="industries().length" class="tag-wrap">
+                    <text v-for="item in industries()" :key="String(item.industryId)" class="tag-chip">{{ item.industryName }}</text>
+                </view>
+                <text v-else class="field-empty">未关联行业</text>
+            </SubSection>
         </SectionCard>
 
-        <!-- 基本信息（可折叠） -->
-        <SectionCard title="基本信息" collapsible>
-            <FieldItem label="姓名" :value="detail.name" />
-            <FieldItem label="性别" :value="genderText()" />
-            <FieldItem label="年龄" :value="detail.age" />
-            <FieldItem label="手机号" :value="maskPhone(detail.phone)" />
-            <FieldItem label="邮箱" :value="maskEmail(detail.email)" />
-            <FieldItem label="所在地区" :value="detail.address || detail.regionCode" />
-            <FieldItem label="来源" :value="detail.source" />
+        <!-- 5. 动态信息 -->
+        <SectionCard title="动态信息" collapsible default-collapsed>
+            <FieldItem label="动态信息" :value="profile()?.dynamicInfo" />
+            <text class="profile-empty" v-if="!profile()?.dynamicInfo">未记录动态信息</text>
+        </SectionCard>
+
+        <!-- 6. 价值信息 -->
+        <SectionCard title="价值信息" collapsible default-collapsed>
+            <FieldItem label="价值层级" :value="valueLevelText(profile()?.valueLevel)" />
+            <FieldItem label="价值期望" :value="profile()?.valueExpect" />
+            <FieldItem label="价值兴趣" :value="profile()?.valueInterest" />
+        </SectionCard>
+
+        <!-- 7. 如何把握 -->
+        <SectionCard title="如何把握" collapsible default-collapsed>
+            <FieldItem label="应对策略" :value="profile()?.strategy" />
+            <FieldItem label="话术设计" :value="profile()?.talkScript" />
+            <FieldItem label="分析" :value="profile()?.analysis" />
         </SectionCard>
 
         <!-- 跟进记录 -->
@@ -57,7 +163,7 @@
             <template v-if="followups.length">
                 <view
                     v-for="item in followups"
-                    :key="item.id"
+                    :key="String(item.id)"
                     class="timeline-item"
                 >
                     <view class="timeline-track">
@@ -105,6 +211,7 @@ import { ref } from 'vue'
 import { onLoad, onShow } from '@dcloudio/uni-app'
 import { useRouter } from 'uniapp-router-next'
 import SectionCard from '@/components/customer/SectionCard.vue'
+import SubSection from '@/components/customer/SubSection.vue'
 import FieldItem from '@/components/customer/FieldItem.vue'
 import CustomerFormSheet from '@/components/customer/CustomerFormSheet.vue'
 import { getCustomerDetail, getFollowupPage, type CustomerInfo, type CustomerFollowup } from '@/api/customer'
@@ -126,6 +233,10 @@ const followupTypeMap: Record<string, string> = {
 
 const company = () => detail.value.company ?? null
 
+const profile = () => detail.value.profile || {}
+
+const industries = () => detail.value.industries || []
+
 const avatarText = () => {
     const name = detail.value.name || ''
     return (name.trim().charAt(0) || '客').toUpperCase()
@@ -144,7 +255,7 @@ const statusText = (s?: number) => {
         case 4:
             return '流失'
         default:
-            return '未知'
+            return undefined
     }
 }
 
@@ -168,7 +279,7 @@ const typeText = () => {
         case 2:
             return '重点客户'
         default:
-            return ''
+            return undefined
     }
 }
 
@@ -183,6 +294,55 @@ const genderText = () => {
     }
 }
 
+/** 需求等级/意愿/优先级：1 低 / 2 中 / 3 高 */
+const levelText = (v?: number) => {
+    switch (v) {
+        case 1:
+            return '低'
+        case 2:
+            return '中'
+        case 3:
+            return '高'
+        default:
+            return undefined
+    }
+}
+
+/** 价值评分 1-5 */
+const valueScoreText = (v?: number) => {
+    if (v === undefined || v === null || v === 0) return undefined
+    return String(v)
+}
+
+/** 价值层级（马斯洛）：1 生理 / 2 安全 / 3 社交 / 4 尊重 / 5 自我实现 */
+const valueLevelText = (v?: number) => {
+    const map: Record<number, string> = {
+        1: '生理',
+        2: '安全',
+        3: '社交',
+        4: '尊重',
+        5: '自我实现'
+    }
+    return v ? map[v] : undefined
+}
+
+/** 预算（元）格式化 */
+const formatMoney = (v?: number | string) => {
+    if (v === undefined || v === null || v === '') return undefined
+    const n = Number(v)
+    if (!n) return String(v)
+    return n.toLocaleString('zh-CN') + ' 元'
+}
+
+/** 逗号串拆标签（赚钱方式 / 社会阶层） */
+const splitTags = (str?: string | null) => {
+    if (!str) return []
+    return str
+        .split(',')
+        .map((s) => s.trim())
+        .filter(Boolean)
+}
+
 const followupTypeText = (type?: string) => {
     if (!type) return '跟进'
     const icon = followupTypeMap[type]
@@ -190,7 +350,7 @@ const followupTypeText = (type?: string) => {
 }
 
 const formatTime = (t?: number | string) => {
-    if (!t) return '--'
+    if (!t) return undefined
     const n = Number(t)
     if (!n) return String(t)
     const d = new Date(n > 1e12 ? n : n * 1000)
@@ -422,6 +582,52 @@ onShow(() => {
     font-size: 26rpx;
     font-weight: 600;
     color: var(--color-btn-text);
+}
+
+/* ===== 三级小节标题 ===== */
+.sub-heading {
+    display: block;
+    padding: 18rpx 0 0;
+    font-size: 24rpx;
+    font-weight: 600;
+    color: var(--color-text-secondary);
+    border-bottom: 1rpx solid var(--color-border-light);
+
+    &:first-child {
+        padding-top: 0;
+    }
+}
+
+/* ===== 标签 chips（赚钱方式/社会阶层/行业） ===== */
+.tag-wrap {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12rpx;
+}
+
+.tag-chip {
+    display: inline-flex;
+    align-items: center;
+    padding: 4rpx 18rpx;
+    border-radius: 20rpx;
+    font-size: 22rpx;
+    color: var(--color-primary);
+    background: var(--color-primary-soft);
+    white-space: nowrap;
+}
+
+.field-empty {
+    display: inline-block;
+    font-size: 26rpx;
+    line-height: 1.6;
+    color: var(--color-text-tertiary);
+}
+
+.profile-empty {
+    display: block;
+    padding: 20rpx 0;
+    font-size: 26rpx;
+    color: var(--color-text-tertiary);
 }
 
 /* ===== 企业空态兜底 ===== */
