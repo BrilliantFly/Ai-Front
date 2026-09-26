@@ -1,7 +1,9 @@
 <template>
     <view class="field-row">
         <text class="field-label">{{ label }}</text>
-        <text v-if="!hasSlot" class="field-value" :class="{ empty: isEmpty }">{{ displayValue }}</text>
+        <text v-if="!hasSlot" class="field-value" :class="{ empty: isEmpty }">{{
+            displayValue
+        }}</text>
         <view v-else class="field-value">
             <slot />
         </view>

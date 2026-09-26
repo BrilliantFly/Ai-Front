@@ -46,16 +46,27 @@
                 <FieldItem label="职务" :value="detail.position" />
                 <FieldItem label="赚钱方式">
                     <view class="tag-wrap">
-                        <text v-for="t in splitTags(detail.earningWay)" :key="t" class="tag-chip">{{ t }}</text>
-                        <text v-if="!splitTags(detail.earningWay).length" class="field-empty">--</text>
+                        <text v-for="t in splitTags(detail.earningWay)" :key="t" class="tag-chip">{{
+                            t
+                        }}</text>
+                        <text v-if="!splitTags(detail.earningWay).length" class="field-empty"
+                            >--</text
+                        >
                     </view>
                 </FieldItem>
 
                 <text class="sub-heading">圈子</text>
                 <FieldItem label="社会阶层">
                     <view class="tag-wrap">
-                        <text v-for="t in splitTags(detail.socialClass)" :key="t" class="tag-chip">{{ t }}</text>
-                        <text v-if="!splitTags(detail.socialClass).length" class="field-empty">--</text>
+                        <text
+                            v-for="t in splitTags(detail.socialClass)"
+                            :key="t"
+                            class="tag-chip"
+                            >{{ t }}</text
+                        >
+                        <text v-if="!splitTags(detail.socialClass).length" class="field-empty"
+                            >--</text
+                        >
                     </view>
                 </FieldItem>
                 <FieldItem label="社交圈" :value="detail.socialCircle" />
@@ -132,7 +143,12 @@
 
             <SubSection title="行业情况">
                 <view v-if="industries().length" class="tag-wrap">
-                    <text v-for="item in industries()" :key="String(item.industryId)" class="tag-chip">{{ item.industryName }}</text>
+                    <text
+                        v-for="item in industries()"
+                        :key="String(item.industryId)"
+                        class="tag-chip"
+                        >{{ item.industryName }}</text
+                    >
                 </view>
                 <text v-else class="field-empty">未关联行业</text>
             </SubSection>
@@ -161,11 +177,7 @@
         <!-- 跟进记录 -->
         <SectionCard title="跟进记录" :collapsible="true">
             <template v-if="followups.length">
-                <view
-                    v-for="item in followups"
-                    :key="String(item.id)"
-                    class="timeline-item"
-                >
+                <view v-for="item in followups" :key="String(item.id)" class="timeline-item">
                     <view class="timeline-track">
                         <view class="timeline-dot"></view>
                         <view class="timeline-line"></view>
@@ -214,7 +226,12 @@ import SectionCard from '@/components/customer/SectionCard.vue'
 import SubSection from '@/components/customer/SubSection.vue'
 import FieldItem from '@/components/customer/FieldItem.vue'
 import CustomerFormSheet from '@/components/customer/CustomerFormSheet.vue'
-import { getCustomerDetail, getFollowupPage, type CustomerInfo, type CustomerFollowup } from '@/api/customer'
+import {
+    getCustomerDetail,
+    getFollowupPage,
+    type CustomerInfo,
+    type CustomerFollowup
+} from '@/api/customer'
 import { maskPhone, maskEmail } from '@/utils/format'
 
 const router = useRouter()
@@ -355,7 +372,9 @@ const formatTime = (t?: number | string) => {
     if (!n) return String(t)
     const d = new Date(n > 1e12 ? n : n * 1000)
     const pad = (x: number) => String(x).padStart(2, '0')
-    return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}`
+    return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())} ${pad(
+        d.getHours()
+    )}:${pad(d.getMinutes())}`
 }
 
 const loadDetail = async () => {
