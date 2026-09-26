@@ -561,7 +561,7 @@ const quickTiles = computed<QuickTile[]>(() => {
                 row.name === item.name ||
                 row.title === item.title
         )
-        if (!exists && merged.length < 9) {
+        if (!exists && merged.length < 20) {
             merged.push(item)
         }
     })
