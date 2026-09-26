@@ -6,7 +6,7 @@
             <view class="deco-dot"></view>
             <view class="hero-top">
                 <view class="hero-avatar" :style="{ background: 'var(--gradient-primary)' }">
-                    {{ avatarText }}
+                    {{ avatarText() }}
                 </view>
                 <view class="hero-main">
                     <view class="hero-name-row">
@@ -15,8 +15,8 @@
                             {{ statusText(status()) }}
                         </text>
                     </view>
-                    <text class="hero-phone">{{ detail.phone || '未留手机号' }}</text>
-                    <view v-if="typeText" class="hero-badge">{{ typeText }}</view>
+                    <text class="hero-phone">{{ maskPhone(detail.phone) }}</text>
+                    <view v-if="typeText()" class="hero-badge">{{ typeText() }}</view>
                 </view>
                 <view class="hero-edit" @tap="goEdit">
                     <text class="hero-edit-text">编辑</text>
@@ -44,10 +44,10 @@
         <!-- 基本信息（可折叠） -->
         <SectionCard title="基本信息" collapsible>
             <FieldItem label="姓名" :value="detail.name" />
-            <FieldItem label="性别" :value="genderText" />
+            <FieldItem label="性别" :value="genderText()" />
             <FieldItem label="年龄" :value="detail.age" />
-            <FieldItem label="手机号" :value="detail.phone" />
-            <FieldItem label="邮箱" :value="detail.email" />
+            <FieldItem label="手机号" :value="maskPhone(detail.phone)" />
+            <FieldItem label="邮箱" :value="maskEmail(detail.email)" />
             <FieldItem label="所在地区" :value="detail.address || detail.regionCode" />
             <FieldItem label="来源" :value="detail.source" />
         </SectionCard>
@@ -99,6 +99,7 @@ import { useRouter } from 'uniapp-router-next'
 import SectionCard from '@/components/customer/SectionCard.vue'
 import FieldItem from '@/components/customer/FieldItem.vue'
 import { getCustomerDetail, getFollowupPage, type CustomerInfo, type CustomerFollowup } from '@/api/customer'
+import { maskPhone, maskEmail } from '@/utils/format'
 
 const router = useRouter()
 const customerId = ref(0)
@@ -106,11 +107,11 @@ const detail = ref<CustomerInfo>({} as CustomerInfo)
 const followups = ref<CustomerFollowup[]>([])
 
 const followupTypeMap: Record<string, string> = {
-    电话: '📞 电话',
-    微信: '💬 微信',
-    拜访: '🤝 拜访',
-    邮件: '📧 邮件',
-    其他: '✉️ 其他'
+    电话: '📞',
+    微信: '💬',
+    拜访: '🤝',
+    邮件: '📧',
+    其他: '✉️'
 }
 
 const company = () => detail.value.company ?? null

@@ -91,7 +91,7 @@
                             <text v-if="companyNameOf(customer)" class="client-company">
                                 {{ companyNameOf(customer) }}
                             </text>
-                            <text class="client-phone">{{ customer.phone || '--' }}</text>
+                            <text class="client-phone">{{ maskPhone(customer.phone) }}</text>
                         </view>
                     </view>
                     <text class="client-arrow">›</text>
@@ -152,6 +152,7 @@ import { onShow } from '@dcloudio/uni-app'
 import { useRouter } from 'uniapp-router-next'
 import PremiumBottomNav from '@/components/PremiumBottomNav.vue'
 import { getCustomerPage, getCustomerStats, type CustomerInfo } from '@/api/customer'
+import { maskPhone } from '@/utils/format'
 
 /** 状态枚举（与后端 BizCustomer.status 对齐） */
 const STATUS_ALL = 0
