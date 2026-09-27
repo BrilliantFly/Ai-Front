@@ -9,14 +9,6 @@
                 <text class="header-title">行业管理</text>
             </view>
         </view>
-        <!-- 统计条（行业/企业/产品/客户 4 格；可换 StatBar 组件） -->
-        <view class="stats-row top-gap">
-            <view v-for="item in statItems" :key="item.label" class="stat-card">
-                <text class="stat-num">{{ item.value }}</text>
-                <text class="stat-label">{{ item.label }}</text>
-            </view>
-        </view>
-
         <!-- 搜索 -->
         <view class="search-section">
             <view class="search-box">
@@ -30,6 +22,14 @@
                     @input="onKeywordInput"
                 />
                 <text v-if="keyword" class="search-clear" @tap="clearKeyword">×</text>
+            </view>
+        </view>
+
+        <!-- 统计条（行业/企业/产品/客户 4 格；可换 StatBar 组件） -->
+        <view class="stats-row">
+            <view v-for="item in statItems" :key="item.label" class="stat-card">
+                <text class="stat-num">{{ item.value }}</text>
+                <text class="stat-label">{{ item.label }}</text>
             </view>
         </view>
 
@@ -320,10 +320,6 @@ onShow(() => {
     display: flex;
     gap: 16rpx;
     padding: 24rpx 40rpx 0;
-}
-
-.top-gap {
-    padding-top: 20rpx;
 }
 
 .stat-card {

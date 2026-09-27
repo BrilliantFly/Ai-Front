@@ -781,7 +781,6 @@ const goCustomerDetail = (item: CustomerItem) => {
 
 .sheet-panel {
     width: 100%;
-    max-height: 86vh;
     background: var(--color-surface);
     border-radius: 32rpx 32rpx 0 0;
     overflow: hidden;
