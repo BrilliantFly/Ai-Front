@@ -10,8 +10,6 @@
             </view>
         </view>
 
-        </view>
-
         <!-- 搜索 -->
         <view class="search-section">
             <view class="search-box">
@@ -474,8 +472,6 @@ onShow(() => {
     background: var(--color-bg-app);
     padding-bottom: 90rpx;
 }
-
-
 
 /* ===== 搜索 ===== */
 .search-section {
