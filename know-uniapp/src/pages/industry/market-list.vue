@@ -9,16 +9,7 @@
                 <text class="header-title">行业市场</text>
             </view>
         </view>
-        <!-- hero 渐变页头（欢迎语视觉基准） -->
-        <view class="hero-bar">
-            <view class="deco-ring"></view>
-            <view class="deco-dot"></view>
-            <view class="hero-top">
-                <view class="hero-title">
-                    <text class="hero-name">行业市场</text>
-                    <text class="hero-sub">维护行业市场需求、商机与商业模式</text>
-                </view>
-            </view>
+
         </view>
 
         <!-- 搜索 -->
@@ -512,92 +503,7 @@ onShow(() => {
     padding-bottom: 90rpx;
 }
 
-/* ===== hero 渐变页头（欢迎语视觉基准） ===== */
-.hero-bar {
-    position: relative;
-    overflow: hidden;
-    padding: 36rpx 40rpx 52rpx;
-    background: var(--gradient-primary);
 
-    /* #ifdef APP-PLUS */
-    padding-top: calc(36rpx + var(--status-bar-height));
-    /* #endif */
-
-    &::before {
-        content: '';
-        position: absolute;
-        right: -60rpx;
-        top: -60rpx;
-        width: 260rpx;
-        height: 260rpx;
-        border-radius: 50%;
-        background: rgba(255, 255, 255, 0.06);
-    }
-
-    &::after {
-        content: '';
-        position: absolute;
-        left: -100rpx;
-        bottom: -90rpx;
-        width: 220rpx;
-        height: 220rpx;
-        border-radius: 50%;
-        background: rgba(255, 255, 255, 0.04);
-    }
-}
-
-.deco-ring {
-    position: absolute;
-    top: -56rpx;
-    right: 34rpx;
-    width: 140rpx;
-    height: 140rpx;
-    border-radius: 50%;
-    border: 3rpx solid rgba(255, 255, 255, 0.16);
-    pointer-events: none;
-}
-
-.deco-dot {
-    position: absolute;
-    right: 70rpx;
-    bottom: 32rpx;
-    width: 16rpx;
-    height: 16rpx;
-    border-radius: 50%;
-    background: rgba(255, 255, 255, 0.3);
-    box-shadow: 28rpx -18rpx 0 rgba(255, 255, 255, 0.12), -18rpx 24rpx 0 rgba(255, 255, 255, 0.12);
-    pointer-events: none;
-}
-
-.hero-top {
-    position: relative;
-    z-index: 2;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 20rpx;
-}
-
-.hero-title {
-    min-width: 0;
-    display: flex;
-    flex-direction: column;
-}
-
-.hero-name {
-    font-size: 44rpx;
-    font-weight: 700;
-    line-height: 1.2;
-    color: var(--color-btn-text);
-}
-
-.hero-sub {
-    margin-top: 8rpx;
-    font-size: 24rpx;
-    line-height: 1.5;
-    color: var(--color-btn-text);
-    opacity: 0.78;
-}
 
 /* ===== 搜索 ===== */
 .search-section {

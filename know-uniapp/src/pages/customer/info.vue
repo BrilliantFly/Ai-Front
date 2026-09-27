@@ -8,18 +8,9 @@
                 </view>
                 <text class="header-title">客户管理</text>
             </view>
-        </view>
-        <!-- hero 渐变页头（欢迎语视觉基准，见设计 05 §4.5） -->
-        <view class="hero-bar">
-            <view class="deco-ring"></view>
-            <view class="deco-dot"></view>
-            <view class="hero-top">
-                <view class="hero-title">
-                    <text class="hero-name">客户管理</text>
-                    <text class="hero-sub">集中维护客户信息与跟进状态</text>
-                </view>
-                <view class="hero-filter-btn" @tap="openFilterPanel">
-                    <text class="hero-filter-text">筛选</text>
+            <view class="header-actions">
+                <view class="header-filter-btn" @tap="openFilterPanel">
+                    <text class="header-filter-text">筛选</text>
                 </view>
             </view>
         </view>
@@ -352,96 +343,14 @@ onShow(() => {
     padding-bottom: 90rpx;
 }
 
-/* ===== hero 渐变页头（欢迎语视觉基准） ===== */
-.hero-bar {
-    position: relative;
-    overflow: hidden;
-    padding: 36rpx 40rpx 52rpx;
-    background: var(--gradient-primary);
-    box-shadow: none;
-
-    /* App 端自定义导航栏避让状态栏 */
-    /* #ifdef APP-PLUS */
-    padding-top: calc(36rpx + var(--status-bar-height));
-    /* #endif */
-
-    &::before {
-        content: '';
-        position: absolute;
-        right: -60rpx;
-        top: -60rpx;
-        width: 260rpx;
-        height: 260rpx;
-        border-radius: 50%;
-        background: rgba(255, 255, 255, 0.06);
-    }
-
-    &::after {
-        content: '';
-        position: absolute;
-        left: -100rpx;
-        bottom: -90rpx;
-        width: 220rpx;
-        height: 220rpx;
-        border-radius: 50%;
-        background: rgba(255, 255, 255, 0.04);
-    }
-}
-
-.deco-ring {
-    position: absolute;
-    top: -56rpx;
-    right: 34rpx;
-    width: 140rpx;
-    height: 140rpx;
-    border-radius: 50%;
-    border: 3rpx solid rgba(255, 255, 255, 0.16);
-    pointer-events: none;
-}
-
-.deco-dot {
-    position: absolute;
-    right: 70rpx;
-    bottom: 32rpx;
-    width: 16rpx;
-    height: 16rpx;
-    border-radius: 50%;
-    background: rgba(255, 255, 255, 0.3);
-    box-shadow: 28rpx -18rpx 0 rgba(255, 255, 255, 0.12), -18rpx 24rpx 0 rgba(255, 255, 255, 0.12);
-    pointer-events: none;
-}
-
-.hero-top {
-    position: relative;
-    z-index: 2;
+.header-actions {
     display: flex;
     align-items: center;
-    justify-content: space-between;
-    gap: 20rpx;
+    gap: 12rpx;
+    flex-shrink: 0;
 }
 
-.hero-title {
-    min-width: 0;
-    display: flex;
-    flex-direction: column;
-}
-
-.hero-name {
-    font-size: 44rpx;
-    font-weight: 700;
-    line-height: 1.2;
-    color: var(--color-btn-text);
-}
-
-.hero-sub {
-    margin-top: 8rpx;
-    font-size: 24rpx;
-    line-height: 1.5;
-    color: var(--color-btn-text);
-    opacity: 0.78;
-}
-
-.hero-filter-btn {
+.header-filter-btn {
     display: flex;
     align-items: center;
     justify-content: center;
@@ -449,14 +358,14 @@ onShow(() => {
     height: 64rpx;
     padding: 0 24rpx;
     border-radius: 32rpx;
-    background: rgba(255, 255, 255, 0.16);
-    backdrop-filter: blur(10rpx);
+    background: var(--color-surface-soft);
+    border: 1rpx solid var(--color-border-light);
 }
 
-.hero-filter-text {
+.header-filter-text {
     font-size: 26rpx;
     font-weight: 600;
-    color: var(--color-btn-text);
+    color: var(--color-text-secondary);
 }
 
 /* ===== 搜索 ===== */

@@ -9,20 +9,8 @@
                 <text class="header-title">行业管理</text>
             </view>
         </view>
-        <!-- hero 渐变页头（欢迎语视觉基准） -->
-        <view class="hero-bar">
-            <view class="deco-ring"></view>
-            <view class="deco-dot"></view>
-            <view class="hero-top">
-                <view class="hero-title">
-                    <text class="hero-name">行业管理</text>
-                    <text class="hero-sub">集中维护行业信息与产业链关系</text>
-                </view>
-            </view>
-        </view>
-
         <!-- 统计条（行业/企业/产品/客户 4 格；可换 StatBar 组件） -->
-        <view class="stats-row">
+        <view class="stats-row top-gap">
             <view v-for="item in statItems" :key="item.label" class="stat-card">
                 <text class="stat-num">{{ item.value }}</text>
                 <text class="stat-label">{{ item.label }}</text>
@@ -111,13 +99,21 @@
             @close="formVisible = false"
             @saved="onFormSaved"
         />
+
+        <!-- 行业详情（底部弹层，替代整页详情路由） -->
+        <IndustryDetailSheet
+            :show="detailVisible"
+            :record-id="detailRecordId"
+            @close="detailVisible = false"
+            @changed="onDetailChanged"
+            @deleted="onDetailDeleted"
+        />
     </view>
 </template>
 
 <script setup lang="ts">
 import { computed, ref, shallowRef } from 'vue'
 import { onLoad, onShow } from '@dcloudio/uni-app'
-import { useRouter } from 'uniapp-router-next'
 import {
     getIndustryPage,
     deleteIndustry,
@@ -125,6 +121,7 @@ import {
     type BizIndustry
 } from '@/api/biz/industry'
 import IndustryFormSheet from '@/components/industry/IndustryFormSheet.vue'
+import IndustryDetailSheet from '@/components/industry/IndustryDetailSheet.vue'
 
 import { switchTabCompat } from '@/utils/util'
 
@@ -138,7 +135,6 @@ const goBack = () => {
     }
 }
 
-const router = useRouter()
 const paging = shallowRef()
 const keyword = ref('')
 const industryList = ref<BizIndustry[]>([])
@@ -245,9 +241,28 @@ const onFormSaved = () => {
     loadStatistics()
 }
 
+/* ---------- 详情弹层 ---------- */
+const detailVisible = ref(false)
+const detailRecordId = ref<number | string>('')
+
 const goDetail = (item: BizIndustry) => {
     if (!item.id) return
-    router.navigateTo(`/pages/industry/detail?id=${item.id}`)
+    detailRecordId.value = item.id
+    detailVisible.value = true
+}
+
+/** 详情弹层内编辑/删除（changed），或子数据变更后刷新列表与统计 */
+const onDetailChanged = () => {
+    paging.value?.reload()
+    loadStatistics()
+}
+
+/** 详情弹层内删除行业成功后刷新并回列表 */
+const onDetailDeleted = () => {
+    detailVisible.value = false
+    detailRecordId.value = ''
+    paging.value?.reload()
+    loadStatistics()
 }
 
 const confirmDelete = (item: BizIndustry) => {
@@ -300,98 +315,15 @@ onShow(() => {
     padding-bottom: 90rpx;
 }
 
-/* ===== hero 渐变页头（欢迎语视觉基准） ===== */
-.hero-bar {
-    position: relative;
-    overflow: hidden;
-    padding: 36rpx 40rpx 52rpx;
-    background: var(--gradient-primary);
-
-    /* #ifdef APP-PLUS */
-    padding-top: calc(36rpx + var(--status-bar-height));
-    /* #endif */
-
-    &::before {
-        content: '';
-        position: absolute;
-        right: -60rpx;
-        top: -60rpx;
-        width: 260rpx;
-        height: 260rpx;
-        border-radius: 50%;
-        background: rgba(255, 255, 255, 0.06);
-    }
-
-    &::after {
-        content: '';
-        position: absolute;
-        left: -100rpx;
-        bottom: -90rpx;
-        width: 220rpx;
-        height: 220rpx;
-        border-radius: 50%;
-        background: rgba(255, 255, 255, 0.04);
-    }
-}
-
-.deco-ring {
-    position: absolute;
-    top: -56rpx;
-    right: 34rpx;
-    width: 140rpx;
-    height: 140rpx;
-    border-radius: 50%;
-    border: 3rpx solid rgba(255, 255, 255, 0.16);
-    pointer-events: none;
-}
-
-.deco-dot {
-    position: absolute;
-    right: 70rpx;
-    bottom: 32rpx;
-    width: 16rpx;
-    height: 16rpx;
-    border-radius: 50%;
-    background: rgba(255, 255, 255, 0.3);
-    box-shadow: 28rpx -18rpx 0 rgba(255, 255, 255, 0.12), -18rpx 24rpx 0 rgba(255, 255, 255, 0.12);
-    pointer-events: none;
-}
-
-.hero-top {
-    position: relative;
-    z-index: 2;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 20rpx;
-}
-
-.hero-title {
-    min-width: 0;
-    display: flex;
-    flex-direction: column;
-}
-
-.hero-name {
-    font-size: 44rpx;
-    font-weight: 700;
-    line-height: 1.2;
-    color: var(--color-btn-text);
-}
-
-.hero-sub {
-    margin-top: 8rpx;
-    font-size: 24rpx;
-    line-height: 1.5;
-    color: var(--color-btn-text);
-    opacity: 0.78;
-}
-
 /* ===== 统计条 ===== */
 .stats-row {
     display: flex;
     gap: 16rpx;
     padding: 24rpx 40rpx 0;
+}
+
+.top-gap {
+    padding-top: 20rpx;
 }
 
 .stat-card {
