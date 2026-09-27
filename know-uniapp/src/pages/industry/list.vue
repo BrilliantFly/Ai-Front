@@ -93,6 +93,15 @@
 
         <!-- 悬浮新建 -->
         <view class="fab" hover-class="fab-hover" @tap="goCreate">+</view>
+
+        <!-- 新建/编辑行业（底部弹层表单，替代整页表单路由） -->
+        <IndustryFormSheet
+            :show="formVisible"
+            :mode="formMode"
+            :record-id="formRecordId"
+            @close="formVisible = false"
+            @saved="onFormSaved"
+        />
     </view>
 </template>
 
@@ -106,6 +115,7 @@ import {
     getIndustryStatistics,
     type BizIndustry
 } from '@/api/biz/industry'
+import IndustryFormSheet from '@/components/industry/IndustryFormSheet.vue'
 
 const router = useRouter()
 const paging = shallowRef()
@@ -191,18 +201,32 @@ const loadStatistics = async () => {
 }
 
 /* ---------- 卡片操作 ---------- */
+/** 新建/编辑行业（底部弹层表单） */
+const formVisible = ref(false)
+const formMode = ref<'create' | 'edit'>('create')
+const formRecordId = ref<number | string>('')
+
 const goCreate = () => {
-    router.navigateTo('/pages/industry/industry-form')
+    formMode.value = 'create'
+    formRecordId.value = ''
+    formVisible.value = true
+}
+
+const goEdit = (item: BizIndustry) => {
+    if (!item.id) return
+    formMode.value = 'edit'
+    formRecordId.value = item.id
+    formVisible.value = true
+}
+
+const onFormSaved = () => {
+    paging.value?.reload()
+    loadStatistics()
 }
 
 const goDetail = (item: BizIndustry) => {
     if (!item.id) return
     router.navigateTo(`/pages/industry/detail?id=${item.id}`)
-}
-
-const goEdit = (item: BizIndustry) => {
-    if (!item.id) return
-    router.navigateTo(`/pages/industry/industry-form?id=${item.id}`)
 }
 
 const confirmDelete = (item: BizIndustry) => {

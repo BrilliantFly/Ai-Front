@@ -107,9 +107,9 @@
         <!-- 悬浮新建 -->
         <view class="fab" hover-class="fab-hover" @tap="goCreate">+</view>
 
-        <!-- 产品详情（底部弹层，只读渲染 productSections） -->
+        <!-- 产品详情（底部弹层，只读渲染 productSections；非全屏固定高度，可全屏） -->
         <uni-popup ref="detailPopup" type="bottom">
-            <view class="sheet-panel">
+            <view class="sheet-panel" :class="{ expanded: detailExpanded }">
                 <view class="sheet-handle"></view>
 
                 <view class="sheet-hero">
@@ -122,6 +122,11 @@
                                 detail.productName || '产品详情'
                             }}</text>
                             <text class="sheet-hero-sub">{{ heroSub }}</text>
+                        </view>
+                        <view class="hero-expand" @tap="toggleDetailExpand">
+                            <text class="hero-expand-text">{{
+                                detailExpanded ? '收起' : '全屏'
+                            }}</text>
                         </view>
                         <view class="sheet-hero-close" @tap="closeDetail">
                             <text class="sheet-hero-close-text">×</text>
@@ -186,13 +191,21 @@
                 </view>
             </view>
         </uni-popup>
+
+        <!-- 新建/编辑产品（底部弹层表单，替代整页表单路由） -->
+        <ProductFormSheet
+            :show="formVisible"
+            :mode="formMode"
+            :record-id="formRecordId"
+            @close="formVisible = false"
+            @saved="onFormSaved"
+        />
     </view>
 </template>
 
 <script setup lang="ts">
 import { computed, ref, shallowRef } from 'vue'
 import { onLoad, onShow } from '@dcloudio/uni-app'
-import { useRouter } from 'uniapp-router-next'
 import SectionCard from '@/components/customer/SectionCard.vue'
 import FieldItem from '@/components/customer/FieldItem.vue'
 import { getIndustryList, type BizIndustry } from '@/api/biz/industry'
@@ -204,8 +217,8 @@ import {
 } from '@/api/biz/industry/product'
 import { productSections } from '@/config/product-sections'
 import type { UniFieldDef, UniSectionDef } from '@/config/industry-sections'
+import ProductFormSheet from '@/components/industry/ProductFormSheet.vue'
 
-const router = useRouter()
 const paging = shallowRef()
 const keyword = ref('')
 const productList = ref<BizIndustryProduct[]>([])
@@ -320,6 +333,12 @@ const detailPopup = shallowRef()
 const detail = ref<BizIndustryProduct>({} as BizIndustryProduct)
 const detailId = ref('')
 
+/** 详情弹层全屏/收起（非全屏时固定高度，全屏撑满） */
+const detailExpanded = ref(false)
+const toggleDetailExpand = () => {
+    detailExpanded.value = !detailExpanded.value
+}
+
 const heroInitial = computed(() => {
     const name = (detail.value.productName || '').trim()
     return name ? name.charAt(0) : '产'
@@ -379,17 +398,32 @@ const closeDetail = () => {
 const goEditFromSheet = () => {
     if (!detailId.value) return
     closeDetail()
-    router.navigateTo(`/pages/industry/product-form?id=${detailId.value}`)
+    formMode.value = 'edit'
+    formRecordId.value = detailId.value
+    formVisible.value = true
 }
 
 /* ---------- 卡片操作 ---------- */
+/** 新建/编辑产品（底部弹层表单） */
+const formVisible = ref(false)
+const formMode = ref<'create' | 'edit'>('create')
+const formRecordId = ref<number | string>('')
+
 const goCreate = () => {
-    router.navigateTo('/pages/industry/product-form')
+    formMode.value = 'create'
+    formRecordId.value = ''
+    formVisible.value = true
 }
 
 const goEdit = (item: BizIndustryProduct) => {
     if (!item.id) return
-    router.navigateTo(`/pages/industry/product-form?id=${item.id}`)
+    formMode.value = 'edit'
+    formRecordId.value = item.id
+    formVisible.value = true
+}
+
+const onFormSaved = () => {
+    paging.value?.reload()
 }
 
 const removeProduct = async (id: number | string) => {
@@ -894,6 +928,18 @@ onShow(() => {
     color: var(--color-btn-text);
 }
 
+.hero-expand {
+    padding: 10rpx 20rpx;
+    border-radius: 28rpx;
+    background: rgba(255, 255, 255, 0.18);
+    flex-shrink: 0;
+}
+
+.hero-expand-text {
+    font-size: 22rpx;
+    color: var(--color-btn-text);
+}
+
 .hero-tags {
     position: relative;
     z-index: 2;
@@ -915,6 +961,10 @@ onShow(() => {
 .sheet-scroll {
     max-height: calc(70vh - 120rpx);
     min-height: 200rpx;
+
+    .sheet-panel.expanded & {
+        max-height: calc(100vh - 280rpx - env(safe-area-inset-bottom));
+    }
 }
 
 .read-section {

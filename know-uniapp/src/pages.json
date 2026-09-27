@@ -312,46 +312,6 @@
             }
         },
         {
-            "path": "pages/industry/industry-form",
-            "style": {
-                "navigationBarTitleText": "行业资料",
-                "navigationBarBackgroundColor": "#ffffff"
-            },
-            "meta": {
-                "auth": true
-            }
-        },
-        {
-            "path": "pages/industry/enterprise-form",
-            "style": {
-                "navigationBarTitleText": "企业资料",
-                "navigationBarBackgroundColor": "#ffffff"
-            },
-            "meta": {
-                "auth": true
-            }
-        },
-        {
-            "path": "pages/industry/product-form",
-            "style": {
-                "navigationBarTitleText": "产品资料",
-                "navigationBarBackgroundColor": "#ffffff"
-            },
-            "meta": {
-                "auth": true
-            }
-        },
-        {
-            "path": "pages/industry/market-form",
-            "style": {
-                "navigationBarTitleText": "市场资料",
-                "navigationBarBackgroundColor": "#ffffff"
-            },
-            "meta": {
-                "auth": true
-            }
-        },
-        {
             "path": "pages/payment_result/payment_result",
             "style": {
                 "navigationBarTitleText": "记录"

@@ -25,100 +25,30 @@
                 <view class="sheet-body">
                     <!-- 区段（配置驱动） -->
                     <view v-for="section in customerSections" :key="section.title">
-                        <SectionCard :title="section.title" :collapsible="true" :default-collapsed="false">
-                            <view v-for="sub in section.subSections" v-if="section.subSections && section.subSections.length" :key="sub.title" class="sub-block">
-                                <text class="sub-title">{{ sub.title }}</text>
+                        <SectionCard
+                            :title="section.title"
+                            :collapsible="true"
+                            :default-collapsed="false"
+                        >
+                            <template v-for="sub in section.subSections || []" :key="sub.title">
+                                <view class="sub-block">
+                                    <text class="sub-title">{{ sub.title }}</text>
 
-                                <!-- 叶子区段（fields） -->
-                                <template v-if="sub.fields && sub.fields.length">
-                                    <view
-                                        v-for="field in sub.fields"
-                                        :key="field.key"
-                                        class="form-field"
-                                    >
-                                        <view class="field-label-row">
-                                            <text class="field-label">{{ field.label }}</text>
-                                            <text v-if="isRequired(field)" class="required-mark">*</text>
-                                        </view>
-
-                                        <!-- 单选 select -->
+                                    <!-- 叶子区段（fields） -->
+                                    <template v-if="sub.fields && sub.fields.length">
                                         <view
-                                            v-if="field.type === 'select'"
-                                            class="field-select"
-                                            hover-class="field-select-hover"
-                                            @tap="openSelect(field)"
-                                        >
-                                            <text
-                                                class="field-select-value"
-                                                :class="{ placeholder: !selectLabel(field) }"
-                                            >{{ selectLabel(field) || field.placeholder || '请选择' }}</text>
-                                            <text class="field-select-arrow">›</text>
-                                        </view>
-
-                                        <!-- 多选 chips -->
-                                        <MultiSelectChips
-                                            v-else-if="field.type === 'selectMultiple'"
-                                            v-model="formData[field.key]"
-                                            :options="field.options || []"
-                                            :placeholder="field.placeholder || '请选择（可多选）'"
-                                        />
-
-                                        <!-- 行业多选 -->
-                                        <IndustryPicker
-                                            v-else-if="field.type === 'industryPicker'"
-                                            v-model="formData[field.key]"
-                                            :placeholder="field.placeholder || '请选择所属行业（可多选）'"
-                                        />
-
-                                        <!-- 文本域 -->
-                                        <textarea
-                                            v-else-if="field.type === 'textarea'"
-                                            v-model="formData[field.key]"
-                                            class="field-textarea"
-                                            :placeholder="field.placeholder || defaultPlaceholder(field)"
-                                            placeholder-class="field-placeholder"
-                                        />
-
-                                        <!-- 数字输入 -->
-                                        <input
-                                            v-else-if="field.type === 'number'"
-                                            v-model="formData[field.key]"
-                                            class="field-input"
-                                            type="number"
-                                            :placeholder="field.placeholder || defaultPlaceholder(field)"
-                                            placeholder-class="field-placeholder"
-                                        />
-
-                                        <!-- 普通文本输入 -->
-                                        <input
-                                            v-else
-                                            v-model="formData[field.key]"
-                                            class="field-input"
-                                            type="text"
-                                            :placeholder="field.placeholder || defaultPlaceholder(field)"
-                                            placeholder-class="field-placeholder"
-                                        />
-                                    </view>
-                                </template>
-
-                                <!-- 更深层级（基础认识/详细认识 → 三级叶子） -->
-                                <template v-else-if="sub.subSections && sub.subSections.length">
-                                    <view
-                                        v-for="leaf in sub.subSections"
-                                        :key="leaf.title"
-                                        class="leaf-block"
-                                    >
-                                        <text class="leaf-title">{{ leaf.title }}</text>
-                                        <view
-                                            v-for="field in leaf.fields"
+                                            v-for="field in sub.fields"
                                             :key="field.key"
                                             class="form-field"
                                         >
                                             <view class="field-label-row">
                                                 <text class="field-label">{{ field.label }}</text>
-                                                <text v-if="isRequired(field)" class="required-mark">*</text>
+                                                <text v-if="isRequired(field)" class="required-mark"
+                                                    >*</text
+                                                >
                                             </view>
 
+                                            <!-- 单选 select -->
                                             <view
                                                 v-if="field.type === 'select'"
                                                 class="field-select"
@@ -128,47 +58,167 @@
                                                 <text
                                                     class="field-select-value"
                                                     :class="{ placeholder: !selectLabel(field) }"
-                                                >{{ selectLabel(field) || field.placeholder || '请选择' }}</text>
+                                                    >{{
+                                                        selectLabel(field) ||
+                                                        field.placeholder ||
+                                                        '请选择'
+                                                    }}</text
+                                                >
                                                 <text class="field-select-arrow">›</text>
                                             </view>
+
+                                            <!-- 多选 chips -->
                                             <MultiSelectChips
                                                 v-else-if="field.type === 'selectMultiple'"
                                                 v-model="formData[field.key]"
                                                 :options="field.options || []"
-                                                :placeholder="field.placeholder || '请选择（可多选）'"
+                                                :placeholder="
+                                                    field.placeholder || '请选择（可多选）'
+                                                "
                                             />
+
+                                            <!-- 行业多选 -->
                                             <IndustryPicker
                                                 v-else-if="field.type === 'industryPicker'"
                                                 v-model="formData[field.key]"
-                                                :placeholder="field.placeholder || '请选择所属行业（可多选）'"
+                                                :placeholder="
+                                                    field.placeholder || '请选择所属行业（可多选）'
+                                                "
                                             />
+
+                                            <!-- 文本域 -->
                                             <textarea
                                                 v-else-if="field.type === 'textarea'"
                                                 v-model="formData[field.key]"
                                                 class="field-textarea"
-                                                :placeholder="field.placeholder || defaultPlaceholder(field)"
+                                                :placeholder="
+                                                    field.placeholder || defaultPlaceholder(field)
+                                                "
                                                 placeholder-class="field-placeholder"
                                             />
+
+                                            <!-- 数字输入 -->
                                             <input
                                                 v-else-if="field.type === 'number'"
                                                 v-model="formData[field.key]"
                                                 class="field-input"
                                                 type="number"
-                                                :placeholder="field.placeholder || defaultPlaceholder(field)"
+                                                :placeholder="
+                                                    field.placeholder || defaultPlaceholder(field)
+                                                "
                                                 placeholder-class="field-placeholder"
                                             />
+
+                                            <!-- 普通文本输入 -->
                                             <input
                                                 v-else
                                                 v-model="formData[field.key]"
                                                 class="field-input"
                                                 type="text"
-                                                :placeholder="field.placeholder || defaultPlaceholder(field)"
+                                                :placeholder="
+                                                    field.placeholder || defaultPlaceholder(field)
+                                                "
                                                 placeholder-class="field-placeholder"
                                             />
                                         </view>
-                                    </view>
-                                </template>
-                            </view>
+                                    </template>
+
+                                    <!-- 更深层级（基础认识/详细认识 → 三级叶子） -->
+                                    <template v-else-if="sub.subSections && sub.subSections.length">
+                                        <view
+                                            v-for="leaf in sub.subSections"
+                                            :key="leaf.title"
+                                            class="leaf-block"
+                                        >
+                                            <text class="leaf-title">{{ leaf.title }}</text>
+                                            <view
+                                                v-for="field in leaf.fields"
+                                                :key="field.key"
+                                                class="form-field"
+                                            >
+                                                <view class="field-label-row">
+                                                    <text class="field-label">{{
+                                                        field.label
+                                                    }}</text>
+                                                    <text
+                                                        v-if="isRequired(field)"
+                                                        class="required-mark"
+                                                        >*</text
+                                                    >
+                                                </view>
+
+                                                <view
+                                                    v-if="field.type === 'select'"
+                                                    class="field-select"
+                                                    hover-class="field-select-hover"
+                                                    @tap="openSelect(field)"
+                                                >
+                                                    <text
+                                                        class="field-select-value"
+                                                        :class="{
+                                                            placeholder: !selectLabel(field)
+                                                        }"
+                                                        >{{
+                                                            selectLabel(field) ||
+                                                            field.placeholder ||
+                                                            '请选择'
+                                                        }}</text
+                                                    >
+                                                    <text class="field-select-arrow">›</text>
+                                                </view>
+                                                <MultiSelectChips
+                                                    v-else-if="field.type === 'selectMultiple'"
+                                                    v-model="formData[field.key]"
+                                                    :options="field.options || []"
+                                                    :placeholder="
+                                                        field.placeholder || '请选择（可多选）'
+                                                    "
+                                                />
+                                                <IndustryPicker
+                                                    v-else-if="field.type === 'industryPicker'"
+                                                    v-model="formData[field.key]"
+                                                    :placeholder="
+                                                        field.placeholder ||
+                                                        '请选择所属行业（可多选）'
+                                                    "
+                                                />
+                                                <textarea
+                                                    v-else-if="field.type === 'textarea'"
+                                                    v-model="formData[field.key]"
+                                                    class="field-textarea"
+                                                    :placeholder="
+                                                        field.placeholder ||
+                                                        defaultPlaceholder(field)
+                                                    "
+                                                    placeholder-class="field-placeholder"
+                                                />
+                                                <input
+                                                    v-else-if="field.type === 'number'"
+                                                    v-model="formData[field.key]"
+                                                    class="field-input"
+                                                    type="number"
+                                                    :placeholder="
+                                                        field.placeholder ||
+                                                        defaultPlaceholder(field)
+                                                    "
+                                                    placeholder-class="field-placeholder"
+                                                />
+                                                <input
+                                                    v-else
+                                                    v-model="formData[field.key]"
+                                                    class="field-input"
+                                                    type="text"
+                                                    :placeholder="
+                                                        field.placeholder ||
+                                                        defaultPlaceholder(field)
+                                                    "
+                                                    placeholder-class="field-placeholder"
+                                                />
+                                            </view>
+                                        </view>
+                                    </template>
+                                </view>
+                            </template>
                         </SectionCard>
                     </view>
                 </view>
@@ -199,7 +249,11 @@
                     @tap="pickSelectOption(opt)"
                 >
                     <text class="select-option-text">{{ opt.label }}</text>
-                    <text v-if="String(selectValue) === String(opt.value)" class="select-option-check">✓</text>
+                    <text
+                        v-if="String(selectValue) === String(opt.value)"
+                        class="select-option-check"
+                        >✓</text
+                    >
                 </view>
             </scroll-view>
         </view>
@@ -211,12 +265,13 @@ import { computed, ref, watch } from 'vue'
 import SectionCard from '@/components/customer/SectionCard.vue'
 import MultiSelectChips from '@/components/customer/MultiSelectChips.vue'
 import IndustryPicker from '@/components/customer/IndustryPicker.vue'
+import { customerSections, collectFields, type UniFieldDef } from '@/config/customer-sections'
 import {
-    customerSections,
-    collectFields,
-    type UniFieldDef
-} from '@/config/customer-sections'
-import { createCustomer, updateCustomer, setCustomerIndustries, getCustomerDetail } from '@/api/customer'
+    createCustomer,
+    updateCustomer,
+    setCustomerIndustries,
+    getCustomerDetail
+} from '@/api/customer'
 
 const props = withDefaults(
     defineProps<{
@@ -364,7 +419,8 @@ const fillForm = async () => {
 }
 
 /* ---------- 提交 ---------- */
-const isEmptyValue = (v: any) => v === undefined || v === null || v === '' || (Array.isArray(v) && v.length === 0)
+const isEmptyValue = (v: any) =>
+    v === undefined || v === null || v === '' || (Array.isArray(v) && v.length === 0)
 
 const setByPath = (obj: Record<string, any>, path: string, value: any) => {
     const keys = path.split('.')
@@ -412,11 +468,17 @@ const submit = async () => {
             uni.showToast({ title: '保存成功', icon: 'success' })
         } else {
             // 雪花 ID 保持字符串（Number() 会精度丢失）
-            id = String(newId)
+            const created = await createCustomer(payload)
+            id = String(created)
             uni.showToast({ title: '创建成功', icon: 'success' })
         }
         // 行业关系：create 时后端已落库；edit 时全量覆盖（幂等：删旧插新）
-        if (isEdit.value && id && Array.isArray(payload.industryIds) && payload.industryIds.length) {
+        if (
+            isEdit.value &&
+            id &&
+            Array.isArray(payload.industryIds) &&
+            payload.industryIds.length
+        ) {
             await setCustomerIndustries(
                 id,
                 payload.industryIds.map((industryId: number, index: number) => ({

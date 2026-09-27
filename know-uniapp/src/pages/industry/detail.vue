@@ -89,40 +89,40 @@
 
                 <template v-else-if="showSubSection(section)">
                     <SubSection v-for="sub in section.subs" :key="sub.title" :title="sub.title">
-                        <FieldItem
-                            v-for="field in sub.fields"
-                            :key="field.key"
-                            :label="field.label"
-                            :value="fieldValue(field)"
-                        >
-                            <template v-if="field.key === 'tags'">
+                        <template v-for="field in sub.fields" :key="field.key">
+                            <FieldItem
+                                v-if="field.key !== 'tags'"
+                                :label="field.label"
+                                :value="fieldValue(field)"
+                            />
+                            <FieldItem v-else :label="field.label">
                                 <view class="tag-wrap">
                                     <text v-for="t in detailTags()" :key="t" class="tag-chip">{{
                                         t
                                     }}</text>
                                     <text v-if="!detailTags().length" class="field-empty">--</text>
                                 </view>
-                            </template>
-                        </FieldItem>
+                            </FieldItem>
+                        </template>
                     </SubSection>
                 </template>
 
                 <template v-else>
-                    <FieldItem
-                        v-for="field in flatFields(section)"
-                        :key="field.key"
-                        :label="field.label"
-                        :value="fieldValue(field)"
-                    >
-                        <template v-if="field.key === 'tags'">
+                    <template v-for="field in flatFields(section)" :key="field.key">
+                        <FieldItem
+                            v-if="field.key !== 'tags'"
+                            :label="field.label"
+                            :value="fieldValue(field)"
+                        />
+                        <FieldItem v-else :label="field.label">
                             <view class="tag-wrap">
                                 <text v-for="t in detailTags()" :key="t" class="tag-chip">{{
                                     t
                                 }}</text>
                                 <text v-if="!detailTags().length" class="field-empty">--</text>
                             </view>
-                        </template>
-                    </FieldItem>
+                        </FieldItem>
+                    </template>
                 </template>
             </SectionCard>
         </view>
@@ -254,6 +254,37 @@
         </view>
 
         <view class="page-bottom-space"></view>
+
+        <!-- 编辑行业 / 编辑产品 / 编辑企业 / 编辑市场（底部弹层表单，替代整页表单路由） -->
+        <IndustryFormSheet
+            :show="industryFormVisible"
+            mode="edit"
+            :record-id="industryId"
+            @close="industryFormVisible = false"
+            @saved="reload"
+        />
+        <ProductFormSheet
+            :show="productFormVisible"
+            mode="edit"
+            :record-id="targetProductId"
+            @close="productFormVisible = false"
+            @saved="reload"
+        />
+        <EnterpriseFormSheet
+            :show="enterpriseFormVisible"
+            mode="edit"
+            :record-id="targetEnterpriseId"
+            @close="enterpriseFormVisible = false"
+            @saved="reload"
+        />
+        <MarketFormSheet
+            :show="marketFormVisible"
+            :mode="marketFormMode"
+            :record-id="targetMarketId"
+            :industry-id="industryId"
+            @close="marketFormVisible = false"
+            @saved="reload"
+        />
     </view>
 </template>
 
@@ -276,6 +307,10 @@ import { deleteProduct } from '@/api/biz/industry/product'
 import { deleteEnterprise } from '@/api/biz/industry/enterprise'
 import { industrySections, type UniFieldDef, type UniSectionDef } from '@/config/industry-sections'
 import { maskPhone } from '@/utils/format'
+import IndustryFormSheet from '@/components/industry/IndustryFormSheet.vue'
+import ProductFormSheet from '@/components/industry/ProductFormSheet.vue'
+import EnterpriseFormSheet from '@/components/industry/EnterpriseFormSheet.vue'
+import MarketFormSheet from '@/components/industry/MarketFormSheet.vue'
 
 /** 首个区段默认展开 */
 const FIRST_SECTION = '行业定义与技术'
@@ -546,9 +581,12 @@ const reload = () => {
 
 /* ---------- 交互 ---------- */
 
+/** 编辑行业（底部弹层） */
+const industryFormVisible = ref(false)
+
 const goEdit = () => {
     if (industryId.value) {
-        router.navigateTo(`/pages/industry/industry-form?id=${industryId.value}`)
+        industryFormVisible.value = true
     }
 }
 
@@ -571,8 +609,13 @@ const onDelete = () => {
     })
 }
 
+/** 编辑产品（底部弹层） */
+const productFormVisible = ref(false)
+const targetProductId = ref<number | string>('')
+
 const goEditProduct = (id: number | string) => {
-    router.navigateTo(`/pages/industry/product-form?id=${id}`)
+    targetProductId.value = id
+    productFormVisible.value = true
 }
 
 const onDeleteProduct = (item: ProductItem) => {
@@ -593,8 +636,13 @@ const onDeleteProduct = (item: ProductItem) => {
     })
 }
 
+/** 编辑企业（底部弹层） */
+const enterpriseFormVisible = ref(false)
+const targetEnterpriseId = ref<number | string>('')
+
 const goEditEnterprise = (id: number | string) => {
-    router.navigateTo(`/pages/industry/enterprise-form?id=${id}`)
+    targetEnterpriseId.value = id
+    enterpriseFormVisible.value = true
 }
 
 const onDeleteEnterprise = (item: EnterpriseItem) => {
@@ -615,14 +663,23 @@ const onDeleteEnterprise = (item: EnterpriseItem) => {
     })
 }
 
+/** 编辑/新建市场（底部弹层，市场以行业为主键） */
+const marketFormVisible = ref(false)
+const marketFormMode = ref<'create' | 'edit'>('create')
+const targetMarketId = ref<number | string>('')
+
 const goEditMarket = () => {
     const m = market.value
     if (!m) return
-    router.navigateTo(`/pages/industry/market-form?id=${m.id || ''}&industryId=${industryId.value}`)
+    marketFormMode.value = 'edit'
+    targetMarketId.value = m.id || ''
+    marketFormVisible.value = true
 }
 
 const goCreateMarket = () => {
-    router.navigateTo(`/pages/industry/market-form?industryId=${industryId.value}`)
+    marketFormMode.value = 'create'
+    targetMarketId.value = ''
+    marketFormVisible.value = true
 }
 
 const goCustomerDetail = (item: CustomerItem) => {
