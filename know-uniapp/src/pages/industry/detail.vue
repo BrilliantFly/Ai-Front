@@ -1,5 +1,14 @@
 <template>
     <view class="industry-page">
+        <!-- 顶部状态栏（小记风格 sticky） -->
+        <view class="header">
+            <view class="header-left">
+                <view class="back-btn" @tap="goBack">
+                    <text class="back-icon">‹</text>
+                </view>
+                <text class="header-title">行业详情</text>
+            </view>
+        </view>
         <!-- hero 渐变头部卡（视觉基准同客户详情页） -->
         <view class="hero-card">
             <view class="deco-ring"></view>
@@ -311,6 +320,18 @@ import IndustryFormSheet from '@/components/industry/IndustryFormSheet.vue'
 import ProductFormSheet from '@/components/industry/ProductFormSheet.vue'
 import EnterpriseFormSheet from '@/components/industry/EnterpriseFormSheet.vue'
 import MarketFormSheet from '@/components/industry/MarketFormSheet.vue'
+
+import { switchTabCompat } from '@/utils/util'
+
+/* 顶部状态栏返回（小记同款） */
+const goBack = () => {
+    const pages = getCurrentPages()
+    if (pages.length > 1) {
+        uni.navigateBack()
+    } else {
+        switchTabCompat('/pages/index/index')
+    }
+}
 
 /** 首个区段默认展开 */
 const FIRST_SECTION = '行业定义与技术'
@@ -1275,5 +1296,56 @@ onShow(() => {
 
 .page-bottom-space {
     height: 40rpx;
+}
+/* ===== 顶部状态栏（小记风格 sticky） ===== */
+.header {
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    height: 96rpx;
+    padding: 0 32rpx;
+    background: var(--color-surface, rgba(255, 255, 255, 0.92));
+    backdrop-filter: blur(24rpx);
+    border-bottom: 1rpx solid var(--color-border-light, rgba(0, 0, 0, 0.06));
+
+    /* #ifdef APP-PLUS */
+    height: calc(96rpx + var(--status-bar-height));
+    padding: var(--status-bar-height) 32rpx 0;
+    /* #endif */
+
+    .header-left {
+        display: flex;
+        align-items: center;
+        gap: 8rpx;
+    }
+
+    .back-btn {
+        width: 72rpx;
+        height: 72rpx;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 16rpx;
+        margin-left: -16rpx;
+
+        &:active {
+            background: var(--color-surface-soft, rgba(0, 0, 0, 0.04));
+        }
+
+        .back-icon {
+            font-size: 44rpx;
+            line-height: 1;
+            color: var(--color-text, #1f2329);
+        }
+    }
+
+    .header-title {
+        font-size: 36rpx;
+        font-weight: 600;
+        color: var(--color-text, #1f2329);
+    }
 }
 </style>

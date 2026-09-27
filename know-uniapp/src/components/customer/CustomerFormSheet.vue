@@ -4,19 +4,11 @@
             <!-- 拖拽把手 -->
             <view class="sheet-handle"></view>
 
-            <!-- hero 渐变头部卡（参考首页标语/欢迎语视觉） -->
-            <view class="form-hero">
-                <view class="deco-ring"></view>
-                <view class="deco-dot"></view>
-                <view class="form-hero-top">
-                    <view class="form-hero-avatar">{{ heroInitial }}</view>
-                    <view class="form-hero-main">
-                        <text class="form-hero-title">{{ heroTitle }}</text>
-                        <text class="form-hero-sub">{{ heroSub }}</text>
-                    </view>
-                    <view class="form-hero-close" @tap="close">
-                        <text class="form-hero-close-text">×</text>
-                    </view>
+            <!-- 标题行（小记风格：居中标题 + 右上角关闭） -->
+            <view class="sheet-title-row">
+                <text class="sheet-title">{{ heroTitle }}</text>
+                <view class="sheet-title-actions">
+                    <view class="sheet-close" @tap="close">×</view>
                 </view>
             </view>
 
@@ -225,7 +217,7 @@
             </scroll-view>
 
             <!-- 底部操作栏（中文按钮） -->
-            <view class="form-bottom-bar">
+            <view class="sheet-bottom-bar">
                 <view class="form-btn cancel" :class="{ disabled: saving }" @tap="close">取消</view>
                 <view class="form-btn primary" :class="{ disabled: saving }" @tap="submit">
                     {{ saving ? '保存中…' : '保存' }}
@@ -290,22 +282,11 @@ const emit = defineEmits<{
 const popup = ref<any>(null)
 const formData = ref<Record<string, any>>({})
 const saving = ref(false)
-const customerName = ref('')
 
 const isEdit = computed(() => props.mode === 'edit')
 
-/* hero 页头文案（参考首页欢迎语标语） */
+/* hero 页头文案 */
 const heroTitle = computed(() => (isEdit.value ? '编辑客户资料' : '新增客户'))
-const heroSub = computed(() =>
-    isEdit.value ? '更新客户档案，让跟进更有据可循' : '完善客户档案，建立长期联系'
-)
-const heroInitial = computed(() => {
-    if (isEdit.value) {
-        const n = (customerName.value || '').trim()
-        if (n) return n.charAt(0).toUpperCase()
-    }
-    return '新'
-})
 
 const allFields = computed<UniFieldDef[]>(() => collectFields(customerSections))
 const multiFields = computed<Set<string>>(
@@ -377,7 +358,6 @@ const resetForm = () => {
     }
     base.industryIds = []
     formData.value = base
-    customerName.value = ''
     saving.value = false
 }
 
@@ -411,7 +391,6 @@ const fillForm = async () => {
         }
         if (flat.industryIds === undefined) flat.industryIds = []
         formData.value = flat
-        customerName.value = detail?.name || ''
     } catch (error) {
         console.error('加载客户资料失败', error)
         uni.showToast({ title: '加载客户资料失败', icon: 'none' })
@@ -508,150 +487,71 @@ const close = () => {
 <style scoped lang="scss">
 .sheet-panel {
     width: 100%;
-    background: var(--color-bg-app);
-    border-radius: 24rpx 24rpx 0 0;
+    background: var(--color-surface);
+    border-radius: 32rpx 32rpx 0 0;
     overflow: hidden;
     display: flex;
     flex-direction: column;
 }
 
 .sheet-handle {
-    width: 72rpx;
+    flex-shrink: 0;
+    width: 64rpx;
     height: 8rpx;
     border-radius: 4rpx;
     background: var(--color-border);
-    margin: 16rpx auto 0;
-    flex-shrink: 0;
+    margin: 24rpx auto 8rpx;
 }
 
-/* ===== hero 页头（参考首页标语/欢迎语视觉标准） ===== */
-.form-hero {
+/* ===== 标题行（小记风格：居中标题 + 右上角关闭） ===== */
+.sheet-title-row {
     position: relative;
-    overflow: hidden;
-    padding: 24rpx 40rpx 36rpx;
-    background: var(--gradient-primary);
     flex-shrink: 0;
-
-    &::before {
-        content: '';
-        position: absolute;
-        right: -60rpx;
-        top: -60rpx;
-        width: 260rpx;
-        height: 260rpx;
-        border-radius: 50%;
-        background: rgba(255, 255, 255, 0.06);
-    }
-
-    &::after {
-        content: '';
-        position: absolute;
-        left: -100rpx;
-        bottom: -90rpx;
-        width: 220rpx;
-        height: 220rpx;
-        border-radius: 50%;
-        background: rgba(255, 255, 255, 0.04);
-    }
+    padding: 8rpx 0 24rpx;
 }
 
-.deco-ring {
+.sheet-title {
+    display: block;
+    text-align: center;
+    font-size: 34rpx;
+    font-weight: 700;
+    color: var(--color-text);
+}
+
+.sheet-title-actions {
     position: absolute;
-    top: -56rpx;
-    right: 34rpx;
-    width: 140rpx;
-    height: 140rpx;
-    border-radius: 50%;
-    border: 3rpx solid rgba(255, 255, 255, 0.16);
-    pointer-events: none;
-}
-
-.deco-dot {
-    position: absolute;
-    right: 70rpx;
-    bottom: 32rpx;
-    width: 16rpx;
-    height: 16rpx;
-    border-radius: 50%;
-    background: rgba(255, 255, 255, 0.3);
-    box-shadow: 28rpx -18rpx 0 rgba(255, 255, 255, 0.12), -18rpx 24rpx 0 rgba(255, 255, 255, 0.12);
-    pointer-events: none;
-}
-
-.form-hero-top {
-    position: relative;
-    z-index: 2;
+    right: 8rpx;
+    top: 0;
     display: flex;
     align-items: center;
-    gap: 24rpx;
+    gap: 18rpx;
 }
 
-.form-hero-avatar {
-    width: 96rpx;
-    height: 96rpx;
-    border-radius: 48rpx;
+.sheet-close {
+    width: 48rpx;
+    height: 48rpx;
+    border-radius: 24rpx;
     display: flex;
     align-items: center;
     justify-content: center;
-    background: rgba(255, 255, 255, 0.2);
-    box-shadow: inset 0 0 0 2rpx rgba(255, 255, 255, 0.14);
-    color: var(--color-btn-text);
-    font-size: 36rpx;
-    font-weight: 700;
-    flex-shrink: 0;
-}
-
-.form-hero-main {
-    min-width: 0;
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-}
-
-.form-hero-title {
-    font-size: 36rpx;
-    font-weight: 700;
-    line-height: 1.2;
-    color: var(--color-btn-text);
-}
-
-.form-hero-sub {
-    margin-top: 8rpx;
-    font-size: 22rpx;
-    line-height: 1.5;
-    color: var(--color-btn-text);
-    opacity: 0.78;
-}
-
-.form-hero-close {
-    width: 64rpx;
-    height: 64rpx;
-    border-radius: 32rpx;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    background: rgba(255, 255, 255, 0.16);
-    flex-shrink: 0;
-}
-
-.form-hero-close:active {
-    transform: scale(0.92);
-}
-
-.form-hero-close-text {
-    font-size: 44rpx;
+    background: var(--color-surface-soft);
+    color: var(--color-text-tertiary);
+    font-size: 40rpx;
     line-height: 1;
-    color: var(--color-btn-text);
+
+    &:active {
+        opacity: 0.8;
+    }
 }
 
 /* ===== 滚动区 ===== */
 .sheet-scroll {
-    max-height: 62vh;
+    max-height: 68vh;
     min-height: 200rpx;
 }
 
 .sheet-body {
-    padding: 8rpx 32rpx 24rpx;
+    padding: 0 32rpx;
 }
 
 .sub-block {
@@ -664,8 +564,8 @@ const close = () => {
 
 .sub-title {
     display: block;
-    font-size: 28rpx;
-    font-weight: 600;
+    font-size: 26rpx;
+    font-weight: 700;
     color: var(--color-text);
     padding-bottom: 6rpx;
 }
@@ -695,12 +595,13 @@ const close = () => {
     display: flex;
     align-items: center;
     gap: 8rpx;
-    margin-bottom: 14rpx;
+    margin-bottom: 12rpx;
 }
 
 .field-label {
     font-size: 26rpx;
-    color: var(--color-text-secondary);
+    font-weight: 700;
+    color: var(--color-text);
 }
 
 .required-mark {
@@ -711,24 +612,34 @@ const close = () => {
 .field-input {
     display: flex;
     align-items: center;
-    height: 76rpx;
+    height: 82rpx;
     padding: 0 24rpx;
-    border-radius: 16rpx;
-    background: var(--color-surface-soft);
-    font-size: 28rpx;
+    border-radius: 18rpx;
+    background: var(--color-surface);
+    border: 1rpx solid var(--color-border-light);
+    font-size: 30rpx;
     color: var(--color-text);
+
+    &:focus-within {
+        border-color: var(--color-primary);
+    }
 }
 
 .field-textarea {
     width: 100%;
-    min-height: 140rpx;
+    min-height: 160rpx;
     padding: 20rpx 24rpx;
-    border-radius: 16rpx;
-    background: var(--color-surface-soft);
-    font-size: 28rpx;
-    line-height: 1.6;
+    border-radius: 18rpx;
+    background: var(--color-surface);
+    border: 1rpx solid var(--color-border-light);
+    font-size: 30rpx;
+    line-height: 1.55;
     color: var(--color-text);
     box-sizing: border-box;
+
+    &:focus-within {
+        border-color: var(--color-primary);
+    }
 }
 
 .field-placeholder {
@@ -741,18 +652,20 @@ const close = () => {
     align-items: center;
     justify-content: space-between;
     gap: 16rpx;
-    height: 76rpx;
+    height: 82rpx;
     padding: 0 24rpx;
-    border-radius: 16rpx;
-    background: var(--color-surface-soft);
+    border-radius: 18rpx;
+    background: var(--color-surface);
+    border: 1rpx solid var(--color-border-light);
 }
 
 .field-select-hover {
-    background: var(--color-surface-hover);
+    border-color: var(--color-primary);
+    background: var(--color-surface-soft);
 }
 
 .field-select-value {
-    font-size: 28rpx;
+    font-size: 30rpx;
     color: var(--color-text);
 }
 
@@ -765,37 +678,40 @@ const close = () => {
     color: var(--color-text-tertiary);
 }
 
-/* ===== 底部 ===== */
-.form-bottom-bar {
+/* ===== 底部操作栏（对齐小记按钮） ===== */
+.sheet-bottom-bar {
     flex-shrink: 0;
     display: flex;
     gap: 20rpx;
-    padding: 16rpx 40rpx calc(16rpx + env(safe-area-inset-bottom));
-    background: var(--color-surface);
-    box-shadow: 0 -4rpx 20rpx rgba(0, 0, 0, 0.04);
+    padding: 20rpx 0 calc(24rpx + env(safe-area-inset-bottom));
+    background: transparent;
 }
 
 .form-btn {
-    flex: 1;
-    height: 84rpx;
-    border-radius: 42rpx;
+    height: 88rpx;
+    border-radius: 20rpx;
     display: flex;
     align-items: center;
     justify-content: center;
     font-size: 30rpx;
     font-weight: 600;
+
+    &:active {
+        opacity: 0.85;
+    }
 }
 
 .form-btn.cancel {
+    flex: 1;
     background: var(--color-surface-soft);
     color: var(--color-text-secondary);
-    border: 1rpx solid var(--color-border);
 }
 
 .form-btn.primary {
-    background: var(--color-primary);
+    flex: 1.2;
+    background: var(--gradient-primary);
     color: var(--color-btn-text);
-    box-shadow: var(--shadow-glow);
+    box-shadow: 0 8rpx 24rpx rgba(37, 184, 100, 0.3);
 }
 
 .form-btn.primary.disabled {
@@ -819,7 +735,7 @@ const close = () => {
 .select-panel {
     width: 100%;
     background: var(--color-surface);
-    border-radius: 24rpx 24rpx 0 0;
+    border-radius: 32rpx 32rpx 0 0;
     padding: 32rpx 40rpx calc(32rpx + env(safe-area-inset-bottom));
     max-height: 60vh;
     display: flex;

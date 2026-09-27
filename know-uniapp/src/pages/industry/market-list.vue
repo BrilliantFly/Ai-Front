@@ -1,5 +1,14 @@
 <template>
     <view class="industry-page">
+        <!-- 顶部状态栏（小记风格 sticky） -->
+        <view class="header">
+            <view class="header-left">
+                <view class="back-btn" @tap="goBack">
+                    <text class="back-icon">‹</text>
+                </view>
+                <text class="header-title">行业市场</text>
+            </view>
+        </view>
         <!-- hero 渐变页头（欢迎语视觉基准） -->
         <view class="hero-bar">
             <view class="deco-ring"></view>
@@ -111,29 +120,23 @@
             <view class="sheet-panel" :class="{ expanded: detailExpanded }">
                 <view class="sheet-handle"></view>
 
-                <view class="sheet-hero">
-                    <view class="deco-ring"></view>
-                    <view class="deco-dot"></view>
-                    <view class="sheet-hero-top">
-                        <view class="sheet-hero-avatar">{{ heroInitial }}</view>
-                        <view class="sheet-hero-main">
-                            <text class="sheet-hero-title">{{ marketTitle(detail) }}</text>
-                            <text class="sheet-hero-sub">{{ heroSub }}</text>
-                        </view>
-                        <view class="hero-expand" @tap="toggleDetailExpand">
-                            <text class="hero-expand-text">{{
+                <!-- 标题行（小记风格：居中标题 + 右上角全屏/收起 + 关闭） -->
+                <view class="sheet-title-row">
+                    <text class="sheet-title">{{ marketTitle(detail) }}</text>
+                    <view class="sheet-title-actions">
+                        <view class="sheet-expand" @tap="toggleDetailExpand">
+                            <text class="sheet-expand-text">{{
                                 detailExpanded ? '收起' : '全屏'
                             }}</text>
                         </view>
-                        <view class="sheet-hero-close" @tap="closeDetail">
-                            <text class="sheet-hero-close-text">×</text>
-                        </view>
+                        <view class="sheet-close" @tap="closeDetail">×</view>
                     </view>
-                    <view v-if="(detail.industryNames || []).length" class="hero-tags">
-                        <text v-for="name in detail.industryNames" :key="name" class="hero-tag">{{
-                            name
-                        }}</text>
-                    </view>
+                </view>
+
+                <view v-if="(detail.industryNames || []).length" class="hero-tags">
+                    <text v-for="name in detail.industryNames" :key="name" class="hero-tag">{{
+                        name
+                    }}</text>
                 </view>
 
                 <scroll-view scroll-y class="sheet-scroll">
@@ -216,6 +219,18 @@ import {
 import { marketSections } from '@/config/market-sections'
 import type { UniFieldDef, UniSectionDef } from '@/config/industry-sections'
 import MarketFormSheet from '@/components/industry/MarketFormSheet.vue'
+
+import { switchTabCompat } from '@/utils/util'
+
+/* 顶部状态栏返回（小记同款） */
+const goBack = () => {
+    const pages = getCurrentPages()
+    if (pages.length > 1) {
+        uni.navigateBack()
+    } else {
+        switchTabCompat('/pages/index/index')
+    }
+}
 
 const paging = shallowRef()
 const keyword = ref('')
@@ -348,13 +363,6 @@ const extraIndustryNames = (item: BizIndustryMarket) => (item.industryNames || [
 
 /** 市场详情/编辑接口以行业为主键，需带上主行业 id */
 const primaryIndustryId = () => (detail.value.industryIds || [])[0] ?? ''
-
-const heroInitial = computed(() => {
-    const primary = (detail.value.industryNames || [])[0] || ''
-    return primary.trim() ? primary.trim().charAt(0) : '市'
-})
-
-const heroSub = '市场需求与商机'
 
 const isTagField = (key: string) => !!NAME_FIELD_MAP[key]
 
@@ -819,150 +827,102 @@ onShow(() => {
 /* ===== 详情弹层 ===== */
 .sheet-panel {
     width: 100%;
-    background: var(--color-bg-app);
-    border-radius: 24rpx 24rpx 0 0;
+    background: var(--color-surface);
+    border-radius: 32rpx 32rpx 0 0;
     overflow: hidden;
     display: flex;
     flex-direction: column;
 }
 
 .sheet-handle {
-    width: 72rpx;
+    flex-shrink: 0;
+    width: 64rpx;
     height: 8rpx;
     border-radius: 4rpx;
     background: var(--color-border);
-    margin: 16rpx auto 0;
-    flex-shrink: 0;
+    margin: 24rpx auto 8rpx;
 }
 
-.sheet-hero {
+/* ===== 标题行（小记风格：居中标题 + 右上角全屏/收起 + 关闭） ===== */
+.sheet-title-row {
     position: relative;
-    overflow: hidden;
-    padding: 24rpx 40rpx 36rpx;
-    background: var(--gradient-primary);
     flex-shrink: 0;
-
-    &::before {
-        content: '';
-        position: absolute;
-        right: -60rpx;
-        top: -60rpx;
-        width: 260rpx;
-        height: 260rpx;
-        border-radius: 50%;
-        background: rgba(255, 255, 255, 0.06);
-    }
-
-    &::after {
-        content: '';
-        position: absolute;
-        left: -100rpx;
-        bottom: -90rpx;
-        width: 220rpx;
-        height: 220rpx;
-        border-radius: 50%;
-        background: rgba(255, 255, 255, 0.04);
-    }
+    padding: 8rpx 0 24rpx;
 }
 
-.sheet-hero-top {
-    position: relative;
-    z-index: 2;
+.sheet-title {
+    display: block;
+    text-align: center;
+    font-size: 34rpx;
+    font-weight: 700;
+    color: var(--color-text);
+}
+
+.sheet-title-actions {
+    position: absolute;
+    right: 8rpx;
+    top: 0;
     display: flex;
     align-items: center;
-    gap: 24rpx;
+    gap: 18rpx;
 }
 
-.sheet-hero-avatar {
-    width: 96rpx;
-    height: 96rpx;
-    border-radius: 48rpx;
+.sheet-expand {
+    padding: 8rpx 20rpx;
+    border-radius: 16rpx;
+    background: var(--color-surface-soft);
+
+    &:active {
+        opacity: 0.8;
+    }
+}
+
+.sheet-expand-text {
+    font-size: 24rpx;
+    color: var(--color-text-secondary);
+}
+
+.sheet-close {
+    width: 48rpx;
+    height: 48rpx;
+    border-radius: 24rpx;
     display: flex;
     align-items: center;
     justify-content: center;
-    background: rgba(255, 255, 255, 0.2);
-    box-shadow: inset 0 0 0 2rpx rgba(255, 255, 255, 0.14);
-    color: var(--color-btn-text);
-    font-size: 36rpx;
-    font-weight: 700;
-    flex-shrink: 0;
-}
-
-.sheet-hero-main {
-    min-width: 0;
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-}
-
-.sheet-hero-title {
-    font-size: 36rpx;
-    font-weight: 700;
-    line-height: 1.2;
-    color: var(--color-btn-text);
-}
-
-.sheet-hero-sub {
-    margin-top: 8rpx;
-    font-size: 22rpx;
-    line-height: 1.5;
-    color: var(--color-btn-text);
-    opacity: 0.78;
-}
-
-.sheet-hero-close {
-    width: 64rpx;
-    height: 64rpx;
-    border-radius: 32rpx;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    background: rgba(255, 255, 255, 0.16);
-    flex-shrink: 0;
-}
-
-.sheet-hero-close-text {
-    font-size: 44rpx;
+    background: var(--color-surface-soft);
+    color: var(--color-text-tertiary);
+    font-size: 40rpx;
     line-height: 1;
-    color: var(--color-btn-text);
-}
 
-.hero-expand {
-    padding: 10rpx 20rpx;
-    border-radius: 28rpx;
-    background: rgba(255, 255, 255, 0.18);
-    flex-shrink: 0;
-}
-
-.hero-expand-text {
-    font-size: 22rpx;
-    color: var(--color-btn-text);
+    &:active {
+        opacity: 0.8;
+    }
 }
 
 .hero-tags {
     position: relative;
-    z-index: 2;
     display: flex;
     flex-wrap: wrap;
     gap: 12rpx;
-    margin-top: 18rpx;
+    padding: 0 32rpx 12rpx;
+    flex-shrink: 0;
 }
 
 .hero-tag {
-    font-size: 20rpx;
-    padding: 6rpx 18rpx;
-    border-radius: 22rpx;
-    background: rgba(255, 255, 255, 0.18);
-    color: var(--color-btn-text);
+    font-size: 24rpx;
+    padding: 6rpx 16rpx;
+    border-radius: 12rpx;
+    background: var(--color-surface-soft);
+    color: var(--color-text-secondary);
     white-space: nowrap;
 }
 
 .sheet-scroll {
-    max-height: calc(70vh - 120rpx);
+    max-height: 68vh;
     min-height: 200rpx;
 
     .sheet-panel.expanded & {
-        max-height: calc(100vh - 280rpx - env(safe-area-inset-bottom));
+        max-height: calc(100vh - 300rpx - env(safe-area-inset-bottom));
     }
 }
 
@@ -999,31 +959,85 @@ onShow(() => {
     flex-shrink: 0;
     display: flex;
     gap: 20rpx;
-    padding: 16rpx 40rpx calc(16rpx + env(safe-area-inset-bottom));
-    background: var(--color-surface);
-    box-shadow: 0 -4rpx 20rpx rgba(0, 0, 0, 0.04);
+    padding: 20rpx 0 calc(24rpx + env(safe-area-inset-bottom));
+    background: transparent;
 }
 
 .sheet-btn {
-    flex: 1;
-    height: 84rpx;
-    border-radius: 42rpx;
+    height: 88rpx;
+    border-radius: 20rpx;
     display: flex;
     align-items: center;
     justify-content: center;
     font-size: 30rpx;
     font-weight: 600;
+
+    &:active {
+        opacity: 0.85;
+    }
 }
 
 .sheet-btn.danger {
-    background: var(--color-danger-soft);
+    flex: 1;
+    background: var(--color-surface-soft);
     color: var(--color-danger-rgb);
-    border: 1rpx solid var(--color-danger-soft);
 }
 
 .sheet-btn.primary {
-    background: var(--color-primary);
+    flex: 1.2;
+    background: var(--gradient-primary);
     color: var(--color-btn-text);
-    box-shadow: var(--shadow-glow);
+    box-shadow: 0 8rpx 24rpx rgba(37, 184, 100, 0.3);
+}
+/* ===== 顶部状态栏（小记风格 sticky） ===== */
+.header {
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    height: 96rpx;
+    padding: 0 32rpx;
+    background: var(--color-surface, rgba(255, 255, 255, 0.92));
+    backdrop-filter: blur(24rpx);
+    border-bottom: 1rpx solid var(--color-border-light, rgba(0, 0, 0, 0.06));
+
+    /* #ifdef APP-PLUS */
+    height: calc(96rpx + var(--status-bar-height));
+    padding: var(--status-bar-height) 32rpx 0;
+    /* #endif */
+
+    .header-left {
+        display: flex;
+        align-items: center;
+        gap: 8rpx;
+    }
+
+    .back-btn {
+        width: 72rpx;
+        height: 72rpx;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 16rpx;
+        margin-left: -16rpx;
+
+        &:active {
+            background: var(--color-surface-soft, rgba(0, 0, 0, 0.04));
+        }
+
+        .back-icon {
+            font-size: 44rpx;
+            line-height: 1;
+            color: var(--color-text, #1f2329);
+        }
+    }
+
+    .header-title {
+        font-size: 36rpx;
+        font-weight: 600;
+        color: var(--color-text, #1f2329);
+    }
 }
 </style>

@@ -1,25 +1,17 @@
 <template>
     <uni-popup ref="popup" type="bottom" @change="onPopupChange">
         <view class="sheet-panel" :class="{ expanded }">
-            <!-- 拖拽把手 -->
+            <!-- 拖拽把手（小记风格） -->
             <view class="sheet-handle"></view>
 
-            <!-- hero 渐变头部（含全屏/收起与关闭） -->
-            <view class="form-hero">
-                <view class="deco-ring"></view>
-                <view class="deco-dot"></view>
-                <view class="form-hero-top">
-                    <view class="form-hero-avatar">{{ heroInitial }}</view>
-                    <view class="form-hero-main">
-                        <text class="form-hero-title">{{ heroTitle }}</text>
-                        <text class="form-hero-sub">{{ heroSub }}</text>
+            <!-- 标题行（小记风格：居中标题 + 右上角全屏/收起 + 关闭） -->
+            <view class="sheet-title-row">
+                <text class="sheet-title">{{ heroTitle }}</text>
+                <view class="sheet-title-actions">
+                    <view class="sheet-expand" @tap="toggleExpand">
+                        <text class="sheet-expand-text">{{ expanded ? '收起' : '全屏' }}</text>
                     </view>
-                    <view class="form-hero-actions">
-                        <view class="expand-btn" @tap="toggleExpand">
-                            <text class="expand-btn-text">{{ expanded ? '收起' : '全屏' }}</text>
-                        </view>
-                        <view class="form-hero-close" @tap="close">×</view>
-                    </view>
+                    <view class="sheet-close" @tap="close">×</view>
                 </view>
             </view>
 
@@ -195,7 +187,6 @@ const emit = defineEmits<{
 
 const popup = ref<any>(null)
 const formData = ref<Record<string, any>>({})
-const industryName = ref('')
 
 /* 全屏/收起（半屏 62vh，全屏撑满） */
 const expanded = ref(false)
@@ -206,13 +197,6 @@ const toggleExpand = () => {
 /* hero 页头文案 */
 const isEdit = computed(() => props.mode === 'edit')
 const heroTitle = computed(() => (isEdit.value ? '编辑行业' : '新建行业'))
-const heroSub = computed(() =>
-    isEdit.value ? '更新行业档案与产业链信息' : '完善行业定义，沉淀行业认知'
-)
-const heroInitial = computed(() => {
-    const name = (industryName.value || '').trim()
-    return name ? name.charAt(0) : '业'
-})
 
 /* ---------- 配置摊平（区段 > 块 > 字段，块沿用配置层级） ---------- */
 interface FormBlock {
@@ -321,7 +305,6 @@ const resetForm = () => {
             field.type === 'selectMultiple' || field.type === 'industryPicker' ? [] : ''
     }
     formData.value = base
-    industryName.value = ''
     expanded.value = false
 }
 
@@ -334,7 +317,6 @@ const fillForm = async () => {
             next[field.key] = raw === undefined || raw === null ? '' : raw
         }
         formData.value = next
-        industryName.value = detail.industryName || ''
     } catch (error) {
         console.error('加载行业资料失败', error)
         uni.showToast({ title: '加载行业资料失败', icon: 'none' })
@@ -406,11 +388,11 @@ const close = () => {
 </script>
 
 <style scoped lang="scss">
-/* ===== 弹层骨架 ===== */
+/* ===== 弹层骨架（对齐小记弹层：白底 + 32 圆角 + 内部滚动） ===== */
 .sheet-panel {
     width: 100%;
-    background: var(--color-bg-app);
-    border-radius: 24rpx 24rpx 0 0;
+    background: var(--color-surface);
+    border-radius: 32rpx 32rpx 0 0;
     overflow: hidden;
     display: flex;
     flex-direction: column;
@@ -418,24 +400,80 @@ const close = () => {
 
 .sheet-handle {
     flex-shrink: 0;
-    width: 72rpx;
+    width: 64rpx;
     height: 8rpx;
     border-radius: 4rpx;
-    background: var(--color-border-strong);
-    margin: 16rpx auto 4rpx;
+    background: var(--color-border);
+    margin: 24rpx auto 8rpx;
+}
+
+/* ===== 标题行（小记风格：居中标题 + 右上角操作） ===== */
+.sheet-title-row {
+    position: relative;
+    flex-shrink: 0;
+    padding: 8rpx 0 24rpx;
+}
+
+.sheet-title {
+    display: block;
+    text-align: center;
+    font-size: 34rpx;
+    font-weight: 700;
+    color: var(--color-text);
+}
+
+.sheet-title-actions {
+    position: absolute;
+    right: 8rpx;
+    top: 0;
+    display: flex;
+    align-items: center;
+    gap: 18rpx;
+}
+
+.sheet-expand {
+    padding: 8rpx 20rpx;
+    border-radius: 16rpx;
+    background: var(--color-surface-soft);
+
+    &:active {
+        opacity: 0.8;
+    }
+}
+
+.sheet-expand-text {
+    font-size: 24rpx;
+    color: var(--color-text-secondary);
+}
+
+.sheet-close {
+    width: 48rpx;
+    height: 48rpx;
+    border-radius: 24rpx;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--color-surface-soft);
+    color: var(--color-text-tertiary);
+    font-size: 40rpx;
+    line-height: 1;
+
+    &:active {
+        opacity: 0.8;
+    }
 }
 
 .sheet-scroll {
-    max-height: 62vh;
+    max-height: 68vh;
     min-height: 200rpx;
 
     .sheet-panel.expanded & {
-        max-height: calc(100vh - 280rpx - env(safe-area-inset-bottom));
+        max-height: calc(100vh - 300rpx - env(safe-area-inset-bottom));
     }
 }
 
 .sheet-body {
-    padding: 8rpx 40rpx 0;
+    padding: 0 32rpx;
 }
 
 .sheet-bottom-space {
@@ -446,139 +484,8 @@ const close = () => {
     flex-shrink: 0;
     display: flex;
     gap: 20rpx;
-    padding: 20rpx 40rpx calc(20rpx + env(safe-area-inset-bottom));
-    background: var(--color-surface);
-    box-shadow: 0 -4rpx 20rpx rgba(0, 0, 0, 0.04);
-}
-
-/* ===== hero 页头（参考首页标语/欢迎语视觉标准） ===== */
-.form-hero {
-    position: relative;
-    overflow: hidden;
-    padding: 28rpx 40rpx 40rpx;
-    background: var(--gradient-primary);
-    flex-shrink: 0;
-
-    &::before {
-        content: '';
-        position: absolute;
-        right: -60rpx;
-        top: -60rpx;
-        width: 260rpx;
-        height: 260rpx;
-        border-radius: 50%;
-        background: rgba(255, 255, 255, 0.06);
-    }
-
-    &::after {
-        content: '';
-        position: absolute;
-        left: -100rpx;
-        bottom: -90rpx;
-        width: 220rpx;
-        height: 220rpx;
-        border-radius: 50%;
-        background: rgba(255, 255, 255, 0.04);
-    }
-}
-
-.deco-ring {
-    position: absolute;
-    top: -56rpx;
-    right: 34rpx;
-    width: 140rpx;
-    height: 140rpx;
-    border-radius: 50%;
-    border: 3rpx solid rgba(255, 255, 255, 0.16);
-    pointer-events: none;
-}
-
-.deco-dot {
-    position: absolute;
-    right: 70rpx;
-    bottom: 32rpx;
-    width: 16rpx;
-    height: 16rpx;
-    border-radius: 50%;
-    background: rgba(255, 255, 255, 0.3);
-    box-shadow: 28rpx -18rpx 0 rgba(255, 255, 255, 0.12), -18rpx 24rpx 0 rgba(255, 255, 255, 0.12);
-    pointer-events: none;
-}
-
-.form-hero-top {
-    position: relative;
-    z-index: 2;
-    display: flex;
-    align-items: center;
-    gap: 24rpx;
-}
-
-.form-hero-avatar {
-    width: 96rpx;
-    height: 96rpx;
-    border-radius: 48rpx;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    background: rgba(255, 255, 255, 0.2);
-    box-shadow: inset 0 0 0 2rpx rgba(255, 255, 255, 0.14);
-    color: var(--color-btn-text);
-    font-size: 38rpx;
-    font-weight: 700;
-    flex-shrink: 0;
-}
-
-.form-hero-main {
-    min-width: 0;
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-}
-
-.form-hero-title {
-    font-size: 36rpx;
-    font-weight: 700;
-    line-height: 1.2;
-    color: var(--color-btn-text);
-}
-
-.form-hero-sub {
-    margin-top: 8rpx;
-    font-size: 24rpx;
-    line-height: 1.5;
-    color: var(--color-btn-text);
-    opacity: 0.78;
-}
-
-.form-hero-actions {
-    flex-shrink: 0;
-    display: flex;
-    align-items: center;
-    gap: 16rpx;
-}
-
-.expand-btn {
-    padding: 10rpx 20rpx;
-    border-radius: 28rpx;
-    background: rgba(255, 255, 255, 0.18);
-}
-
-.expand-btn-text {
-    font-size: 24rpx;
-    color: var(--color-btn-text);
-}
-
-.form-hero-close {
-    width: 56rpx;
-    height: 56rpx;
-    border-radius: 28rpx;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    background: rgba(0, 0, 0, 0.18);
-    color: var(--color-btn-text);
-    font-size: 40rpx;
-    line-height: 1;
+    padding: 20rpx 0 calc(24rpx + env(safe-area-inset-bottom));
+    background: transparent;
 }
 
 /* ===== 区段内块 ===== */
@@ -592,8 +499,8 @@ const close = () => {
 
 .sub-title {
     display: block;
-    font-size: 28rpx;
-    font-weight: 600;
+    font-size: 26rpx;
+    font-weight: 700;
     color: var(--color-text);
     padding-bottom: 6rpx;
 }
@@ -623,12 +530,13 @@ const close = () => {
     display: flex;
     align-items: center;
     gap: 8rpx;
-    margin-bottom: 14rpx;
+    margin-bottom: 12rpx;
 }
 
 .field-label {
     font-size: 26rpx;
-    color: var(--color-text-secondary);
+    font-weight: 700;
+    color: var(--color-text);
 }
 
 .required-mark {
@@ -639,24 +547,34 @@ const close = () => {
 .field-input {
     display: flex;
     align-items: center;
-    height: 76rpx;
+    height: 82rpx;
     padding: 0 24rpx;
-    border-radius: 16rpx;
-    background: var(--color-surface-soft);
-    font-size: 28rpx;
+    border-radius: 18rpx;
+    background: var(--color-surface);
+    border: 1rpx solid var(--color-border-light);
+    font-size: 30rpx;
     color: var(--color-text);
+
+    &:focus-within {
+        border-color: var(--color-primary);
+    }
 }
 
 .field-textarea {
     width: 100%;
     min-height: 160rpx;
     padding: 20rpx 24rpx;
-    border-radius: 16rpx;
-    background: var(--color-surface-soft);
-    font-size: 28rpx;
-    line-height: 1.6;
+    border-radius: 18rpx;
+    background: var(--color-surface);
+    border: 1rpx solid var(--color-border-light);
+    font-size: 30rpx;
+    line-height: 1.55;
     color: var(--color-text);
     box-sizing: border-box;
+
+    &:focus-within {
+        border-color: var(--color-primary);
+    }
 }
 
 .field-placeholder {
@@ -669,18 +587,20 @@ const close = () => {
     align-items: center;
     justify-content: space-between;
     gap: 16rpx;
-    height: 76rpx;
+    height: 82rpx;
     padding: 0 24rpx;
-    border-radius: 16rpx;
-    background: var(--color-surface-soft);
+    border-radius: 18rpx;
+    background: var(--color-surface);
+    border: 1rpx solid var(--color-border-light);
 }
 
 .field-select-hover {
-    background: var(--color-surface-hover);
+    border-color: var(--color-primary);
+    background: var(--color-surface-soft);
 }
 
 .field-select-value {
-    font-size: 28rpx;
+    font-size: 30rpx;
     color: var(--color-text);
 }
 
@@ -693,28 +613,32 @@ const close = () => {
     color: var(--color-text-tertiary);
 }
 
-/* ===== 底部操作栏 ===== */
+/* ===== 底部操作栏（对齐小记按钮） ===== */
 .form-btn {
-    flex: 1;
     height: 88rpx;
-    border-radius: 44rpx;
+    border-radius: 20rpx;
     display: flex;
     align-items: center;
     justify-content: center;
     font-size: 30rpx;
     font-weight: 600;
+
+    &:active {
+        opacity: 0.85;
+    }
 }
 
 .form-btn.cancel {
+    flex: 1;
     background: var(--color-surface-soft);
     color: var(--color-text-secondary);
-    border: 1rpx solid var(--color-border);
 }
 
 .form-btn.primary {
-    background: var(--color-primary);
+    flex: 1.2;
+    background: var(--gradient-primary);
     color: var(--color-btn-text);
-    box-shadow: var(--shadow-glow);
+    box-shadow: 0 8rpx 24rpx rgba(37, 184, 100, 0.3);
 }
 
 .form-btn.disabled {
@@ -738,7 +662,7 @@ const close = () => {
 .select-panel {
     width: 100%;
     background: var(--color-surface);
-    border-radius: 24rpx 24rpx 0 0;
+    border-radius: 32rpx 32rpx 0 0;
     padding: 32rpx 40rpx calc(32rpx + env(safe-area-inset-bottom));
     max-height: 60vh;
     display: flex;
