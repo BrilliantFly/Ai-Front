@@ -60,7 +60,7 @@
 
     <!-- 新增/编辑弹窗 -->
     <BizFullscreenModal
-      v-model:visible="modalVisible"
+      v-model:open="modalVisible"
       :title="modalTitle"
       :confirm-loading="confirmLoading"
       @ok="handleSubmit"

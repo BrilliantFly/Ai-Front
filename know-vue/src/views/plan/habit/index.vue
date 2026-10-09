@@ -50,7 +50,7 @@
     </a-card>
 
     <BizFullscreenModal
-      v-model:visible="modalVisible"
+      v-model:open="modalVisible"
       :title="isEdit ? '编辑习惯' : '新增习惯'"
       @ok="handleSave"
       :confirm-loading="saving"

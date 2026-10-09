@@ -83,7 +83,7 @@
 
     <!-- 新增/编辑弹窗 -->
     <BizFullscreenModal
-      v-model:visible="modalVisible"
+      v-model:open="modalVisible"
       :title="isEdit ? '编辑日程' : '新增日程'"
       @ok="handleSave"
       :confirm-loading="saving"

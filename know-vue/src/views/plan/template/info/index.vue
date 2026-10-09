@@ -59,7 +59,7 @@
     </a-card>
 
     <BizFullscreenModal
-      v-model:visible="modalVisible"
+      v-model:open="modalVisible"
       :title="isEdit ? '编辑计划模板' : '新增计划模板'"
       @ok="handleSave"
       :confirm-loading="saving"
@@ -139,7 +139,7 @@
       </a-form>
     </BizFullscreenModal>
 
-    <BizFullscreenModal v-model:visible="detailModalVisible" title="模板详情预览" width="800px" :footer="null">
+    <BizFullscreenModal v-model:open="detailModalVisible" title="模板详情预览" width="800px" :footer="null">
       <a-spin :spinning="detailLoading">
         <template v-if="detailInfo">
           <a-descriptions :column="2" size="small" bordered>

@@ -84,7 +84,7 @@
     </a-card>
 
     <BizFullscreenModal
-      v-model:visible="modalVisible"
+      v-model:open="modalVisible"
       :title="isEdit ? '编辑计划' : '新增计划'"
       @ok="handleSave"
       :confirm-loading="saving"

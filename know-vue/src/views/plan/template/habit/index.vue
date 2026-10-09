@@ -55,7 +55,7 @@
     </a-card>
 
     <BizFullscreenModal
-      v-model:visible="modalVisible"
+      v-model:open="modalVisible"
       :title="isEdit ? '编辑打卡模板' : '新增打卡模板'"
       @ok="handleSave"
       :confirm-loading="saving"

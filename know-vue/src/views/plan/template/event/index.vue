@@ -64,7 +64,7 @@
     </a-card>
 
     <BizFullscreenModal
-      v-model:visible="modalVisible"
+      v-model:open="modalVisible"
       :title="isEdit ? '编辑日程模板' : '新增日程模板'"
       @ok="handleSave"
       :confirm-loading="saving"

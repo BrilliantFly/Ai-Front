@@ -74,7 +74,7 @@
     </a-card>
 
     <!-- 详情弹窗 -->
-    <BizFullscreenModal v-model:visible="detailVisible" title="录像详情" :footer="null" width="640px">
+    <BizFullscreenModal v-model:open="detailVisible" title="录像详情" :footer="null" width="640px">
       <a-descriptions bordered size="small" :column="1">
         <a-descriptions-item label="ID">{{ detailData?.id ?? '-' }}</a-descriptions-item>
         <a-descriptions-item label="设备ID">{{ detailData?.deviceId ?? '-' }}</a-descriptions-item>
