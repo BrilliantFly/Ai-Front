@@ -22,14 +22,6 @@ const BizCustomerRoute: AppRoute = {
       }
     },
     {
-      path: 'company',
-      name: 'BizCustomerCompany',
-      component: () => import('@/views/biz/customer/company/index.vue'),
-      meta: {
-        title: '公司管理'
-      }
-    },
-    {
       path: 'followup',
       name: 'BizCustomerFollowup',
       component: () => import('@/views/biz/customer/followup/index.vue'),

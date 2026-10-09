@@ -81,7 +81,7 @@
             {{ record.gender === 1 ? '男' : record.gender === 2 ? '女' : '-' }}
           </template>
           <template v-if="column.key === 'company'">
-            {{ record.company?.name || '-' }}
+            {{ record.company?.enterpriseName || '-' }}
           </template>
           <template v-if="column.key === 'industry'">
             <span v-if="record.industries && record.industries.length">
@@ -172,10 +172,10 @@ import {
   getCustomerStatistics,
   type BizCustomer,
   type BizCustomerQuery,
-  type BizCustomerCompany,
   type BizCustomerIndustry
 } from '@/api/biz/customer'
 import { getIndustryList, type BizIndustry } from '@/api/biz/industry'
+import { getEnterprisePage, type BizIndustryEnterprise } from '@/api/biz/enterprise'
 import MatrixTable from '../../components/MatrixTable.vue'
 import BizFullscreenModal from '@/components/BizFullscreenModal.vue'
 import { customerSections } from '../sections'
@@ -186,23 +186,6 @@ interface TableColumn {
   key?: string
   width?: number
   fixed?: 'left' | 'right'
-}
-
-interface CustomerCompanyForm {
-  id?: number
-  name: string
-  industry: string
-  scale?: string
-  business?: string
-  mainProducts?: string
-  establishedDate?: string
-  capital?: string
-  address?: string
-  marketPerformance?: string
-  competitiveAdvantage?: string
-  contactName: string
-  contactPhone: string
-  contactPosition?: string
 }
 
 interface CustomerFormData {
@@ -245,7 +228,6 @@ interface CustomerFormData {
   demandPriority?: number
   demandDesc?: string
   demandTags?: string
-  company: CustomerCompanyForm
   industryIds: number[]
   profile?: Partial<BizCustomerProfile>
 }
@@ -301,6 +283,9 @@ const formRef = ref<FormInstance>()
 // 行业下拉选项
 const industryOptions = ref<{ label: string; value: number }[]>([])
 
+// 企业(行业企业库)下拉选项
+const enterpriseOptions = ref<{ label: string; value: number }[]>([])
+
 // 表单数据
 const formData = reactive<CustomerFormData>({
   name: '',
@@ -342,22 +327,6 @@ const formData = reactive<CustomerFormData>({
   demandPriority: undefined,
   demandDesc: '',
   demandTags: '',
-  company: {
-    id: undefined,
-    name: '',
-    industry: '',
-    scale: '',
-    business: '',
-    mainProducts: '',
-    establishedDate: '',
-    capital: '',
-    address: '',
-    marketPerformance: '',
-    competitiveAdvantage: '',
-    contactName: '',
-    contactPhone: '',
-    contactPosition: ''
-  },
   industryIds: [],
   profile: {
     dynamicInfo: '',
@@ -373,19 +342,17 @@ const formData = reactive<CustomerFormData>({
 // 动态下拉选项(关联行业)
 const optionsMap = computed<Record<string, { label: string; value: any }[]>>(() => {
   const industrySel = industryOptions.value
+  const enterpriseSel = enterpriseOptions.value
   return {
-    industryIds: Array.isArray(industrySel) ? industrySel : []
+    industryIds: Array.isArray(industrySel) ? industrySel : [],
+    companyId: Array.isArray(enterpriseSel) ? enterpriseSel : []
   }
 })
 
-// 表单校验规则(嵌套路径与 FieldItem 拆分后的 name 数组对应:
-// 'company.name' 实际会被 FieldItem 拆为 ['company', 'name'], 故 rules 也需嵌套结构)
+// 表单校验规则(嵌套路径与 FieldItem 拆分后的 name 数组对应)
 const rules: Record<string, Rule[] | Record<string, Rule[]>> = {
   name: [{ required: true, message: '请输入客户姓名', trigger: 'blur' }],
-  phone: [{ required: true, message: '请输入手机号', trigger: 'blur' }],
-  company: {
-    name: [{ required: true, message: '请输入公司名称', trigger: 'blur' }]
-  }
+  phone: [{ required: true, message: '请输入手机号', trigger: 'blur' }]
 }
 
 // 从多组候选值中取第一个可用的数字(统计字段防御转换)
@@ -460,6 +427,20 @@ const loadIndustryOptions = async () => {
   }
 }
 
+// 加载企业下拉选项(取自行业企业库,前1000条供选择)
+const loadEnterpriseOptions = async () => {
+  try {
+    const res = await getEnterprisePage({ pageNum: 1, pageSize: 1000 })
+    const resData = res?.data || res
+    const list: BizIndustryEnterprise[] = resData?.records || resData || []
+    enterpriseOptions.value = list
+      .filter((item) => item.id != null)
+      .map((item) => ({ label: item.enterpriseName || '', value: item.id as number }))
+  } catch {
+    console.error('加载企业列表失败')
+  }
+}
+
 // 查询
 const handleQuery = () => {
   pagination.current = 1
@@ -524,22 +505,6 @@ const resetFormData = () => {
   formData.demandPriority = undefined
   formData.demandDesc = ''
   formData.demandTags = ''
-  formData.company = {
-    id: undefined,
-    name: '',
-    industry: '',
-    scale: '',
-    business: '',
-    mainProducts: '',
-    establishedDate: '',
-    capital: '',
-    address: '',
-    marketPerformance: '',
-    competitiveAdvantage: '',
-    contactName: '',
-    contactPhone: '',
-    contactPosition: ''
-  }
   formData.industryIds = []
   formData.profile = {
     dynamicInfo: '',
@@ -621,22 +586,6 @@ const handleEdit = async (record: BizCustomer) => {
     formData.demandPriority = detail.demandPriority
     formData.demandDesc = detail.demandDesc || ''
     formData.demandTags = detail.demandTags || ''
-    formData.company = {
-      id: detail.company?.id,
-      name: detail.company?.name || '',
-      industry: detail.company?.industry || '',
-      scale: detail.company?.scale || '',
-      business: detail.company?.business || '',
-      mainProducts: detail.company?.mainProducts || '',
-      establishedDate: detail.company?.establishedDate || '',
-      capital: detail.company?.capital || '',
-      address: detail.company?.address || '',
-      marketPerformance: detail.company?.marketPerformance || '',
-      competitiveAdvantage: detail.company?.competitiveAdvantage || '',
-      contactName: detail.company?.contactName || '',
-      contactPhone: detail.company?.contactPhone || '',
-      contactPosition: detail.company?.contactPosition || ''
-    }
     formData.profile = {
       dynamicInfo: detail.profile?.dynamicInfo || '',
       valueLevel: detail.profile?.valueLevel,
@@ -669,7 +618,6 @@ const handleSubmit = async () => {
   try {
     const payload: BizCustomer = {
       ...formData,
-      company: { ...formData.company } as BizCustomerCompany,
       industryIds: [...formData.industryIds],
       earningWay: formData.earningWay?.length ? formData.earningWay.join(',') : '',
       socialClass: formData.socialClass?.length ? formData.socialClass.join(',') : ''
@@ -756,6 +704,7 @@ onMounted(() => {
   loadData()
   loadStatistics()
   loadIndustryOptions()
+  loadEnterpriseOptions()
 })
 </script>
 

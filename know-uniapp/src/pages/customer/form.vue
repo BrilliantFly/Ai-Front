@@ -1,5 +1,15 @@
 <template>
     <view class="form-page">
+        <!-- 顶部状态栏（参考首页标语导航） -->
+        <view class="header">
+            <view class="header-left">
+                <view class="back-btn" @tap="goBack">
+                    <text class="back-icon">‹</text>
+                </view>
+                <text class="header-title">客户资料</text>
+            </view>
+        </view>
+
         <!-- hero 渐变头部卡（参考首页标语/欢迎语视觉） -->
         <view class="form-hero">
             <view class="deco-ring"></view>
@@ -58,6 +68,13 @@
                                 v-else-if="field.type === 'industryPicker'"
                                 v-model="formData[field.key]"
                                 :placeholder="field.placeholder || '请选择所属行业（可多选）'"
+                            />
+
+                            <!-- 企业单选（自行业企业库） -->
+                            <EnterprisePicker
+                                v-else-if="field.type === 'enterprisePicker'"
+                                v-model="formData[field.key]"
+                                :placeholder="field.placeholder || '请选择所属企业（自行业企业库）'"
                             />
 
                             <!-- 文本域 -->
@@ -132,6 +149,11 @@
                                 v-model="formData[field.key]"
                                 :placeholder="field.placeholder || '请选择所属行业（可多选）'"
                             />
+                            <EnterprisePicker
+                                v-else-if="field.type === 'enterprisePicker'"
+                                v-model="formData[field.key]"
+                                :placeholder="field.placeholder || '请选择所属企业（自行业企业库）'"
+                            />
                             <textarea
                                 v-else-if="field.type === 'textarea'"
                                 v-model="formData[field.key]"
@@ -202,6 +224,7 @@ import { useRouter } from 'uniapp-router-next'
 import SectionCard from '@/components/customer/SectionCard.vue'
 import MultiSelectChips from '@/components/customer/MultiSelectChips.vue'
 import IndustryPicker from '@/components/customer/IndustryPicker.vue'
+import EnterprisePicker from '@/components/customer/EnterprisePicker.vue'
 import {
     customerSections,
     collectFields,
@@ -285,6 +308,13 @@ const fillForm = async () => {
         const detail = await getCustomerDetail(customerId.value)
         const flat: Record<string, any> = {}
         flattenTo('', detail || {}, flat)
+        // 企业已并入行业企业库：仅回显 companyId，丢弃旧 company.* 展开键
+        for (const k of Object.keys(flat)) {
+            if (k.startsWith('company.')) delete flat[k]
+        }
+        if (flat.companyId === undefined && detail?.company) {
+            flat.companyId = detail.company.id
+        }
         // 行业关联 → industryIds
         flat.industryIds = (detail?.industries || []).map((i) => i.industryId)
         // selectMultiple 字符串 → 数组
@@ -397,16 +427,64 @@ onLoad((options) => {
     background: var(--color-bg-app);
 }
 
+/* ===== 顶部状态栏（参考首页标语导航） ===== */
+.header {
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    height: 96rpx;
+    padding: 0 32rpx;
+    background: var(--color-surface, rgba(255, 255, 255, 0.92));
+    backdrop-filter: blur(24rpx);
+    border-bottom: 1rpx solid var(--color-border-light, rgba(0, 0, 0, 0.06));
+
+    /* #ifdef APP-PLUS */
+    height: calc(96rpx + var(--status-bar-height));
+    padding: var(--status-bar-height) 32rpx 0;
+    /* #endif */
+
+    .header-left {
+        display: flex;
+        align-items: center;
+        gap: 8rpx;
+    }
+
+    .back-btn {
+        width: 72rpx;
+        height: 72rpx;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 16rpx;
+        margin-left: -16rpx;
+
+        &:active {
+            background: var(--color-surface-soft, rgba(0, 0, 0, 0.04));
+        }
+
+        .back-icon {
+            font-size: 44rpx;
+            line-height: 1;
+            color: var(--color-text, #1F2329);
+        }
+    }
+
+    .header-title {
+        font-size: 36rpx;
+        font-weight: 600;
+        color: var(--color-text, #1F2329);
+    }
+}
+
 /* ===== hero 页头（参考首页标语/欢迎语视觉标准） ===== */
 .form-hero {
     position: relative;
     overflow: hidden;
     padding: 44rpx 40rpx 56rpx;
     background: var(--gradient-primary);
-
-    /* #ifdef APP-PLUS */
-    padding-top: calc(44rpx + var(--status-bar-height));
-    /* #endif */
 
     &::before {
         content: '';

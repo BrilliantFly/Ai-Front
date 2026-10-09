@@ -12,6 +12,9 @@ import request from '@/utils/request'
 export interface BizIndustry {
     id: number | string
     /** 基础信息 */
+    parentId?: number | string
+    /** 上级行业名称（后端树/列表回填） */
+    parentName?: string
     industryName?: string
     industryCode?: string
     /** 标签（逗号分隔） */
@@ -46,6 +49,8 @@ export interface BizIndustry {
     netProfit?: number
     netMargin?: number
     createTime?: number | string
+    /** 下级行业列表（树接口返回） */
+    children?: BizIndustry[]
 }
 
 /** 行业全景详情（GET /{id} 聚合返回） */
@@ -88,6 +93,7 @@ export interface IndustryPageParams {
 /** 行业表单提交（数组字段已 join；与 sections.ts 配置同构） */
 export interface IndustryFormData {
     id?: number | string
+    parentId?: number | string
     industryName?: string
     industryCode?: string
     tags?: string
@@ -125,6 +131,11 @@ export function getIndustryPage(params: IndustryPageParams) {
 /** 行业全量列表（筛选下拉 / Picker 数据源） */
 export function getIndustryList() {
     return request.get<BizIndustry[]>({ url: '/biz/industry/list' })
+}
+
+/** 行业树（层级：行业 -> 下级行业；支持关键字/可见性过滤，命中节点保留祖先链） */
+export function getIndustryTree(params?: { industryName?: string; industryCode?: string; visibility?: number }) {
+    return request.get<BizIndustry[]>({ url: '/biz/industry/tree', data: params as any })
 }
 
 /** 行业全景详情（一次返回 industry + products + enterprises + market） */

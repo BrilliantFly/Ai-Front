@@ -124,12 +124,18 @@
         <SectionCard title="客户企业与行业情况" collapsible default-collapsed>
             <template v-if="company()">
                 <SubSection title="企业情况">
-                    <text class="sub-heading">工商信息</text>
-                    <FieldItem label="企业名称" :value="company()?.name" />
-                    <FieldItem label="所属行业" :value="company()?.industry" />
+                    <text class="sub-heading">基础信息</text>
+                    <FieldItem label="企业名称" :value="company()?.enterpriseName" />
+                    <FieldItem label="企业类型" :value="company()?.enterpriseType" />
+                    <FieldItem label="所属行业" :value="industryNamesText()" />
                     <FieldItem label="企业规模" :value="company()?.scale" />
+
+                    <text class="sub-heading">工商信息</text>
                     <FieldItem label="成立时间" :value="company()?.establishedDate" />
-                    <FieldItem label="注册资本" :value="company()?.capital" />
+                    <FieldItem label="注册资本" :value="company()?.registeredCapital" />
+                    <FieldItem label="实缴资本" :value="company()?.paidCapital" />
+                    <FieldItem label="参保人数" :value="insuredCountText()" />
+                    <FieldItem label="是否上市" :value="listedText()" />
                     <FieldItem label="企业地址" :value="company()?.address" />
 
                     <text class="sub-heading">联系信息</text>
@@ -138,10 +144,10 @@
                     <FieldItem label="联系人职务" :value="company()?.contactPosition" />
 
                     <text class="sub-heading">经营情况</text>
-                    <FieldItem label="主要业务" :value="company()?.business" />
-                    <FieldItem label="主要产品" :value="company()?.mainProducts" />
+                    <FieldItem label="主要业务" :value="company()?.mainBusiness" />
+                    <FieldItem label="产品/服务" :value="company()?.products" />
                     <FieldItem label="市场表现" :value="company()?.marketPerformance" />
-                    <FieldItem label="竞争优势" :value="company()?.competitiveAdvantage" />
+                    <FieldItem label="竞争优势" :value="company()?.advantage" />
                 </SubSection>
             </template>
             <view v-else class="company-empty">
@@ -270,6 +276,25 @@ const followupTypeMap: Record<string, string> = {
 }
 
 const company = () => detail.value.company ?? null
+
+const industryNamesText = () => {
+    const names = company()?.industryNames
+    if (Array.isArray(names) && names.length) return names.join('、')
+    const related = industries().filter((item) => item.industryName).map((item) => item.industryName)
+    return related.length ? related.join('、') : undefined
+}
+
+const insuredCountText = () => {
+    const count = company()?.insuredCount
+    return count === undefined || count === null ? undefined : String(count)
+}
+
+const listedText = () => {
+    const flag = company()?.isListed
+    if (flag === 1) return '是'
+    if (flag === 0) return '否'
+    return undefined
+}
 
 const profile = () => detail.value.profile || {}
 

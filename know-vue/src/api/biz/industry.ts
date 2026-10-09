@@ -47,6 +47,10 @@ export interface BizIndustryEnterprise {
   scale?: string
   insuredCount?: number
   isListed?: number
+  address?: string
+  contactName?: string
+  contactPhone?: string
+  contactPosition?: string
   mainBusiness?: string
   coreTechnology?: string
   products?: string
@@ -66,6 +70,8 @@ export interface BizIndustryEnterprise {
 
 export interface BizIndustry {
   id?: number
+  parentId?: number
+  parentName?: string
   industryName?: string
   definition?: string
   technology?: string
@@ -92,6 +98,7 @@ export interface BizIndustry {
   products?: BizIndustryProduct[]
   enterprises?: BizIndustryEnterprise[]
   customerCount?: number
+  children?: BizIndustry[]
   createTime?: number
 }
 
@@ -109,6 +116,15 @@ export function getIndustryList(): Promise<any> {
   return service({
     url: '/api/biz/industry/list',
     method: 'get'
+  })
+}
+
+// 行业树(层级: 行业 -> 下级行业)
+export function getIndustryTree(params?: { industryName?: string; industryCode?: string; visibility?: number }): Promise<any> {
+  return service({
+    url: '/api/biz/industry/tree',
+    method: 'get',
+    params
   })
 }
 

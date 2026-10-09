@@ -78,6 +78,16 @@
                                                 "
                                             />
 
+                                            <!-- 企业单选（自行业企业库） -->
+                                            <EnterprisePicker
+                                                v-else-if="field.type === 'enterprisePicker'"
+                                                v-model="formData[field.key]"
+                                                :placeholder="
+                                                    field.placeholder ||
+                                                    '请选择所属企业（自行业企业库）'
+                                                "
+                                            />
+
                                             <!-- 文本域 -->
                                             <textarea
                                                 v-else-if="field.type === 'textarea'"
@@ -174,6 +184,14 @@
                                                         '请选择所属行业（可多选）'
                                                     "
                                                 />
+                                                <EnterprisePicker
+                                                    v-else-if="field.type === 'enterprisePicker'"
+                                                    v-model="formData[field.key]"
+                                                    :placeholder="
+                                                        field.placeholder ||
+                                                        '请选择所属企业（自行业企业库）'
+                                                    "
+                                                />
                                                 <textarea
                                                     v-else-if="field.type === 'textarea'"
                                                     v-model="formData[field.key]"
@@ -257,6 +275,7 @@ import { computed, ref, watch } from 'vue'
 import SectionCard from '@/components/customer/SectionCard.vue'
 import MultiSelectChips from '@/components/customer/MultiSelectChips.vue'
 import IndustryPicker from '@/components/customer/IndustryPicker.vue'
+import EnterprisePicker from '@/components/customer/EnterprisePicker.vue'
 import { customerSections, collectFields, type UniFieldDef } from '@/config/customer-sections'
 import {
     createCustomer,
@@ -378,6 +397,13 @@ const fillForm = async () => {
         const detail = await getCustomerDetail(props.customerId)
         const flat: Record<string, any> = {}
         flattenTo('', detail || {}, flat)
+        // 企业已并入行业企业库：仅回显 companyId，丢弃旧 company.* 展开键
+        for (const k of Object.keys(flat)) {
+            if (k.startsWith('company.')) delete flat[k]
+        }
+        if (flat.companyId === undefined && detail?.company) {
+            flat.companyId = detail.company.id
+        }
         // 行业关联 → industryIds
         flat.industryIds = (detail?.industries || []).map((i) => i.industryId)
         // selectMultiple 字符串 → 数组

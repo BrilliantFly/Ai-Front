@@ -48,8 +48,10 @@
                     :key="String(item.id)"
                     class="industry-card"
                     hover-class="industry-card-hover"
+                    :style="{ marginLeft: rowDepth(item) ? rowDepth(item) * 28 + 'rpx' : '0' }"
                 >
                     <view class="card-head">
+                        <text v-if="rowDepth(item)" class="parent-tag">⬆ {{ rowParentName(item) }}</text>
                         <text class="card-title">{{ item.industryName || '--' }}</text>
                         <text v-if="item.industryCode" class="code-tag">{{
                             item.industryCode
@@ -115,7 +117,7 @@
 import { computed, ref, shallowRef } from 'vue'
 import { onLoad, onShow } from '@dcloudio/uni-app'
 import {
-    getIndustryPage,
+    getIndustryTree,
     deleteIndustry,
     getIndustryStatistics,
     type BizIndustry
@@ -162,15 +164,42 @@ const statItems = computed(() => [
 
 let keywordTimer: ReturnType<typeof setTimeout> | undefined
 
-/* ---------- 列表分页 ---------- */
+/* ---------- 列表加载（层级树摊平成流式卡片） ---------- */
+/** 展示行：在行业基础上附加层级信息（树摊平用） */
+interface IndustryRow extends BizIndustry {
+    _depth?: number
+    _parentName?: string
+}
+
+/** 树摊平：深度优先，保留层级深度与来源父级 */
+const flattenTree = (nodes: BizIndustry[], depth = 0, parentName?: string): IndustryRow[] => {
+    const rows: IndustryRow[] = []
+    for (const node of nodes || []) {
+        rows.push({
+            ...node,
+            _depth: depth,
+            _parentName: parentName
+        })
+        if (node.children?.length) {
+            rows.push(...flattenTree(node.children, depth + 1, node.industryName))
+        }
+    }
+    return rows
+}
+
+const rowDepth = (item: BizIndustry) => (item as IndustryRow)._depth ?? 0
+const rowParentName = (item: BizIndustry) => (item as IndustryRow)._parentName ?? ''
+
 const queryList = async (pageNo: number, pageSize: number) => {
     try {
-        const params: any = { pageNum: pageNo, pageSize }
+        const params: any = {}
         const kw = keyword.value.trim()
         if (kw) params.industryName = kw
-        const res = await getIndustryPage(params)
+        const res = await getIndustryTree(params)
         loadFailed.value = false
-        paging.value?.complete(res.records || [], res.total)
+        // 树接口一次返回全量层级，摊平后一次性下发（数据量小，不做服务端分页）
+        const rows = flattenTree(res || [])
+        paging.value?.complete(rows, rows.length)
     } catch (error) {
         console.error('加载行业列表失败', error)
         loadFailed.value = true
@@ -401,6 +430,16 @@ onShow(() => {
     border-radius: 24rpx;
     background: var(--color-surface);
     box-shadow: var(--shadow-sm);
+}
+
+.parent-tag {
+    font-size: 20rpx;
+    padding: 4rpx 14rpx;
+    border-radius: 18rpx;
+    background: var(--color-primary-soft);
+    color: var(--color-primary);
+    white-space: nowrap;
+    flex-shrink: 0;
 }
 
 .industry-card-hover {

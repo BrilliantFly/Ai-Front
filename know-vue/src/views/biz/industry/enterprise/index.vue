@@ -208,6 +208,10 @@ const formData = reactive<Partial<BizIndustryEnterprise>>({
   scale: '',
   insuredCount: undefined,
   isListed: 0,
+  address: '',
+  contactName: '',
+  contactPhone: '',
+  contactPosition: '',
   mainBusiness: '',
   coreTechnology: '',
   products: '',
@@ -300,6 +304,10 @@ const handleAdd = () => {
   formData.scale = ''
   formData.insuredCount = undefined
   formData.isListed = 0
+  formData.address = ''
+  formData.contactName = ''
+  formData.contactPhone = ''
+  formData.contactPosition = ''
   formData.mainBusiness = ''
   formData.coreTechnology = ''
   formData.products = ''
@@ -338,6 +346,10 @@ const handleEdit = (record: BizIndustryEnterprise) => {
     scale: record.scale || '',
     insuredCount: record.insuredCount ?? undefined,
     isListed: record.isListed ?? 0,
+    address: record.address || '',
+    contactName: record.contactName || '',
+    contactPhone: record.contactPhone || '',
+    contactPosition: record.contactPosition || '',
     mainBusiness: record.mainBusiness || '',
     coreTechnology: record.coreTechnology || '',
     products: record.products || '',

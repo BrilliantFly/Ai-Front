@@ -1,8 +1,11 @@
 import request from '@/utils/request'
+import type { BizIndustryEnterprise } from './biz/industry/enterprise'
 
 /**
  * 客户模块 API（统一走 /api/biz/customer/*，复用标准 request 的 api 前缀 + token 注入）
- * 对应后端：BizCustomerController / BizCustomerFollowupController / BizCustomerCompanyController / BizIndustryController
+ * 对应后端：BizCustomerController / BizCustomerFollowupController / BizIndustryController
+ * 注：客户所属企业已合并入行业企业库（biz_industry_enterprise），company 类型对齐 BizIndustryEnterprise；
+ *     原「公司管理」(biz_customer_company) 菜单已下线。
  */
 
 /* ==================== 类型定义（对齐后端 BizCustomer 实体） ==================== */
@@ -25,24 +28,6 @@ export interface CustomerProfile {
     talkScript?: string
     /** 分析 */
     analysis?: string
-}
-
-/** 客户企业（biz_customer_company） */
-export interface CustomerCompany {
-    id?: number
-    name?: string
-    industry?: string
-    scale?: string
-    establishedDate?: string
-    capital?: string
-    address?: string
-    business?: string
-    mainProducts?: string
-    marketPerformance?: string
-    competitiveAdvantage?: string
-    contactName?: string
-    contactPhone?: string
-    contactPosition?: string
 }
 
 /** 客户行业关联（biz_customer_industry + 行业名） */
@@ -118,7 +103,8 @@ export interface CustomerInfo {
     // ---- 关联 ----
     companyId?: number
     profile?: CustomerProfile | null
-    company?: CustomerCompany | null
+    /** 所属行业企业（biz_industry_enterprise，来自行业企业库） */
+    company?: BizIndustryEnterprise | null
     industries?: CustomerIndustry[] | null
     industryIds?: number[]
     createTime?: number | string
@@ -167,7 +153,7 @@ export interface CustomerFormData {
     demandTags?: string
     demandDesc?: string
     companyId?: number
-    company?: Partial<CustomerCompany> | null
+    company?: Partial<BizIndustryEnterprise> | null
     profile?: Partial<CustomerProfile> | null
     industryIds?: number[]
 }
@@ -312,14 +298,6 @@ export function getIndustryList() {
 export function getIndustryPage(params: { pageNum: number; pageSize: number; name?: string }) {
     return request.get<PageResult<IndustryItem>>({
         url: '/biz/industry/page',
-        data: params as any
-    })
-}
-
-/** 公司分页（公司列表页 / 表单选择已有公司） */
-export function getCompanyPage(params: { pageNum: number; pageSize: number; name?: string }) {
-    return request.get<PageResult<CustomerCompany>>({
-        url: '/biz/customer/company/page',
         data: params as any
     })
 }

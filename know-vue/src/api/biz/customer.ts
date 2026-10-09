@@ -1,4 +1,5 @@
 import { service } from '@/utils/axios'
+import type { BizIndustryEnterprise } from './industry'
 
 export interface BizCustomerQuery {
   pageNum?: number
@@ -10,23 +11,6 @@ export interface BizCustomerQuery {
   source?: string
   companyId?: number
   industryId?: number
-}
-
-export interface BizCustomerCompany {
-  id?: number
-  name?: string
-  industry?: string
-  scale?: string
-  business?: string
-  mainProducts?: string
-  establishedDate?: string
-  capital?: string
-  address?: string
-  marketPerformance?: string
-  competitiveAdvantage?: string
-  contactName?: string
-  contactPhone?: string
-  contactPosition?: string
 }
 
 export interface BizCustomerProfile {
@@ -93,7 +77,7 @@ export interface BizCustomer {
   demandTags?: string
   demandDesc?: string
   profile?: BizCustomerProfile
-  company?: BizCustomerCompany
+  company?: BizIndustryEnterprise
   industries?: BizCustomerIndustry[]
   industryIds?: number[]
 }

@@ -2,6 +2,8 @@
  * 行业调研模块 - 行业企业(IndustryEnterprise) 表单/详情 区域树配置（uniapp 端配置驱动源）
  * 转录自 PC 端 know-vue/src/views/biz/industry/enterprise/sections.ts（后端字段权威源）
  * 界面结构/交互对齐设计稿 04-表单页设计.md；placeholder 一律带括号说明
+ * 注：已并入原「客户管理-公司管理」独有字段（企业地址/联系人姓名/联系电话/联系人职务），
+ *     客户侧企业选择统一指向行业企业库。
  */
 import type { UniFieldDef, UniSectionDef } from './industry-sections'
 
@@ -52,7 +54,11 @@ export const enterpriseSections: UniSectionDef[] = [
                         key: 'isListed',
                         type: 'select',
                         options: [{ label: '是', value: 1 }, { label: '否', value: 0 }]
-                    }
+                    },
+                    { label: '企业地址', key: 'address', placeholder: '请输入企业地址（选填）' },
+                    { label: '联系人姓名', key: 'contactName', placeholder: '请输入联系人姓名（选填）' },
+                    { label: '联系电话', key: 'contactPhone', placeholder: '请输入联系电话（选填）' },
+                    { label: '联系人职务', key: 'contactPosition', placeholder: '请输入联系人职务（选填）' }
                 ]
             },
             {

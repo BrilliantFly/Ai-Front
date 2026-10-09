@@ -9,8 +9,8 @@ export interface UniFieldDef {
     label: string
     /** 字段 key（点路径） */
     key: string
-    /** 控件类型：input=单行文本 / number=数字(digit) / textarea=多行 / select=单选弹层 / selectMultiple=多选 chips / industryPicker=行业多选 / date=日期选择 */
-    type?: 'text' | 'number' | 'textarea' | 'select' | 'selectMultiple' | 'industryPicker' | 'date'
+    /** 控件类型：input=单行文本 / number=数字(digit) / textarea=多行 / select=单选弹层 / selectMultiple=多选 chips / industryPicker=行业多选 / industryParent=上级行业单选(树形) / date=日期选择 */
+    type?: 'text' | 'number' | 'textarea' | 'select' | 'selectMultiple' | 'industryPicker' | 'industryParent' | 'date'
     /** 单选/多选静态选项 */
     options?: { label: string; value: string | number }[]
     /** 输入占位提示（需带括号说明） */
@@ -38,6 +38,12 @@ export const industrySections: UniSectionDef[] = [
             {
                 title: '行业定义与技术',
                 fields: [
+                    {
+                        label: '上级行业',
+                        key: 'parentId',
+                        type: 'industryParent',
+                        placeholder: '请选择上级行业（选填，不选则为顶级行业）'
+                    },
                     { label: '行业名称', key: 'industryName', placeholder: '请输入行业名称（必填）', required: true },
                     { label: '行业代码', key: 'industryCode', placeholder: '请输入行业代码（选填，如 AI-01）' },
                     { label: '标签', key: 'tags', placeholder: '多个标签用逗号分隔（选填）' },

@@ -224,8 +224,7 @@
         {
             "path": "pages/customer/info",
             "style": {
-                "navigationBarTitleText": "客户管理",
-                "navigationBarBackgroundColor": "#ffffff"
+                "navigationStyle": "custom"
             },
             "meta": {
                 "auth": true
@@ -234,8 +233,7 @@
         {
             "path": "pages/customer/followup",
             "style": {
-                "navigationBarTitleText": "添加跟进",
-                "navigationBarBackgroundColor": "#ffffff"
+                "navigationStyle": "custom"
             },
             "meta": {
                 "auth": true
@@ -244,8 +242,7 @@
         {
             "path": "pages/customer/detail",
             "style": {
-                "navigationBarTitleText": "客户详情",
-                "navigationBarBackgroundColor": "#ffffff"
+                "navigationStyle": "custom"
             },
             "meta": {
                 "auth": true
@@ -254,8 +251,7 @@
         {
             "path": "pages/customer/form",
             "style": {
-                "navigationBarTitleText": "客户资料",
-                "navigationBarBackgroundColor": "#ffffff"
+                "navigationStyle": "custom"
             },
             "meta": {
                 "auth": true
@@ -264,8 +260,7 @@
         {
             "path": "pages/industry/list",
             "style": {
-                "navigationBarTitleText": "行业",
-                "navigationBarBackgroundColor": "#ffffff"
+                "navigationStyle": "custom"
             },
             "meta": {
                 "auth": true
@@ -274,8 +269,7 @@
         {
             "path": "pages/industry/detail",
             "style": {
-                "navigationBarTitleText": "行业详情",
-                "navigationBarBackgroundColor": "#ffffff"
+                "navigationStyle": "custom"
             },
             "meta": {
                 "auth": true
@@ -284,8 +278,7 @@
         {
             "path": "pages/industry/enterprise-list",
             "style": {
-                "navigationBarTitleText": "行业企业",
-                "navigationBarBackgroundColor": "#ffffff"
+                "navigationStyle": "custom"
             },
             "meta": {
                 "auth": true
@@ -294,8 +287,7 @@
         {
             "path": "pages/industry/product-list",
             "style": {
-                "navigationBarTitleText": "行业产品",
-                "navigationBarBackgroundColor": "#ffffff"
+                "navigationStyle": "custom"
             },
             "meta": {
                 "auth": true
@@ -304,8 +296,7 @@
         {
             "path": "pages/industry/market-list",
             "style": {
-                "navigationBarTitleText": "行业市场",
-                "navigationBarBackgroundColor": "#ffffff"
+                "navigationStyle": "custom"
             },
             "meta": {
                 "auth": true

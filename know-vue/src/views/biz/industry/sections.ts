@@ -11,6 +11,7 @@ export const industrySections: SectionDef[] = [
       {
         title: '行业定义与技术',
         fields: [
+          { label: '上级行业', key: 'parentId', type: 'select', span: 12, placeholder: '不选则为顶级行业' },
           { label: '行业名称', key: 'industryName', span: 12 },
           { label: '行业代码', key: 'industryCode', span: 12 },
           { label: '标签', key: 'tags', placeholder: '多个标签用逗号分隔', span: 12 },

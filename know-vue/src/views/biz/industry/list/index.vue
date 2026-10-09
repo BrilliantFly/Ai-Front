@@ -34,14 +34,14 @@
         </a-form-item>
       </a-form>
 
-      <!-- 行业列表 -->
+      <!-- 行业列表（树形：行业 -> 下级行业） -->
       <a-table
         :data-source="industryList"
         :columns="columns"
         :loading="loading"
-        :pagination="pagination"
+        :pagination="false"
         :row-key="(record: BizIndustry) => record.id!"
-        @change="handleTableChange"
+        :expandable="{ defaultExpandAllRows: true }"
       >
         <template #bodyCell="{ column, record }: { column: any; record: BizIndustry }">
           <template v-if="column.key === 'visibility'">
@@ -80,6 +80,7 @@
           :section="sec"
           :model="formData"
           mode="form"
+          :options-map="formOptionsMap"
         />
       </a-form>
     </BizFullscreenModal>
@@ -104,6 +105,7 @@
                 :section="sec"
                 :model="(detailModal.industry as any) || {}"
                 mode="detail"
+                :options-map="detailOptionsMap"
               />
             </a-tab-pane>
             <a-tab-pane key="products" tab="行业产品">
@@ -173,11 +175,11 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, onMounted } from 'vue'
+import { ref, reactive, computed, onMounted } from 'vue'
 import { message } from 'ant-design-vue'
 import type { FormInstance } from 'ant-design-vue'
 import { PlusOutlined, SearchOutlined, RedoOutlined } from '@ant-design/icons-vue'
-import { getIndustryPage, getIndustryDetail, addIndustry, updateIndustry, deleteIndustry, type BizIndustry, type BizIndustryQuery } from '@/api/biz/industry'
+import { getIndustryTree, getIndustryDetail, addIndustry, updateIndustry, deleteIndustry, type BizIndustry, type BizIndustryQuery } from '@/api/biz/industry'
 import type { BizIndustryMarket } from '@/api/biz/market'
 import MatrixTable from '../../components/MatrixTable.vue'
 import BizFullscreenModal from '@/components/BizFullscreenModal.vue'
@@ -189,7 +191,8 @@ import type { SectionDef } from '../../components/types'
 
 // 表格列定义
 const columns = [
-  { title: '行业名称', dataIndex: 'industryName', key: 'industryName', width: 160 },
+  { title: '行业名称', dataIndex: 'industryName', key: 'industryName', width: 220 },
+  { title: '上级行业', dataIndex: 'parentName', key: 'parentName', width: 140 },
   { title: '行业代码', dataIndex: 'industryCode', key: 'industryCode', width: 140 },
   { title: '行业标签', dataIndex: 'tags', key: 'tags', width: 180 },
   { title: '可见性', dataIndex: 'visibility', key: 'visibility', width: 90 },
@@ -238,13 +241,96 @@ const queryParams = reactive(<BizIndustryQuery>{
 // 数据状态
 const industryList = ref<BizIndustry[]>([])
 const loading = ref(false)
-const pagination = reactive({
-  current: 1,
-  pageSize: 10,
-  total: 0,
-  showSizeChanger: true,
-  showTotal: (total: number) => `共 ${total} 条`
+
+// 上级行业选项（树形缩进展示）
+const parentOptions = computed<{ label: string; value: any }[]>(() => {
+  const excludeId = editId.value
+  const collect = (nodes: BizIndustry[]): { label: string; value: any }[] => {
+    const opts: { label: string; value: any }[] = []
+    const walk = (list: BizIndustry[], prefix: string, excluded: Set<number | undefined>) => {
+      for (const node of list) {
+        // 编辑时排除自身及其下级
+        if (excluded.has(node.id)) continue
+        opts.push({ label: prefix + (node.industryName || ''), value: node.id })
+        if (node.children?.length) {
+          walk(node.children, prefix + '　', excluded)
+        }
+      }
+    }
+    // 收集编辑记录自身及下级 id
+    const excluded = new Set<number | undefined>()
+    if (excludeId != null) {
+      const gather = (list: BizIndustry[]) => {
+        for (const node of list) {
+          if (node.id === excludeId) {
+            const collectSelf = (n: BizIndustry) => {
+              excluded.add(n.id)
+              n.children?.forEach(collectSelf)
+            }
+            collectSelf(node)
+          } else if (node.children?.length) {
+            gather(node.children)
+          }
+        }
+      }
+      gather(industryList.value)
+    }
+    walk(nodes, '', excluded)
+    return opts
+  }
+  return collect(industryList.value)
 })
+
+// 详情弹窗上级行业选项（不做排除，仅映射 id -> 名称）
+const detailOptionsMap = computed<Record<string, { label: string; value: any }[]>>(() => {
+  const opts: { label: string; value: any }[] = []
+  const walk = (list: BizIndustry[], prefix: string) => {
+    for (const node of list) {
+      opts.push({ label: prefix + (node.industryName || ''), value: node.id })
+      if (node.children?.length) walk(node.children, prefix + '　')
+    }
+  }
+  walk(industryList.value, '')
+  return { parentId: opts }
+})
+
+// 表单弹窗上级行业选项
+const formOptionsMap = computed<Record<string, { label: string; value: any }[]>>(() => ({
+  parentId: parentOptions.value
+}))
+
+// 加载行业树
+const loadData = async () => {
+  loading.value = true
+  try {
+    const res: any = await getIndustryTree({
+      industryName: queryParams.industryName,
+      industryCode: queryParams.industryCode,
+      visibility: queryParams.visibility
+    } as BizIndustryQuery)
+    // 响应格式: 树形数组（行业 -> 下级行业）
+    const resData = res?.data || res
+    industryList.value = Array.isArray(resData) ? resData : []
+  } catch (e) {
+    console.error('加载行业树失败', e)
+    industryList.value = []
+  } finally {
+    loading.value = false
+  }
+}
+
+// 查询
+const handleQuery = () => {
+  loadData()
+}
+
+// 重置
+const handleReset = () => {
+  queryParams.industryName = undefined
+  queryParams.industryCode = undefined
+  queryParams.visibility = undefined
+  loadData()
+}
 
 // 弹窗状态
 const modalVisible = ref(false)
@@ -261,6 +347,7 @@ const formData = reactive<Partial<BizIndustry>>({
   tags: '',
   visibility: 1,
   sort: 0,
+  parentId: undefined,
   definition: '',
   technology: '',
   upstreamChain: '',
@@ -286,51 +373,6 @@ const rules: Record<string, any> = {
   industryCode: [{ required: true, message: '请输入行业代码', trigger: 'blur' }]
 }
 
-// 加载行业列表
-const loadData = async () => {
-  loading.value = true
-  try {
-    const res: any = await getIndustryPage({
-      pageNum: pagination.current,
-      pageSize: pagination.pageSize,
-      ...queryParams
-    } as BizIndustryQuery)
-    // 响应格式: { records: [], total: 0, current: 1, size: 10 }
-    // axios 拦截器返回整个 body {code, msg, data},这里防御性解包
-    const resData = res?.data || res
-    industryList.value = resData?.records || resData || []
-    pagination.total = resData?.total || 0
-    pagination.current = resData?.current || 1
-  } catch (e) {
-    console.error('加载行业列表失败', e)
-    industryList.value = []
-  } finally {
-    loading.value = false
-  }
-}
-
-// 查询
-const handleQuery = () => {
-  pagination.current = 1
-  loadData()
-}
-
-// 重置
-const handleReset = () => {
-  queryParams.industryName = undefined
-  queryParams.industryCode = undefined
-  queryParams.visibility = undefined
-  pagination.current = 1
-  loadData()
-}
-
-// 表格变化
-const handleTableChange = (pag: any) => {
-  pagination.current = pag.current
-  pagination.pageSize = pag.pageSize
-  loadData()
-}
-
 // 新增
 const handleAdd = () => {
   isEdit.value = false
@@ -341,6 +383,7 @@ const handleAdd = () => {
   formData.tags = ''
   formData.visibility = 1
   formData.sort = 0
+  formData.parentId = undefined
   formData.definition = ''
   formData.technology = ''
   formData.upstreamChain = ''

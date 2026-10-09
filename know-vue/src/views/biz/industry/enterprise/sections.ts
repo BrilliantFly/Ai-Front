@@ -34,7 +34,11 @@ export const enterpriseSections: SectionDef[] = [
             { label: '小型', value: '小型' }
           ], span: 12 },
           { label: '参保人数', key: 'insuredCount', type: 'number', span: 12 },
-          { label: '是否上市', key: 'isListed', type: 'select', options: [{ label: '是', value: 1 }, { label: '否', value: 0 }], span: 12 }
+          { label: '是否上市', key: 'isListed', type: 'select', options: [{ label: '是', value: 1 }, { label: '否', value: 0 }], span: 12 },
+          { label: '企业地址', key: 'address', span: 24 },
+          { label: '联系人姓名', key: 'contactName', span: 12 },
+          { label: '联系电话', key: 'contactPhone', span: 12 },
+          { label: '联系人职务', key: 'contactPosition', span: 24 }
         ]
       },
       {

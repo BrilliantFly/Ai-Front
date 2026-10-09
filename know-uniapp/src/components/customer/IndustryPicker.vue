@@ -22,16 +22,25 @@
                 </view>
 
                 <view v-if="loading" class="panel-loading">加载中…</view>
-                <view v-else-if="industries.length" class="panel-body">
-                    <view class="chips-wrap">
+                <view v-else-if="rows.length" class="panel-body">
+                    <view class="tree-wrap">
                         <view
-                            v-for="item in industries"
-                            :key="item.id"
-                            class="chip"
+                            v-for="item in rows"
+                            :key="String(item.id)"
+                            class="tree-row"
                             :class="{ active: isActive(item.id) }"
                             @tap="toggle(item.id)"
                         >
-                            {{ item.industryName }}
+                            <text class="tree-indent">{{ '　'.repeat(item.depth) }}</text>
+                            <text class="tree-label" :class="{ leaf: item.depth > 0 }">{{
+                                item.industryName
+                            }}</text>
+                            <text
+                                v-if="item.children?.length"
+                                class="tree-count"
+                                >{{ item.children.length }} 下级</text
+                            >
+                            <text v-if="isActive(item.id)" class="tree-check">✓</text>
                         </view>
                     </view>
                 </view>
@@ -48,11 +57,16 @@
 
 <script setup lang="ts">
 import { computed, ref, shallowRef, onMounted } from 'vue'
-import { getIndustryList, type IndustryItem } from '@/api/customer'
+import { getIndustryTree, type BizIndustry } from '@/api/biz/industry'
+
+/** 摊平后的展示行：层级深度 + 是否含下级 */
+interface IndustryRow extends BizIndustry {
+    depth: number
+}
 
 const props = withDefaults(
     defineProps<{
-        modelValue: number[]
+        modelValue: Array<number | string>
         title?: string
         placeholder?: string
     }>(),
@@ -60,21 +74,31 @@ const props = withDefaults(
 )
 
 const emit = defineEmits<{
-    (e: 'update:modelValue', value: number[]): void
+    (e: 'update:modelValue', value: Array<number | string>): void
 }>()
 
 const popup = shallowRef()
-const industries = ref<IndustryItem[]>([])
+const rows = ref<IndustryRow[]>([])
 const loading = ref(false)
-const draft = ref<number[]>([])
+const draft = ref<Array<number | string>>([])
 
-const active = computed<number[]>(() => props.modelValue ?? [])
+const active = computed<Array<number | string>>(() => props.modelValue ?? [])
 
-const isActive = (id: number) => draft.value.includes(id)
+/** 树 → 深度摊平（顶级在前，下级紧随父级，保留 children 用于计数） */
+const flattenTree = (nodes: BizIndustry[] = [], depth = 0, out: IndustryRow[] = []): IndustryRow[] => {
+    for (const node of nodes) {
+        out.push({ ...node, depth })
+        if (node.children?.length) flattenTree(node.children, depth + 1, out)
+    }
+    return out
+}
 
-const toggle = (id: number) => {
+const isActive = (id: number | string) =>
+    draft.value.some((d) => String(d) === String(id))
+
+const toggle = (id: number | string) => {
     const list = [...draft.value]
-    const index = list.indexOf(id)
+    const index = list.findIndex((d) => String(d) === String(id))
     if (index >= 0) {
         list.splice(index, 1)
     } else {
@@ -88,20 +112,23 @@ const clearAll = () => {
 }
 
 const selectedNames = computed(() => {
-    if (!industries.value.length || !active.value.length) return []
-    return industries.value
-        .filter((item) => active.value.includes(item.id))
-        .map((item) => item.industryName)
+    if (!rows.value.length || !active.value.length) return []
+    return active.value
+        .map((id) => rows.value.find((item) => String(item.id) === String(id)))
+        .filter((item): item is IndustryRow => !!item)
+        .map((item) => item.industryName || '')
+        .filter(Boolean)
 })
 
 const load = async () => {
-    if (industries.value.length) return
+    if (rows.value.length) return
     loading.value = true
     try {
-        industries.value = (await getIndustryList()) || []
+        const tree = (await getIndustryTree()) || []
+        rows.value = flattenTree(tree)
     } catch (error) {
         console.error('加载行业列表失败', error)
-        industries.value = []
+        rows.value = []
     } finally {
         loading.value = false
     }
@@ -123,7 +150,7 @@ const close = () => {
 
 const confirm = () => {
     // 保持用户勾选顺序，过滤无效 id
-    const valid = draft.value.filter((id) => industries.value.some((item) => item.id === id))
+    const valid = draft.value.filter((id) => rows.value.some((item) => String(item.id) === String(id)))
     emit('update:modelValue', valid)
     close()
 }
@@ -216,27 +243,63 @@ const confirm = () => {
     overflow-y: auto;
 }
 
-.chips-wrap {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 16rpx;
+.tree-wrap {
     padding-bottom: 24rpx;
 }
 
-.chip {
-    padding: 12rpx 28rpx;
-    border-radius: 30rpx;
-    background: var(--color-surface-soft);
-    color: var(--color-text-secondary);
-    font-size: 26rpx;
-    border: 1rpx solid var(--color-border-light);
+.tree-row {
+    display: flex;
+    align-items: center;
+    gap: 8rpx;
+    padding: 20rpx 8rpx;
+    border-bottom: 1rpx solid var(--color-border-light);
+
+    &:last-child {
+        border-bottom: none;
+    }
+
+    &:active {
+        opacity: 0.8;
+    }
 }
 
-.chip.active {
-    background: var(--color-primary);
-    color: var(--color-btn-text);
-    border-color: var(--color-primary);
-    box-shadow: var(--shadow-glow);
+.tree-indent {
+    color: var(--color-text-tertiary);
+    flex-shrink: 0;
+}
+
+.tree-label {
+    flex: 1;
+    min-width: 0;
+    font-size: 28rpx;
+    color: var(--color-text);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.tree-label.leaf {
+    color: var(--color-text-secondary);
+}
+
+.tree-count {
+    flex-shrink: 0;
+    font-size: 20rpx;
+    padding: 2rpx 12rpx;
+    border-radius: 14rpx;
+    background: var(--color-surface-soft);
+    color: var(--color-text-tertiary);
+}
+
+.tree-check {
+    flex-shrink: 0;
+    font-size: 30rpx;
+    color: var(--color-primary);
+}
+
+.tree-row.active .tree-label {
+    color: var(--color-primary);
+    font-weight: 600;
 }
 
 .panel-footer {

@@ -150,16 +150,7 @@ export const customerSections: SectionDef[] = [
       {
         title: '企业情况',
         fields: [
-          { label: '企业名称', key: 'company.name', span: 12 },
-          { label: '行业分类', key: 'company.industry', span: 12 },
-          { label: '企业规模', key: 'company.scale', span: 12 },
-          { label: '成立时间', key: 'company.establishedDate', span: 12 },
-          { label: '联系人', key: 'company.contactName', span: 12 },
-          { label: '联系电话', key: 'company.contactPhone', span: 12 },
-          { label: '主要业务', key: 'company.business', type: 'textarea', span: 12 },
-          { label: '主要产品', key: 'company.mainProducts', type: 'textarea', span: 12 },
-          { label: '市场表现', key: 'company.marketPerformance', type: 'textarea', span: 12 },
-          { label: '竞争优势', key: 'company.competitiveAdvantage', type: 'textarea', span: 12 }
+          { label: '所属企业', key: 'companyId', type: 'select', placeholder: '请选择所属企业(自行业企业库)', span: 24 }
         ]
       },
       {

@@ -28,6 +28,14 @@ export interface BizIndustryEnterprise {
     insuredCount?: number
     /** 是否上市（1 是 / 0 否） */
     isListed?: number
+    /** 企业地址（公司管理迁移字段） */
+    address?: string
+    /** 联系人姓名（公司管理迁移字段） */
+    contactName?: string
+    /** 联系人手机（公司管理迁移字段，AES 加密） */
+    contactPhone?: string
+    /** 联系人职务（公司管理迁移字段） */
+    contactPosition?: string
     /** 经营与技术 */
     mainBusiness?: string
     coreTechnology?: string

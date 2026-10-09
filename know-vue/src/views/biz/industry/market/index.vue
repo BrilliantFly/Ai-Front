@@ -11,11 +11,15 @@
       <!-- 搜索栏 -->
       <a-form layout="inline" :model="queryParams" class="mb-4">
         <a-form-item label="所属行业">
-          <a-select v-model:value="queryParams.industryId" placeholder="全部" allow-clear style="width: 200px">
-            <a-select-option v-for="item in industryOptions" :key="item.id" :value="item.id">
-              {{ item.industryName }}
-            </a-select-option>
-          </a-select>
+          <a-cascader
+            v-model:value="industryCascaderValue"
+            :options="cascaderOptions"
+            :change-on-select="true"
+            placeholder="全部"
+            allow-clear
+            style="width: 260px"
+            @change="handleIndustryCascadeChange"
+          />
         </a-form-item>
         <a-form-item label="关键字">
           <a-input v-model:value="queryParams.keyword" placeholder="市场需求/商机" allow-clear style="width: 200px" />
@@ -110,7 +114,7 @@ import { ref, reactive, computed, onMounted } from 'vue'
 import { message } from 'ant-design-vue'
 import type { FormInstance } from 'ant-design-vue'
 import { PlusOutlined, SearchOutlined, RedoOutlined } from '@ant-design/icons-vue'
-import { getIndustryList, type BizIndustry } from '@/api/biz/industry'
+import { getIndustryTree, type BizIndustry } from '@/api/biz/industry'
 import { getMarketPage, addMarket, saveMarket, deleteMarket, type BizIndustryMarket, type BizMarketQuery } from '@/api/biz/market'
 import MatrixTable from '../../components/MatrixTable.vue'
 import BizFullscreenModal from '@/components/BizFullscreenModal.vue'
@@ -125,21 +129,69 @@ const columns = [
   { title: '操作', key: 'action', width: 160, fixed: 'right' }
 ]
 
-// 行业下拉
-const industryOptions = ref<BizIndustry[]>([])
+// 行业选项（树形摊平，带层级缩进；用于表单多选 / 详情映射）
+interface IndustrySelectOption {
+  id: number
+  industryName: string
+  depth: number
+}
+const industryOptions = ref<IndustrySelectOption[]>([])
 
-// 加载行业下拉
+// 行业树（级联查询用，保留原始层级）
+const industryTree = ref<BizIndustry[]>([])
+
+/** 级联选择器选项：{ value, label, children }（叶子无 children） */
+interface CascaderOption {
+  value: number
+  label: string
+  children?: CascaderOption[]
+}
+const buildCascaderOptions = (nodes: BizIndustry[] = []): CascaderOption[] =>
+  (nodes || []).map((node) => ({
+    value: node.id as number,
+    label: node.industryName || String(node.id),
+    children: node.children?.length ? buildCascaderOptions(node.children) : undefined
+  }))
+const cascaderOptions = computed<CascaderOption[]>(() => buildCascaderOptions(industryTree.value))
+
+// 级联查询绑定值（路径数组；changeOnSelect 下选中任意层级取末位 id）
+const industryCascaderValue = ref<Array<number | string> | undefined>(undefined)
+
+/** 级联变更：取路径末位为查询行业 id（清空则为 undefined） */
+const handleIndustryCascadeChange = (value: any) => {
+  const path = Array.isArray(value) ? value : []
+  queryParams.industryId = path.length ? path[path.length - 1] : undefined
+}
+
+/** 树 → 缩进摊平（深度优先；顶级无缩进，下级用全角空格缩进） */
+const flattenIndustryTree = (nodes: BizIndustry[], depth = 0, out: IndustrySelectOption[] = []): IndustrySelectOption[] => {
+  for (const node of nodes || []) {
+    if (node.id != null) {
+      out.push({ id: node.id as number, industryName: node.industryName || '', depth })
+    }
+    if (node.children?.length) flattenIndustryTree(node.children, depth + 1, out)
+  }
+  return out
+}
+
+// 加载行业选项（树形，体现 行业 -> 下级行业 层级）
 const loadIndustryOptions = async () => {
   try {
-    const res: any = await getIndustryList()
+    const res: any = await getIndustryTree()
     const resData = res?.data || res
     const records = Array.isArray(resData) ? resData : resData?.records || []
-    industryOptions.value = records || []
+    industryTree.value = records
+    industryOptions.value = flattenIndustryTree(records)
   } catch (e) {
     console.error('加载行业列表失败', e)
+    industryTree.value = []
     industryOptions.value = []
   }
 }
+
+/** 缩进展示名称（下级行业前加缩进，便于识别层级） */
+const indentedName = (opt: IndustrySelectOption) =>
+  opt.depth > 0 ? `${'\u3000'.repeat(opt.depth)}${opt.industryName}` : opt.industryName
 
 // 查询参数
 const queryParams = reactive(<BizMarketQuery>{
@@ -224,11 +276,12 @@ const resetForm = () => {
   })
 }
 
-// 动态下拉选项(关联行业)
+// 动态下拉选项(关联行业；缩进体现层级)
 const optionsMap = computed<Record<string, { label: string; value: any }[]>>(() => ({
-  industryIds: industryOptions.value
-    .filter((item) => item.id != null)
-    .map((item) => ({ label: item.industryName || '', value: item.id as number }))
+  industryIds: industryOptions.value.map((item) => ({
+    label: indentedName(item),
+    value: item.id
+  }))
 }))
 
 // 加载市场列表
@@ -264,6 +317,7 @@ const handleQuery = () => {
 const handleReset = () => {
   queryParams.industryId = undefined
   queryParams.keyword = undefined
+  industryCascaderValue.value = undefined
   pagination.current = 1
   loadData()
 }

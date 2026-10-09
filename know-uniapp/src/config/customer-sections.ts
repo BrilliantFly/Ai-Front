@@ -1,7 +1,9 @@
 /**
  * 客户(Customer) 表单/详情 区域树配置（uniapp 端配置驱动源）
  * 转录自 PC 端 know-vue/src/views/biz/customer/sections.ts（权威源）
- * 字段 key 支持点路径：customer 根字段 / company.* / profile.* / industryIds
+ * 字段 key 支持点路径：customer 根字段 / profile.* / industryIds / companyId
+ * 注：客户所属企业已合并入行业企业库（companyId 指向 biz_industry_enterprise），
+ *     原「公司管理」的 company.* 字段已下线，统一由行业企业承载。
  */
 
 export interface UniFieldDef {
@@ -10,7 +12,7 @@ export interface UniFieldDef {
     /** 字段 key（点路径） */
     key: string
     /** 控件类型 */
-    type?: 'text' | 'number' | 'textarea' | 'select' | 'selectMultiple' | 'industryPicker'
+    type?: 'text' | 'number' | 'textarea' | 'select' | 'selectMultiple' | 'industryPicker' | 'enterprisePicker'
     /** 单选/多选静态选项 */
     options?: { label: string; value: string | number }[]
     /** 输入占位提示（需带括号说明） */
@@ -185,16 +187,12 @@ export const customerSections: UniSectionDef[] = [
             {
                 title: '企业情况',
                 fields: [
-                    { label: '企业名称', key: 'company.name', placeholder: '请输入企业名称（选填）' },
-                    { label: '行业分类', key: 'company.industry', placeholder: '请输入行业分类（选填）' },
-                    { label: '企业规模', key: 'company.scale', placeholder: '请输入企业规模（选填）' },
-                    { label: '成立时间', key: 'company.establishedDate', placeholder: '请输入成立时间（选填）' },
-                    { label: '联系人', key: 'company.contactName', placeholder: '请输入联系人（选填）' },
-                    { label: '联系电话', key: 'company.contactPhone', placeholder: '请输入联系电话（选填）' },
-                    { label: '主要业务', key: 'company.business', type: 'textarea', placeholder: '请输入主要业务（选填）' },
-                    { label: '主要产品', key: 'company.mainProducts', type: 'textarea', placeholder: '请输入主要产品（选填）' },
-                    { label: '市场表现', key: 'company.marketPerformance', type: 'textarea', placeholder: '请输入市场表现（选填）' },
-                    { label: '竞争优势', key: 'company.competitiveAdvantage', type: 'textarea', placeholder: '请输入竞争优势（选填）' }
+                    {
+                        label: '所属企业',
+                        key: 'companyId',
+                        type: 'enterprisePicker',
+                        placeholder: '请选择所属企业（自行业企业库）'
+                    }
                 ]
             },
             {

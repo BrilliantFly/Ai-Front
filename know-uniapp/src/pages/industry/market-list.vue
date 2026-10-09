@@ -26,25 +26,43 @@
             </view>
         </view>
 
-        <!-- 所属行业筛选 chips（单选常驻） -->
-        <scroll-view class="chips-row" scroll-x :show-scrollbar="false">
-            <view
-                class="filter-chip"
-                :class="{ active: activeIndustryId === '' }"
-                @tap="switchIndustry('')"
-            >
-                全部行业
+        <!-- 所属行业筛选：级联下钻单选（行业 → 下级行业） -->
+        <view class="cascade-filter">
+            <scroll-view class="chips-row" scroll-x :show-scrollbar="false">
+                <view
+                    class="filter-chip"
+                    :class="{ active: activeIndustryId === '' }"
+                    @tap="switchAll"
+                >
+                    全部行业
+                </view>
+                <view
+                    v-if="cascadePath.length"
+                    class="filter-chip back-chip"
+                    @tap="cascadeBack"
+                >
+                    ‹ 返回
+                </view>
+                <view
+                    v-for="node in currentLevelNodes"
+                    :key="String(node.id)"
+                    class="filter-chip"
+                    :class="{ active: isIndustryActive(node.id) }"
+                    @tap="pickIndustry(node)"
+                >
+                    {{ node.industryName }}
+                    <text v-if="node.children && node.children.length" class="chip-caret"> ›</text>
+                </view>
+            </scroll-view>
+            <!-- 面包屑：当前下钻路径 -->
+            <view v-if="cascadePath.length" class="cascade-crumb">
+                <text class="crumb-item" @tap="cascadeTo(-1)">全部</text>
+                <template v-for="(node, i) in cascadePath" :key="String(node.id)">
+                    <text class="crumb-sep"> › </text>
+                    <text class="crumb-item" @tap="cascadeTo(i)">{{ node.industryName }}</text>
+                </template>
             </view>
-            <view
-                v-for="opt in industryOptions"
-                :key="String(opt.value)"
-                class="filter-chip"
-                :class="{ active: isIndustryActive(opt.value) }"
-                @tap="switchIndustry(opt.value)"
-            >
-                {{ opt.label }}
-            </view>
-        </scroll-view>
+        </view>
 
         <!-- 市场列表（z-paging 分页流） -->
         <view class="list-wrap">
@@ -198,7 +216,7 @@ import { computed, ref, shallowRef } from 'vue'
 import { onLoad, onShow } from '@dcloudio/uni-app'
 import SectionCard from '@/components/customer/SectionCard.vue'
 import FieldItem from '@/components/customer/FieldItem.vue'
-import { getIndustryList, type BizIndustry } from '@/api/biz/industry'
+import { getIndustryTree, type BizIndustry } from '@/api/biz/industry'
 import {
     getMarketPage,
     getMarketByIndustryId,
@@ -226,9 +244,17 @@ const keyword = ref('')
 const marketList = ref<BizIndustryMarket[]>([])
 const loadFailed = ref(false)
 
-/* 筛选：所属行业（雪花 ID 不做 Number 转换，避免精度丢失） */
-const industryOptions = ref<{ label: string; value: number | string }[]>([])
+/* 筛选：所属行业（级联下钻单选；雪花 ID 不做 Number 转换，避免精度丢失） */
+const industryTree = ref<BizIndustry[]>([])
+const cascadePath = ref<BizIndustry[]>([])
 const activeIndustryId = ref<number | string>('')
+
+/** 当前层级节点：未下钻展示顶级行业，下钻后展示当前节点的下级 */
+const currentLevelNodes = computed<BizIndustry[]>(() => {
+    if (!cascadePath.value.length) return industryTree.value
+    const last = cascadePath.value[cascadePath.value.length - 1]
+    return last.children || []
+})
 
 let keywordTimer: ReturnType<typeof setTimeout> | undefined
 
@@ -267,26 +293,52 @@ const reload = () => {
     paging.value?.reload()
 }
 
-const isIndustryActive = (value: number | string) =>
+const isIndustryActive = (value: number | string | undefined | null) =>
     activeIndustryId.value !== '' && String(activeIndustryId.value) === String(value)
 
-const switchIndustry = (value: number | string) => {
-    activeIndustryId.value = value
+/** 点击行业 chip：选中该节点；若含下级则下钻展示其下级（changeOnSelect 语义） */
+const pickIndustry = (node: BizIndustry) => {
+    if (node.id === undefined || node.id === null) return
+    activeIndustryId.value = node.id
+    if (node.children && node.children.length) {
+        cascadePath.value = [...cascadePath.value, node]
+    }
+    paging.value?.reload()
+}
+
+/** 返回上一级：路径回退一层，选中回退后的层级（回到根层级则清空选择） */
+const cascadeBack = () => {
+    const next = cascadePath.value.slice(0, -1)
+    cascadePath.value = next
+    activeIndustryId.value = next.length ? (next[next.length - 1].id as number | string) : ''
+    paging.value?.reload()
+}
+
+/** 面包屑跳转到指定层级（index=-1 为根层级） */
+const cascadeTo = (index: number) => {
+    if (index < 0) {
+        cascadePath.value = []
+        activeIndustryId.value = ''
+    } else {
+        cascadePath.value = cascadePath.value.slice(0, index + 1)
+        activeIndustryId.value = cascadePath.value[index].id as number | string
+    }
+    paging.value?.reload()
+}
+
+/** 清空筛选（全部行业） */
+const switchAll = () => {
+    cascadePath.value = []
+    activeIndustryId.value = ''
     paging.value?.reload()
 }
 
 const loadIndustryOptions = async () => {
     try {
-        const list = (await getIndustryList()) || []
-        industryOptions.value = list
-            .filter((item: BizIndustry) => item.id !== undefined && item.id !== null)
-            .map((item: BizIndustry) => ({
-                label: item.industryName || String(item.id),
-                value: item.id
-            }))
+        industryTree.value = (await getIndustryTree()) || []
     } catch (error) {
         console.error('加载行业选项失败', error)
-        industryOptions.value = []
+        industryTree.value = []
     }
 }
 
@@ -568,6 +620,40 @@ onShow(() => {
     background: var(--color-primary);
     color: var(--color-btn-text);
     box-shadow: var(--shadow-glow);
+}
+
+/* ===== 级联下钻筛选 ===== */
+.cascade-filter {
+    display: flex;
+    flex-direction: column;
+}
+
+.filter-chip.back-chip {
+    background: transparent;
+    border: 1rpx solid var(--color-border-light);
+    color: var(--color-text-secondary);
+}
+
+.chip-caret {
+    font-size: 24rpx;
+    opacity: 0.7;
+}
+
+.cascade-crumb {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    padding: 12rpx 40rpx 0;
+    font-size: 22rpx;
+    line-height: 1.4;
+}
+
+.crumb-item {
+    color: var(--color-text-secondary);
+}
+
+.crumb-sep {
+    color: var(--color-text-tertiary);
 }
 
 /* ===== 列表 ===== */

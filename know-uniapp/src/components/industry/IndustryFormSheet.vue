@@ -45,7 +45,7 @@
 
                                     <!-- 单选 select -->
                                     <view
-                                        v-if="field.type === 'select'"
+                                        v-if="field.type === 'select' || field.type === 'industryParent'"
                                         class="field-select"
                                         hover-class="field-select-hover"
                                         @tap="openSelect(field)"
@@ -166,6 +166,7 @@ import {
     createIndustry,
     updateIndustry,
     getIndustryDetail,
+    getIndustryTree,
     type BizIndustry
 } from '@/api/biz/industry'
 
@@ -254,14 +255,51 @@ watch(
     }
 )
 
-const onPopupChange = (e: { show: boolean }) => {
+const onPopupChange = async (e: { show: boolean }) => {
     if (e.show) {
         resetForm()
+        await loadParentOptions()
         if (isEdit.value && props.recordId) {
-            fillForm()
+            await fillForm()
         }
     } else {
         emit('close')
+    }
+}
+
+/* 上级行业选项（树形缩进；编辑时排除自身及其下级） */
+const parentOptions = ref<{ label: string; value: string | number }[]>([])
+
+const loadParentOptions = async () => {
+    try {
+        const tree = (await getIndustryTree()) || []
+        const excludedSet = new Set<string>()
+        const collectExclude = (nodes: BizIndustry[]) => {
+            for (const node of nodes || []) {
+                if (isEdit.value && props.recordId && String(node.id) === String(props.recordId)) {
+                    const collectSelf = (n: BizIndustry) => {
+                        excludedSet.add(String(n.id))
+                        n.children?.forEach(collectSelf)
+                    }
+                    collectSelf(node)
+                }
+                if (node.children?.length) collectExclude(node.children)
+            }
+        }
+        collectExclude(tree)
+        const opts: { label: string; value: string | number }[] = []
+        const walk = (nodes: BizIndustry[], prefix: string) => {
+            for (const node of nodes || []) {
+                if (excludedSet.has(String(node.id))) continue
+                opts.push({ label: prefix + (node.industryName || ''), value: node.id })
+                if (node.children?.length) walk(node.children, prefix + '　')
+            }
+        }
+        walk(tree, '')
+        parentOptions.value = opts
+    } catch (error) {
+        console.error('加载上级行业选项失败', error)
+        parentOptions.value = []
     }
 }
 
@@ -274,7 +312,9 @@ const defaultPlaceholder = (field: UniFieldDef) => {
 const selectLabel = (field: UniFieldDef) => {
     const value = formData.value[field.key]
     if (value === undefined || value === null || value === '') return ''
-    const opt = (field.options || []).find((o) => String(o.value) === String(value))
+    const options =
+        field.type === 'industryParent' ? parentOptions.value : field.options || []
+    const opt = options.find((o) => String(o.value) === String(value))
     return opt ? opt.label : String(value)
 }
 
@@ -285,7 +325,8 @@ const selectValue = ref<string | number>('')
 
 const openSelect = (field: UniFieldDef) => {
     activeSelectField = field
-    selectOptions.value = field.options || []
+    selectOptions.value =
+        field.type === 'industryParent' ? parentOptions.value : field.options || []
     selectValue.value = formData.value[field.key] ?? ''
     selectVisible.value = true
 }
@@ -331,6 +372,7 @@ const isChoiceField = (field: UniFieldDef) =>
     field.type === 'select' ||
     field.type === 'selectMultiple' ||
     field.type === 'industryPicker' ||
+    field.type === 'industryParent' ||
     field.type === 'date'
 
 const buildPayload = (): Record<string, any> => {

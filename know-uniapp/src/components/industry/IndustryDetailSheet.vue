@@ -478,6 +478,11 @@ const flatFields = (section: DetailSection): DetailField[] =>
 
 /** 选项型字段（可见性）翻译为文案 */
 const fieldValue = (field: DetailField): string | number | undefined => {
+    // 上级行业：详情接口已回填 parentName，直接用名称展示
+    if (field.key === 'parentId') {
+        const parent = (detail.value as Record<string, any>).parentName
+        return parent || undefined
+    }
     const raw = (detail.value as Record<string, any>)[field.key]
     if (raw === null || raw === undefined || raw === '') return undefined
     if (field.options?.length) {

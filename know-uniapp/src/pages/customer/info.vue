@@ -310,9 +310,9 @@ const statusClass = (status?: number) => {
     }
 }
 
-/** 列表 record 未带 company；后端增强后 company.name 有值时展示 */
+/** 列表 record 未带 company；后端增强后 company.enterpriseName 有值时展示 */
 const companyNameOf = (item: CustomerInfo) => {
-    return item.company?.name || ''
+    return item.company?.enterpriseName || ''
 }
 
 /* ---------- 跳转 ---------- */
