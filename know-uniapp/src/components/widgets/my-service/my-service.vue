@@ -43,6 +43,13 @@
                         <view class="m-title">{{ item.name }}</view>
                         <view class="m-desc">{{ item.desc }}</view>
                     </view>
+                    <text v-if="isAbout(item) && hasUpdate" class="update-badge">
+                        {{ forceUpdate ? '必须' : '新版本' }} v{{ latest?.versionName }}
+                    </text>
+                    <text v-else-if="isAbout(item)" class="version-tag">
+                        v{{ currentVersion.name }}
+                    </text>
+                    <view v-if="isAbout(item) && hasUpdate" class="update-dot"></view>
                     <text class="m-arrow">›</text>
                 </view>
             </template>
@@ -51,11 +58,13 @@
 </template>
 
 <script lang="ts" setup>
-import { computed } from 'vue'
+import { computed, onMounted } from 'vue'
 import { navigateTo, objectToQuery, switchTabCompat } from '@/utils/util'
 import { useUserStore } from '@/stores/user'
 import { storeToRefs } from 'pinia'
 import { useRouter } from 'uniapp-router-next'
+import { isAppPlatform, useAppVersion } from '@/hooks/useAppVersion'
+import { showUpdateModal } from '@/utils/app-update'
 
 type DecorateLink =
     | string
@@ -91,6 +100,21 @@ const userStore = useUserStore()
 const { isLogin } = storeToRefs(userStore)
 const router = useRouter()
 
+// App 热更新：版本检测状态（store 单例，多处共享）
+const ABOUT_ITEM = '关于我们'
+const ABOUT_PAGE = '/pages/as_us/as_us'
+const { check, checkSilently, hasUpdate, forceUpdate, latest, currentVersion } = useAppVersion()
+
+const isAbout = (item: DecorateItem) => item.name === ABOUT_ITEM
+
+/** 关于我们行的动态描述：有更新提示可更新，无更新展示当前版本 */
+const aboutDesc = computed(() => {
+    if (hasUpdate.value && latest.value) {
+        return `发现新版本 v${latest.value.versionName}，点击立即更新`
+    }
+    return `当前版本 v${currentVersion.name} · 点击查看版本信息`
+})
+
 const ITEM_CONFIG: Record<
     string,
     { icon: string; iconBg: string; desc: string; fixedLink?: string }
@@ -100,7 +124,7 @@ const ITEM_CONFIG: Record<
     消息通知: { icon: '🔔', iconBg: '#f0f9ff', desc: '推送、告警、通知偏好' },
     密码修改: { icon: '🔐', iconBg: '#fff7ed', desc: '修改登录密码保障账户安全' },
     绑定手机: { icon: '📱', iconBg: '#f5f5f5', desc: '管理绑定的手机号码' },
-    关于我们: { icon: 'ℹ️', iconBg: '#eef2ff', desc: '版本 v2.4.0 · 检查更新' },
+    关于我们: { icon: 'ℹ️', iconBg: '#eef2ff', desc: '版本信息与更新' },
     我的资料: { icon: '👤', iconBg: '#fce7f3', desc: '编辑个人资料信息' },
     联系客服: { icon: '💬', iconBg: '#f3e8ff', desc: '在线客服为您服务' },
     主题设置: {
@@ -132,7 +156,12 @@ const showList = computed<DecorateItem[]>(() => {
 const menuGroups = computed(() => {
     const items = showList.value.map((item: DecorateItem) => {
         const cfg = ITEM_CONFIG[item.name] || { icon: '📦', iconBg: '#f5f5f5', desc: '' }
-        return { ...item, ...cfg, link: normalizeLink(item) }
+        return {
+            ...item,
+            ...cfg,
+            desc: item.name === ABOUT_ITEM ? aboutDesc.value : cfg.desc,
+            link: normalizeLink(item)
+        }
     })
     const primaryNames = ['我的订单', '我的收藏', '绑定手机']
     const primary = items.filter((item: DecorateItem) => primaryNames.includes(item.name))
@@ -188,13 +217,44 @@ const openLink = (link: DecorateLink) => {
     }
 }
 
+const handleAboutClick = async () => {
+    // 已有新版本：直接进入更新弹窗（下载 → 安装 → 重启）
+    if (hasUpdate.value && latest.value) {
+        showUpdateModal(latest.value, forceUpdate.value)
+        return
+    }
+    // App 端：点击时再实时检测一次（可能是刚上架的新版本）；H5/小程序不支持热更新，跳过
+    if (isAppPlatform()) {
+        uni.showLoading({ title: '检查更新中...', mask: true })
+        try {
+            await check()
+        } finally {
+            uni.hideLoading()
+        }
+        if (hasUpdate.value && latest.value) {
+            showUpdateModal(latest.value, forceUpdate.value)
+            return
+        }
+    }
+    openLink(ABOUT_PAGE)
+}
+
 const handleClick = (item: DecorateItem) => {
     if (item.name === '联系客服') {
         uni.showToast({ title: '联系客服', icon: 'none' })
         return
     }
+    if (item.name === ABOUT_ITEM) {
+        handleAboutClick()
+        return
+    }
     openLink(item.link || '')
 }
+
+// 进入页面时静默检测一次（10 分钟内不重复请求）
+onMounted(() => {
+    checkSilently()
+})
 </script>
 
 <style lang="scss" scoped>
@@ -285,6 +345,7 @@ const handleClick = (item: DecorateItem) => {
 }
 
 .menu-item {
+    position: relative;
     display: flex;
     align-items: center;
     gap: 20rpx;
@@ -355,5 +416,34 @@ const handleClick = (item: DecorateItem) => {
     flex-shrink: 0;
     font-weight: 300;
     padding-left: 12rpx;
+}
+
+/* 关于我们：有新版本时的「新版本 vX.Y.Z」标记 */
+.update-badge {
+    flex-shrink: 0;
+    font-size: 22rpx;
+    line-height: 1.3;
+    padding: 4rpx 12rpx;
+    border-radius: 999rpx;
+    color: var(--color-primary);
+    background: var(--color-primary-soft);
+}
+
+/* 关于我们：无更新时的灰色版本号 */
+.version-tag {
+    flex-shrink: 0;
+    font-size: 24rpx;
+    color: var(--color-text-tertiary);
+}
+
+/* 关于我们：有新版本时行尾红点（绝对定位于行右上角，不挤压 m-arrow） */
+.update-dot {
+    position: absolute;
+    right: 40rpx;
+    top: 22rpx;
+    width: 16rpx;
+    height: 16rpx;
+    border-radius: 50%;
+    background: #ff4d4f;
 }
 </style>

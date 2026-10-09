@@ -7,6 +7,8 @@ import { useThemeStore } from './stores/theme'
 import { useRouter, useRoute } from 'uniapp-router-next'
 import { removeToken } from '@/api/auth'
 import { initReminderClickListener, syncReminders } from '@/utils/reminder'
+import { useAppVersion } from '@/hooks/useAppVersion'
+import { showUpdateModal } from '@/utils/app-update'
 
 const appStore = useAppStore()
 const userStore = useUserStore()
@@ -14,6 +16,7 @@ const dictStore = useDictStore()
 const themeStore = useThemeStore()
 const router = useRouter()
 const route = useRoute()
+const { check: checkAppVersion, latest: appLatest, forceUpdate: appForceUpdate } = useAppVersion()
 
 // 同步设置 data-theme（在首次渲染前确保 themes.scss 的 CSS 变量生效）
 //#ifdef H5
@@ -64,6 +67,17 @@ const initData = async () => {
     await appStore.loadUserMenuConfig()
 }
 
+// App 端：启动时检测版本更新
+// 强制更新立即弹窗提醒；可选更新不打扰，留给「我的 - 关于我们」入口提示
+//#ifdef APP-PLUS
+const checkAppUpdateOnLaunch = async () => {
+    await checkAppVersion()
+    if (appForceUpdate.value && appLatest.value) {
+        showUpdateModal(appLatest.value, true)
+    }
+}
+//#endif
+
 onLaunch(async () => {
     await themeStore.getTheme()
     await getConfig()
@@ -88,6 +102,10 @@ onLaunch(async () => {
         }
     }
     // 确保退出登录态后仍能正常浏览无 auth 页面
+    // App 端：启动检测版本更新（强制更新立即弹窗，可选更新静默记录）
+    //#ifdef APP-PLUS
+    checkAppUpdateOnLaunch()
+    //#endif
     // App 端：重新扫描并注册本地提醒（清理过期 + 重注册最近提醒）
     syncReminders()
     // App 端：监听点击通知跳转对应页面
