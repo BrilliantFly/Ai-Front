@@ -133,9 +133,12 @@
                     <text class="form-card-header">其他设置</text>
                     <view class="fgs-full">
                         <text class="fg-label">适用计划类型</text>
-                        <picker :value="planTypeIndex" :range="planTypeOptions" @change="planTypeIndex = $event.detail.value">
-                            <view class="fg-select">{{ planTypeOptions[planTypeIndex] }}</view>
-                        </picker>
+                        <CascadePicker
+                            v-model="form.planType"
+                            :tree="planTypeTree"
+                            title="选择计划类型"
+                            placeholder="请选择计划类型"
+                        />
                     </view>
                     <view class="fgs-full">
                         <text class="fg-label">标签</text>
@@ -169,6 +172,8 @@
 import { ref, computed, onMounted } from 'vue'
 import { onLoad } from '@dcloudio/uni-app'
 import { getHabitTemplateDetail, createHabitTemplate, updateHabitTemplate } from '@/api/plan/habit-template'
+import { getPlanTypeTree } from '@/api/system/cascadeDict'
+import CascadePicker from '@/components/cascade/CascadePicker.vue'
 import { useHoverEffect } from '@/hooks/useHoverEffect'
 
 useHoverEffect('.action-btn,.back-btn,.icon-chip,.color-opt,.track-type-opt,.rd-btn')
@@ -197,13 +202,21 @@ const habitThemes = [
 const colorOptions = ['#6366f1', '#22b573', '#f97316', '#a855f7', '#06b6d4', '#ec4899', '#f59e0b', '#ef4444', '#0ea5e9', '#8b5cf6']
 const freqOptions = ['每天', '每周', '每月', '自定义']
 const freqMap = ['daily', 'weekly', 'monthly', 'custom']
-const planTypeOptions = ['全部', '习惯', '日程', '综合']
 const visibilityOptions = ['私有', '公开']
 const weekDays = ['日', '一', '二', '三', '四', '五', '六']
 
 const freqIndex = ref(0)
-const planTypeIndex = ref(0)
 const visibilityIndex = ref(0)
+
+const planTypeTree = ref([])
+
+const loadPlanTypeTree = async () => {
+    try {
+        planTypeTree.value = (await getPlanTypeTree()) || []
+    } catch (e) {
+        console.error('加载计划类型失败', e)
+    }
+}
 
 const form = ref({
     name: '',
@@ -257,7 +270,7 @@ const buildPayload = () => ({
     reminderTime: form.value.reminderTime || undefined,
     restDays: form.value.restDays.length ? JSON.stringify(form.value.restDays) : undefined,
     tags: form.value.tags || undefined,
-    planType: planTypeOptions[planTypeIndex.value] !== '全部' ? planTypeOptions[planTypeIndex.value] : undefined,
+    planType: form.value.planType || undefined,
     visibility: visibilityIndex.value === 1 ? 1 : 0
 })
 
@@ -304,6 +317,7 @@ const fetchDetail = async (id) => {
             form.value.reminderTime = res.reminderTime || ''
             try { form.value.restDays = JSON.parse(res.restDays || '[]') } catch { form.value.restDays = [] }
             form.value.tags = res.tags || ''
+            form.value.planType = res.planType || ''
             form.value.visibility = res.visibility || 0
             visibilityIndex.value = form.value.visibility === 1 ? 1 : 0
         }
@@ -327,6 +341,10 @@ onLoad((options) => {
     if (isEdit.value) {
         fetchDetail(templateId.value)
     }
+})
+
+onMounted(() => {
+    loadPlanTypeTree()
 })
 </script>
 

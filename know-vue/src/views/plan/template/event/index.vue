@@ -37,6 +37,9 @@
         @change="handleTableChange"
       >
         <template #bodyCell="{ column, record }">
+          <template v-if="column.key === 'planType'">
+            {{ resolvePlanType(record.planType) || '-' }}
+          </template>
           <template v-if="column.key === 'isRepeat'">
             {{ record.isRepeat ? '是' : '否' }}
           </template>
@@ -87,14 +90,15 @@
           <a-textarea v-model:value="form.content" :rows="3" />
         </a-form-item>
         <a-form-item label="计划类型">
-          <a-select v-model:value="form.planType" placeholder="请选择类型" allow-clear>
-            <a-select-option value="life">生活习惯</a-select-option>
-            <a-select-option value="cognition">认知提升</a-select-option>
-            <a-select-option value="skill">工作技能</a-select-option>
-            <a-select-option value="project">项目</a-select-option>
-            <a-select-option value="hobby">兴趣爱好</a-select-option>
-            <a-select-option value="study">学习</a-select-option>
-          </a-select>
+          <a-cascader
+            v-model:value="formPlanTypePath"
+            :options="planTypeOptions"
+            placeholder="请选择类型"
+            allow-clear
+            show-search
+            change-on-select
+            style="width: 100%"
+          />
         </a-form-item>
         <a-form-item label="事件类型">
           <a-select v-model:value="form.eventType" placeholder="请选择类型" allow-clear>
@@ -159,10 +163,12 @@
 
 <script setup lang="ts">
 import BizFullscreenModal from '@/components/BizFullscreenModal.vue'
-import { ref, reactive, onMounted } from 'vue'
+import { ref, reactive, computed, onMounted } from 'vue'
 import { message } from 'ant-design-vue'
 import { SearchOutlined, ReloadOutlined, PlusOutlined } from '@ant-design/icons-vue'
 import { getEventTemplateList, addEventTemplate, updateEventTemplate, deleteEventTemplate } from '@/api/plan/template'
+import { getPlanTypeTree } from '@/api/system/cascadeDict'
+import { buildCascaderOptions, resolveCascadePath, resolveCascadeValuePath } from '@/utils/cascadeDict'
 
 const loading = ref(false)
 const saving = ref(false)
@@ -174,10 +180,28 @@ const pageNum = ref(1)
 const pageSize = ref(10)
 const total = ref(0)
 
+// 计划类型级联字典
+const planTypeTree = ref<any[]>([])
+const planTypeOptions = computed(() => buildCascaderOptions(planTypeTree.value))
+
+const fetchPlanTypeTree = async () => {
+  try {
+    const res = await getPlanTypeTree()
+    if (res && res.code === 1 && Array.isArray(res.data)) {
+      planTypeTree.value = res.data
+    }
+  } catch (e) {
+    console.error('获取计划类型级联字典失败:', e)
+  }
+}
+
+const resolvePlanType = (val: any) => resolveCascadePath(planTypeTree.value, val)
+
 const queryParams = reactive({ query: '' })
 
 const columns = [
   { title: '模板名称', dataIndex: 'templateName', key: 'templateName' },
+  { title: '计划类型', dataIndex: 'planType', key: 'planType' },
   { title: '标题', dataIndex: 'title', key: 'title' },
   { title: '事件类型', dataIndex: 'eventType', key: 'eventType' },
   { title: '优先级', dataIndex: 'priority', key: 'priority' },
@@ -209,6 +233,14 @@ const form = reactive({
   tags: '',
   visibility: 0,
   sort: 0
+})
+
+// a-cascader 双向代理：内部保存末位节点编码，回显时解析完整路径
+const formPlanTypePath = computed({
+  get: () => resolveCascadeValuePath(planTypeTree.value, form.planType),
+  set: (val: any) => {
+    form.planType = Array.isArray(val) && val.length ? val[val.length - 1] : undefined
+  }
 })
 
 const resetForm = () => {
@@ -341,6 +373,7 @@ const formatTime = (ts: any) => {
 
 onMounted(() => {
   fetchData()
+  fetchPlanTypeTree()
 })
 </script>
 

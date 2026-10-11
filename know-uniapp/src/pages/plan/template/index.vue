@@ -85,6 +85,7 @@
                         v-for="item in list"
                         :key="item.id"
                         :t="item"
+                        :plan-type-label="resolveCascadePath(planTypeTree, item.planType)"
                         @tap="goDetail(item.id)"
                         @use="goUse(item.id)"
                     />
@@ -107,6 +108,8 @@ import { ref, computed, onMounted } from 'vue'
 import { onShow } from '@dcloudio/uni-app'
 import TemplateCard from './components/TemplateCard.vue'
 import { getTemplateList, getHotTemplates } from '@/api/plan/template'
+import { getPlanTypeTree } from '@/api/system/cascadeDict'
+import { resolveCascadePath } from '@/utils/cascade'
 import { useHoverEffect } from '@/hooks/useHoverEffect'
 
 useHoverEffect('.template-card,.floating-add,.filter-tab,.hot-card')
@@ -122,13 +125,25 @@ const pageSize = 10
 const hasMore = ref(true)
 const hasLoaded = ref(false)
 
-const filterTabs = computed(() => [
-    { label: '全部', value: 'all' },
-    { label: '习惯', value: 'habit' },
-    { label: '日程', value: 'schedule' },
-    { label: '综合', value: 'combo' },
-    { label: '我的', value: 'mine' }
-])
+const planTypeTree = ref([])
+
+const loadPlanTypeTree = async () => {
+    try {
+        planTypeTree.value = (await getPlanTypeTree()) || []
+    } catch (e) {
+        console.error('加载计划类型失败', e)
+    }
+}
+
+// 筛选页签：全部 + 计划类型（级联字典顶层）+ 我的
+const filterTabs = computed(() => {
+    const tabs = [{ label: '全部', value: 'all' }]
+    planTypeTree.value.forEach((node) => {
+        tabs.push({ label: node.name, value: node.value })
+    })
+    tabs.push({ label: '我的', value: 'mine' })
+    return tabs
+})
 
 const fetchHot = async () => {
     try {
@@ -213,7 +228,7 @@ const goCreate = () => {
 }
 
 onMounted(async () => {
-    await Promise.all([fetchHot(), fetchList()])
+    await Promise.all([loadPlanTypeTree(), fetchHot(), fetchList()])
     hasLoaded.value = true
 })
 

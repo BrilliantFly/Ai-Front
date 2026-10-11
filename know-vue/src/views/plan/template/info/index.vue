@@ -37,6 +37,9 @@
         @change="handleTableChange"
       >
         <template #bodyCell="{ column, record }">
+          <template v-if="column.key === 'planType'">
+            {{ resolvePlanType(record.planType) || '-' }}
+          </template>
           <template v-if="column.key === 'visibility'">
             <a-tag :color="record.visibility === 1 ? 'green' : 'default'">
               {{ record.visibility === 1 ? '公开' : '私有' }}
@@ -79,14 +82,15 @@
           <a-input v-model:value="form.color" type="color" style="width: 60px" />
         </a-form-item>
         <a-form-item label="计划类型">
-          <a-select v-model:value="form.planType" placeholder="请选择类型" allow-clear>
-            <a-select-option value="life">生活习惯</a-select-option>
-            <a-select-option value="cognition">认知提升</a-select-option>
-            <a-select-option value="skill">工作技能</a-select-option>
-            <a-select-option value="project">项目</a-select-option>
-            <a-select-option value="hobby">兴趣爱好</a-select-option>
-            <a-select-option value="study">学习</a-select-option>
-          </a-select>
+          <a-cascader
+            v-model:value="formPlanTypePath"
+            :options="planTypeOptions"
+            placeholder="请选择类型"
+            allow-clear
+            show-search
+            change-on-select
+            style="width: 100%"
+          />
         </a-form-item>
         <a-form-item label="标签">
           <a-input v-model:value="form.tags" placeholder="多个标签用逗号分隔" />
@@ -149,7 +153,7 @@
             <a-descriptions-item label="父模板">
               {{ parentName(detailInfo) }}
             </a-descriptions-item>
-            <a-descriptions-item label="计划类型">{{ detailInfo.planType }}</a-descriptions-item>
+            <a-descriptions-item label="计划类型">{{ resolvePlanType(detailInfo.planType) || '-' }}</a-descriptions-item>
             <a-descriptions-item label="标签">{{ detailInfo.tags }}</a-descriptions-item>
             <a-descriptions-item label="默认优先级">{{ detailInfo.defaultPriority }}</a-descriptions-item>
             <a-descriptions-item label="可见性">
@@ -201,6 +205,8 @@ import {
   getHabitTemplateListAll,
   getEventTemplateListAll
 } from '@/api/plan/template'
+import { getPlanTypeTree } from '@/api/system/cascadeDict'
+import { buildCascaderOptions, resolveCascadePath, resolveCascadeValuePath } from '@/utils/cascadeDict'
 
 const loading = ref(false)
 const saving = ref(false)
@@ -211,6 +217,23 @@ const editId = ref<number | null>(null)
 const pageNum = ref(1)
 const pageSize = ref(10)
 const total = ref(0)
+
+// 计划类型级联字典
+const planTypeTree = ref<any[]>([])
+const planTypeOptions = computed(() => buildCascaderOptions(planTypeTree.value))
+
+const fetchPlanTypeTree = async () => {
+  try {
+    const res = await getPlanTypeTree()
+    if (res && res.code === 1 && Array.isArray(res.data)) {
+      planTypeTree.value = res.data
+    }
+  } catch (e) {
+    console.error('获取计划类型级联字典失败:', e)
+  }
+}
+
+const resolvePlanType = (val: any) => resolveCascadePath(planTypeTree.value, val)
 
 const parentTemplateOptions = ref<any[]>([])
 const habitTemplateOptions = ref<any[]>([])
@@ -252,6 +275,14 @@ const form = reactive({
   defaultEventIds: [] as number[],
   defaultSubPlans: '',
   useCount: 0
+})
+
+// a-cascader 双向代理：内部保存末位节点编码，回显时解析完整路径
+const formPlanTypePath = computed({
+  get: () => resolveCascadeValuePath(planTypeTree.value, form.planType),
+  set: (val: any) => {
+    form.planType = Array.isArray(val) && val.length ? val[val.length - 1] : undefined
+  }
 })
 
 const resetForm = () => {
@@ -523,6 +554,7 @@ onMounted(() => {
   loadParentOptions()
   loadHabitOptions()
   loadEventOptions()
+  fetchPlanTypeTree()
 })
 </script>
 

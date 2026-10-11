@@ -20,7 +20,7 @@
     <a-card v-if="templateDetail" title="模板信息" :bordered="false" class="section-card">
       <a-descriptions :column="2" bordered size="small">
         <a-descriptions-item label="模板名称">{{ templateDetail.templateName }}</a-descriptions-item>
-        <a-descriptions-item label="计划类型">{{ templateDetail.planType }}</a-descriptions-item>
+        <a-descriptions-item label="计划类型">{{ resolvePlanType(templateDetail.planType) || '-' }}</a-descriptions-item>
         <a-descriptions-item label="描述" :span="2">{{ templateDetail.description || '无' }}</a-descriptions-item>
         <a-descriptions-item label="默认天数">{{ templateDetail.defaultDurationDays }}</a-descriptions-item>
         <a-descriptions-item label="默认优先级">{{ templateDetail.defaultPriority }}</a-descriptions-item>
@@ -88,6 +88,8 @@ import { ref, reactive, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { message } from 'ant-design-vue'
 import { getTemplateList, getTemplateDetail, useTemplateApi } from '@/api/plan/template'
+import { getPlanTypeTree } from '@/api/system/cascadeDict'
+import { resolveCascadePath } from '@/utils/cascadeDict'
 
 const router = useRouter()
 
@@ -102,6 +104,22 @@ const habits = ref<any[]>([])
 const events = ref<any[]>([])
 const selectedHabits = ref<number[]>([])
 const selectedEvents = ref<number[]>([])
+
+// 计划类型级联字典
+const planTypeTree = ref<any[]>([])
+
+const fetchPlanTypeTree = async () => {
+  try {
+    const res = await getPlanTypeTree()
+    if (res && res.code === 1 && Array.isArray(res.data)) {
+      planTypeTree.value = res.data
+    }
+  } catch (e) {
+    console.error('获取计划类型级联字典失败:', e)
+  }
+}
+
+const resolvePlanType = (val: any) => resolveCascadePath(planTypeTree.value, val)
 
 const form = reactive({
   planName: '',
@@ -197,6 +215,7 @@ const handleSubmit = async () => {
 
 onMounted(() => {
   loadTemplateList()
+  fetchPlanTypeTree()
 })
 </script>
 

@@ -63,6 +63,14 @@ const SystemRoute: AppRoute = {
       }
     },
     {
+      path: 'cascade-dict',
+      name: 'CascadeDict',
+      component: () => import('@/views/system/cascadeDict.vue'),
+      meta: {
+        title: '级联字典'
+      }
+    },
+    {
       path: 'tabbar',
       name: 'Tabbar',
       component: () => import('@/views/system/tabbar/index.vue'),

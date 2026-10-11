@@ -132,9 +132,12 @@
                     </view>
                     <view class="fgs-full">
                         <text class="fg-label">适用计划类型</text>
-                        <picker :value="planTypeIndex" :range="planTypeOptions" @change="planTypeIndex = $event.detail.value">
-                            <view class="fg-select">{{ planTypeOptions[planTypeIndex] }}</view>
-                        </picker>
+                        <CascadePicker
+                            v-model="form.planType"
+                            :tree="planTypeTree"
+                            title="选择计划类型"
+                            placeholder="请选择"
+                        />
                     </view>
                     <view class="fgs-full">
                         <text class="fg-label">标签</text>
@@ -168,6 +171,8 @@
 import { ref, onMounted } from 'vue'
 import { onLoad } from '@dcloudio/uni-app'
 import { getEventTemplateDetail, createEventTemplate, updateEventTemplate } from '@/api/plan/event-template'
+import { getPlanTypeTree } from '@/api/system/cascadeDict'
+import CascadePicker from '@/components/cascade/CascadePicker.vue'
 import { useHoverEffect } from '@/hooks/useHoverEffect'
 
 useHoverEffect('.action-btn,.back-btn,.star')
@@ -180,14 +185,22 @@ const templateId = ref('')
 const eventTypeOptions = ['普通', '重要', '紧急', '会议', '截止']
 const quadrantOptions = ['不重要不紧急', '重要不紧急', '不重要紧急', '重要紧急']
 const repeatTypeOptions = ['每天', '每周', '每月', '每年']
-const planTypeOptions = ['全部', '习惯', '日程', '综合']
 const visibilityOptions = ['私有', '公开']
 
 const eventTypeIndex = ref(0)
 const quadrantIndex = ref(0)
 const repeatTypeIndex = ref(0)
-const planTypeIndex = ref(0)
 const visibilityIndex = ref(0)
+
+const planTypeTree = ref([])
+
+const loadPlanTypeTree = async () => {
+    try {
+        planTypeTree.value = (await getPlanTypeTree()) || []
+    } catch (e) {
+        console.error('加载计划类型失败', e)
+    }
+}
 
 const form = ref({
     name: '',
@@ -226,7 +239,7 @@ const buildPayload = () => ({
     reminderMinutes: form.value.reminderMinutes ? Number(form.value.reminderMinutes) : undefined,
     location: form.value.location || undefined,
     tags: form.value.tags || undefined,
-    planType: planTypeOptions[planTypeIndex.value] !== '全部' ? planTypeOptions[planTypeIndex.value] : undefined,
+    planType: form.value.planType || undefined,
     visibility: visibilityIndex.value === 1 ? 1 : 0
 })
 
@@ -284,6 +297,7 @@ const fetchDetail = async (id) => {
             form.value.reminderMinutes = res.reminderMinutes || ''
             form.value.location = res.location || ''
             form.value.tags = res.tags || ''
+            form.value.planType = res.planType || ''
             form.value.visibility = res.visibility || 0
             visibilityIndex.value = form.value.visibility === 1 ? 1 : 0
         }
@@ -307,6 +321,10 @@ onLoad((options) => {
     if (isEdit.value) {
         fetchDetail(templateId.value)
     }
+})
+
+onMounted(() => {
+    loadPlanTypeTree()
 })
 </script>
 

@@ -8,8 +8,8 @@
                 <text class="tc-name">{{ t.name }}</text>
                 <text class="tc-desc" v-if="t.description">{{ t.description }}</text>
             </view>
-            <view v-if="t.planType" class="tc-type-badge" :style="{ color: t.color || 'var(--color-primary)', background: (t.color || 'var(--color-primary)') + '18' }">
-                {{ t.planType }}
+            <view v-if="planTypeLabel || t.planType" class="tc-type-badge" :style="{ color: t.color || 'var(--color-primary)', background: (t.color || 'var(--color-primary)') + '18' }">
+                {{ planTypeLabel || t.planType }}
             </view>
         </view>
         <view class="tc-stats">
@@ -38,7 +38,8 @@
 
 <script setup>
 defineProps({
-    t: { type: Object, default: () => ({}) }
+    t: { type: Object, default: () => ({}) },
+    planTypeLabel: { type: String, default: '' }
 })
 defineEmits(['tap', 'use'])
 </script>
