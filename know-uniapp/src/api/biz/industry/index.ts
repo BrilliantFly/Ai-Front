@@ -17,6 +17,10 @@ export interface BizIndustry {
     parentName?: string
     industryName?: string
     industryCode?: string
+    /** 行业类型（级联字典 industry_type 节点值） */
+    industryType?: string
+    /** 行业属性(1:主行业 2:竞争者 3:依托者 4:共利者) */
+    industryAttr?: number
     /** 标签（逗号分隔） */
     tags?: string
     /** 可见性（1 可见 / 0 隐藏） */

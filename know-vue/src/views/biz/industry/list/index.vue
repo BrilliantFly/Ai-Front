@@ -180,6 +180,7 @@ import { message } from 'ant-design-vue'
 import type { FormInstance } from 'ant-design-vue'
 import { PlusOutlined, SearchOutlined, RedoOutlined } from '@ant-design/icons-vue'
 import { getIndustryTree, getIndustryDetail, addIndustry, updateIndustry, deleteIndustry, type BizIndustry, type BizIndustryQuery } from '@/api/biz/industry'
+import { getIndustryTypeTree } from '@/api/system/cascadeDict'
 import type { BizIndustryMarket } from '@/api/biz/market'
 import MatrixTable from '../../components/MatrixTable.vue'
 import BizFullscreenModal from '@/components/BizFullscreenModal.vue'
@@ -218,6 +219,30 @@ const enterpriseColumns = [
   { title: '主营业务', dataIndex: 'mainBusiness', key: 'mainBusiness', ellipsis: true },
   { title: '操作', key: 'action', width: 80 }
 ]
+
+// 行业类型级联字典（sys_cascade_dict type_code=industry_type）
+const industryTypeTree = ref<any[]>([])
+
+/** 字典树 -> a-cascader 选项（name->label） */
+const toCascaderOptions = (nodes: any[]): { label: string; value: any; children?: any[] }[] =>
+  (nodes || []).map((n) => {
+    const opt: { label: string; value: any; children?: any[] } = { label: n.name, value: n.value }
+    if (n.children?.length) opt.children = toCascaderOptions(n.children)
+    return opt
+  })
+
+const industryTypeOptions = computed(() => toCascaderOptions(industryTypeTree.value))
+
+const loadIndustryTypeTree = async () => {
+  try {
+    const res: any = await getIndustryTypeTree()
+    const data = res?.data || res
+    industryTypeTree.value = Array.isArray(data) ? data : []
+  } catch (e) {
+    console.error('加载行业类型级联字典失败', e)
+    industryTypeTree.value = []
+  }
+}
 
 // 行业详情弹窗状态
 const detailModal = reactive({
@@ -291,12 +316,13 @@ const detailOptionsMap = computed<Record<string, { label: string; value: any }[]
     }
   }
   walk(industryList.value, '')
-  return { parentId: opts }
+  return { parentId: opts, industryType: industryTypeOptions.value }
 })
 
 // 表单弹窗上级行业选项
 const formOptionsMap = computed<Record<string, { label: string; value: any }[]>>(() => ({
-  parentId: parentOptions.value
+  parentId: parentOptions.value,
+  industryType: industryTypeOptions.value
 }))
 
 // 加载行业树
@@ -345,6 +371,8 @@ const formData = reactive<Partial<BizIndustry>>({
   industryName: '',
   industryCode: '',
   tags: '',
+  industryType: '',
+  industryAttr: undefined,
   visibility: 1,
   sort: 0,
   parentId: undefined,
@@ -381,6 +409,8 @@ const handleAdd = () => {
   formData.industryName = ''
   formData.industryCode = ''
   formData.tags = ''
+  formData.industryType = ''
+  formData.industryAttr = undefined
   formData.visibility = 1
   formData.sort = 0
   formData.parentId = undefined
@@ -411,6 +441,8 @@ const handleEdit = (record: BizIndustry) => {
   modalTitle.value = '编辑行业'
   Object.assign(formData, {
     ...record,
+    industryType: record.industryType || '',
+    industryAttr: record.industryAttr,
     dynamicInfo: record.dynamicInfo || '',
     valueInfo: record.valueInfo || '',
     industryResources: record.industryResources || '',
@@ -535,6 +567,7 @@ const openEnterpriseDetail = (record: any) => {
 
 onMounted(() => {
   loadData()
+  loadIndustryTypeTree()
 })
 </script>
 

@@ -345,6 +345,8 @@ import { deleteProduct } from '@/api/biz/industry/product'
 import { deleteEnterprise } from '@/api/biz/industry/enterprise'
 import { industrySections, type UniFieldDef, type UniSectionDef } from '@/config/industry-sections'
 import { maskPhone } from '@/utils/format'
+import { getIndustryTypeTree } from '@/api/system/cascadeDict'
+import { resolveCascadePath } from '@/utils/cascade'
 import IndustryFormSheet from '@/components/industry/IndustryFormSheet.vue'
 import ProductFormSheet from '@/components/industry/ProductFormSheet.vue'
 import EnterpriseFormSheet from '@/components/industry/EnterpriseFormSheet.vue'
@@ -431,6 +433,9 @@ const customers = ref<CustomerItem[]>([])
 const customerCount = ref(0)
 const activeTab = ref('overview')
 
+/** 行业类型级联字典（sys_cascade_dict type_code=industry_type），用于详情展示名称路径 */
+const industryTypeTree = ref<any[]>([])
+
 const tabs = [
     { key: 'overview', label: '全部' },
     { key: 'product', label: '产品' },
@@ -485,6 +490,10 @@ const fieldValue = (field: DetailField): string | number | undefined => {
     }
     const raw = (detail.value as Record<string, any>)[field.key]
     if (raw === null || raw === undefined || raw === '') return undefined
+    // 行业类型：级联字典 -> 名称路径
+    if (field.type === 'cascade') {
+        return resolveCascadePath(industryTypeTree.value, raw) || undefined
+    }
     if (field.options?.length) {
         const hit = field.options.find((o) => String(o.value) === String(raw))
         return hit?.label
@@ -625,10 +634,22 @@ const loadCustomers = async () => {
     }
 }
 
+/** 行业类型级联字典（详情展示名称路径） */
+const loadIndustryTypeTree = async () => {
+    if (industryTypeTree.value.length) return
+    try {
+        industryTypeTree.value = (await getIndustryTypeTree()) || []
+    } catch (error) {
+        console.error('加载行业类型级联字典失败', error)
+        industryTypeTree.value = []
+    }
+}
+
 const reload = () => {
     if (!props.recordId) return
     loadDetail()
     loadCustomers()
+    loadIndustryTypeTree()
 }
 
 watch(

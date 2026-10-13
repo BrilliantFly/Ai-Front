@@ -10,7 +10,7 @@ export interface UniFieldDef {
     /** 字段 key（点路径） */
     key: string
     /** 控件类型：input=单行文本 / number=数字(digit) / textarea=多行 / select=单选弹层 / selectMultiple=多选 chips / industryPicker=行业多选 / industryParent=上级行业单选(树形) / date=日期选择 */
-    type?: 'text' | 'number' | 'textarea' | 'select' | 'selectMultiple' | 'industryPicker' | 'industryParent' | 'date'
+    type?: 'text' | 'number' | 'textarea' | 'select' | 'selectMultiple' | 'industryPicker' | 'industryParent' | 'date' | 'cascade'
     /** 单选/多选静态选项 */
     options?: { label: string; value: string | number }[]
     /** 输入占位提示（需带括号说明） */
@@ -46,6 +46,23 @@ export const industrySections: UniSectionDef[] = [
                     },
                     { label: '行业名称', key: 'industryName', placeholder: '请输入行业名称（必填）', required: true },
                     { label: '行业代码', key: 'industryCode', placeholder: '请输入行业代码（选填，如 AI-01）' },
+                    {
+                        label: '行业类型',
+                        key: 'industryType',
+                        type: 'cascade',
+                        placeholder: '请选择行业类型（选填，来源：级联字典）'
+                    },
+                    {
+                        label: '行业属性',
+                        key: 'industryAttr',
+                        type: 'select',
+                        options: [
+                            { label: '主行业', value: 1 },
+                            { label: '竞争者', value: 2 },
+                            { label: '依托者', value: 3 },
+                            { label: '共利者', value: 4 }
+                        ]
+                    },
                     { label: '标签', key: 'tags', placeholder: '多个标签用逗号分隔（选填）' },
                     {
                         label: '可见性',

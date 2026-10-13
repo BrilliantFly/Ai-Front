@@ -125,3 +125,8 @@ export function deleteCascadeDictData(id: number): Promise<any> {
 export function getPlanTypeTree(): Promise<any> {
   return getCascadeDictTree({ typeCode: 'plan_type', status: 1 })
 }
+
+/** 行业类型级联树（仅启用节点，数据源：sys_cascade_dict type_code=industry_type） */
+export function getIndustryTypeTree(): Promise<any> {
+  return getCascadeDictTree({ typeCode: 'industry_type', status: 1 })
+}

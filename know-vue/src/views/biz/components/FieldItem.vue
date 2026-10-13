@@ -49,6 +49,15 @@
       allow-clear
       style="width: 100%"
     />
+    <a-cascader
+      v-else-if="field.type === 'cascader'"
+      :value="cascaderPath"
+      :options="options"
+      :placeholder="field.placeholder || `请选择${field.label}`"
+      allow-clear
+      style="width: 100%"
+      @change="onCascaderChange"
+    />
   </a-form-item>
 </template>
 
@@ -61,7 +70,7 @@ const props = withDefaults(
     field: FieldDef
     model: Record<string, any>
     mode?: 'form' | 'detail'
-    options?: { label: string; value: any }[]
+    options?: { label: string; value: any; children?: any[] }[]
   }>(),
   { mode: 'form', options: undefined }
 )
@@ -108,6 +117,36 @@ const setPath = (obj: Record<string, any>, key: string, val: any) => {
   cur[parts[parts.length - 1]] = val
 }
 
+/**
+ * 级联: 依据节点值在选项树中查找完整路径(节点数组)。
+ * 命中返回从根到该节点的节点链, 未命中返回空数组。
+ */
+type CascadeOption = { label: string; value: any; children?: any[] }
+const findCascaderPath = (nodes: CascadeOption[] | undefined, target: any, path: CascadeOption[] = []): CascadeOption[] => {
+  if (!nodes?.length || target === undefined || target === null || target === '') return []
+  for (const node of nodes) {
+    const next = [...path, node]
+    if (String(node.value) === String(target)) return next
+    if (node.children?.length) {
+      const found = findCascaderPath(node.children, target, next)
+      if (found.length) return found
+    }
+  }
+  return []
+}
+
+/** a-cascader 受控值: 由存储的节点值反推路径数组 */
+const cascaderPath = computed<any[]>(() => {
+  const raw = resolvePath(props.model, props.field.key)
+  return findCascaderPath(props.options, raw).map((n) => n.value)
+})
+
+/** a-cascader 仅回写末级节点值(字符串), 与业务存储保持一致 */
+const onCascaderChange = (val: any) => {
+  const v = Array.isArray(val) ? val[val.length - 1] : val
+  setPath(props.model, props.field.key, v === undefined || v === null ? '' : v)
+}
+
 const value = computed({
   get: () => resolvePath(props.model, props.field.key),
   set: (v) => setPath(props.model, props.field.key, v)
@@ -120,6 +159,12 @@ const displayValue = computed(() => {
   if (props.field.type === 'select' && props.options?.length && props.field.key) {
     const matched = props.options.find((o) => o.value === raw)
     if (matched) return matched.label
+  }
+  // cascader 类型: 由节点值解析完整名称路径展示
+  if (props.field.type === 'cascader') {
+    const path = findCascaderPath(props.options, raw)
+    if (path.length) return path.map((n) => n.label).join(' / ')
+    return String(raw)
   }
   if (Array.isArray(raw)) {
     if (!raw.length) return '-'

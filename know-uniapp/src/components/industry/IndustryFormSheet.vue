@@ -68,6 +68,15 @@
                                         :placeholder="field.placeholder || '请选择（可多选）'"
                                     />
 
+                                    <!-- 级联选择（行业类型） -->
+                                    <CascadePicker
+                                        v-else-if="field.type === 'cascade'"
+                                        v-model="formData[field.key]"
+                                        :tree="industryTypeTree"
+                                        :title="field.label"
+                                        :placeholder="field.placeholder || '请选择'"
+                                    />
+
                                     <!-- 行业多选 -->
                                     <IndustryPicker
                                         v-else-if="field.type === 'industryPicker'"
@@ -160,6 +169,7 @@ import { computed, ref, watch } from 'vue'
 import SectionCard from '@/components/customer/SectionCard.vue'
 import MultiSelectChips from '@/components/customer/MultiSelectChips.vue'
 import IndustryPicker from '@/components/customer/IndustryPicker.vue'
+import CascadePicker from '@/components/cascade/CascadePicker.vue'
 import { useLockFn } from '@/hooks/useLockFn'
 import { industrySections, type UniFieldDef, type UniSectionDef } from '@/config/industry-sections'
 import {
@@ -169,6 +179,7 @@ import {
     getIndustryTree,
     type BizIndustry
 } from '@/api/biz/industry'
+import { getIndustryTypeTree } from '@/api/system/cascadeDict'
 
 const props = withDefaults(
     defineProps<{
@@ -259,6 +270,7 @@ const onPopupChange = async (e: { show: boolean }) => {
     if (e.show) {
         resetForm()
         await loadParentOptions()
+        await loadIndustryTypeTree()
         if (isEdit.value && props.recordId) {
             await fillForm()
         }
@@ -307,6 +319,18 @@ const loadParentOptions = async () => {
 const defaultPlaceholder = (field: UniFieldDef) => {
     const label = field.label.replace(/（.*?）/g, '')
     return `请输入${label}（选填）`
+}
+
+/* 行业类型级联字典（sys_cascade_dict type_code=industry_type） */
+const industryTypeTree = ref<any[]>([])
+
+const loadIndustryTypeTree = async () => {
+    try {
+        industryTypeTree.value = (await getIndustryTypeTree()) || []
+    } catch (error) {
+        console.error('加载行业类型级联字典失败', error)
+        industryTypeTree.value = []
+    }
 }
 
 const selectLabel = (field: UniFieldDef) => {
@@ -373,6 +397,7 @@ const isChoiceField = (field: UniFieldDef) =>
     field.type === 'selectMultiple' ||
     field.type === 'industryPicker' ||
     field.type === 'industryParent' ||
+    field.type === 'cascade' ||
     field.type === 'date'
 
 const buildPayload = (): Record<string, any> => {
