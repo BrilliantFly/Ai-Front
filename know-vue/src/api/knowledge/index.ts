@@ -229,3 +229,43 @@ export function removeMember(id) {
     method: 'delete'
   })
 }
+
+// 文件上传API
+export function uploadKnowledgeFiles(formData) {
+  return service({
+    url: '/api/knowledge/file/upload',
+    method: 'post',
+    data: formData,
+    headers: { 'Content-Type': 'multipart/form-data' }
+  })
+}
+
+export function getKnowledgeFilePage(params) {
+  return service({
+    url: '/api/knowledge/file/page',
+    method: 'get',
+    params
+  })
+}
+
+export function getKnowledgeFile(id) {
+  return service({
+    url: `/api/knowledge/file/${id}`,
+    method: 'get'
+  })
+}
+
+export function parseKnowledgeFile(fileId) {
+  return service({
+    url: '/api/knowledge/file/parse',
+    method: 'post',
+    data: { fileId }
+  })
+}
+
+export function deleteKnowledgeFile(id) {
+  return service({
+    url: `/api/knowledge/file/${id}`,
+    method: 'delete'
+  })
+}

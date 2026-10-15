@@ -43,6 +43,14 @@ const KnowledgeRoute: AppRoute = {
       meta: {
         title: '标签管理'
       }
+    },
+    {
+      path: 'file',
+      name: 'KnowledgeFile',
+      component: () => import('@/views/knowledge/file/index.vue'),
+      meta: {
+        title: '文件管理'
+      }
     }
   ]
 }
