@@ -32,7 +32,7 @@
     "@wangeditor/editor-for-vue": "^5.1.12",
     "ant-design-vue": "^4.2.5",
     "axios": "^1.6.5",
-    "codemirror": "^6.0.1",
+    "codemirror": "6.0.2",
     "crypto-js": "^4.2.0",
     "dom-to-image": "^2.6.0",
     "echarts": "^5.4.3",
@@ -138,6 +138,9 @@
       "path": "node_modules/cz-git"
     }
   },
+  "overrides": {
+    "codemirror": "6.0.2"
+  },
   "pnpm": {
     "allowedDeprecatedVersions": {
       "stable": "*",
@@ -149,6 +152,9 @@
       "source-map-url": "*",
       "sourcemap-codec": "*",
       "source-map-resolve": "*"
+    },
+    "overrides": {
+      "codemirror": "6.0.2"
     }
   }
 }
