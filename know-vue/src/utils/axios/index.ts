@@ -41,11 +41,10 @@ const handleError = (error: AxiosError): Promise<AxiosError> => {
 
 // Request interceptors configuration
 service.interceptors.request.use((config: InternalAxiosRequestConfig) => {
-  // 优先从 localStorage 读取 token
-  let token = localStorage.getItem('token')
-  if (!token) {
-    token = getToken() as string
-  }
+  // 统一使用本应用的登录态 token（Persistent 缓存的 TOKEN_KEY）。
+  // 不再优先读取裸 localStorage['token']：该键本应用从不写入，可能被同源其他应用或历史数据污染，
+  // 会导致重新登录后仍然发送过期 token（后端返回“token参数无效”）。
+  const token = getToken() as string
   if (token) {
     ;(config as Recordable).headers['token'] = `${token}`
   }
@@ -60,10 +59,39 @@ service.interceptors.request.use((config: InternalAxiosRequestConfig) => {
   return config
 }, handleError)
 
+// 登录态失效统一处理：清除本地登录态并跳转登录页
+const handleInvalidToken = (msg?: string) => {
+  clearAuthCache()
+  // 清理可能存在的裸 token 键（历史/同源污染），避免下次继续发送无效 token
+  localStorage.removeItem('token')
+  message.error(msg || '登录状态已失效，请重新登录')
+  const current = router.currentRoute.value
+  if (current.path !== '/login') {
+    router.replace({
+      path: '/login',
+      query: current.fullPath ? { redirect: current.fullPath } : undefined
+    })
+  }
+}
+
 // Respose interceptors configuration
 service.interceptors.response.use((response: AxiosResponse) => {
   const data = response.data
   console.log('Axios 响应原始数据:', data)
+
+  // token 无效：后端 TOKEN_INVALID 返回 code=-1（注意是 HTTP 200，需在此单独处理，否则会卡在错误提示）
+  if (data.code === -1) {
+    console.log('Axios 检测到 token 无效(code=-1)，清除登录态并跳转登录页')
+    handleInvalidToken(data.msg)
+    return Promise.reject(new Error(data.msg || 'token参数无效'))
+  }
+
+  // token 为空/登录超时：后端 TOKEN_EMPTY 返回 code=0 且 msg 含“登录超时”
+  if (data.code === 0 && typeof data.msg === 'string' && data.msg.indexOf('登录超时') !== -1) {
+    console.log('Axios 检测到登录超时，清除登录态并跳转登录页')
+    handleInvalidToken(data.msg)
+    return Promise.reject(new Error(data.msg))
+  }
 
   // 后端成功 code=0 或 code=1 或 code=2
   if (data.code === 0 || data.code === 1 || data.code === 2 || data.code === 200) {
