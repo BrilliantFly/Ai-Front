@@ -171,6 +171,41 @@ export function getImageUrl(id: number) {
   return request.get({ url: `/knowledge/image/url/${id}` })
 }
 
+// ========== 文件上传API ==========
+export function getUploadedFilePage(data: Record<string, any>) {
+  return request.get({ url: '/knowledge/file/page', data })
+}
+export function getUploadedFile(id: number) {
+  return request.get({ url: `/knowledge/file/${id}` })
+}
+export function parseUploadedFile(fileId: number) {
+  return request.post({ url: '/knowledge/file/parse', data: { fileId } })
+}
+export function deleteUploadedFile(id: number) {
+  return request.delete({ url: `/knowledge/file/${id}` })
+}
+export function uploadKnowledgeFile(filePath: string, knowledgeBaseId?: number) {
+  return new Promise((resolve, reject) => {
+    uni.uploadFile({
+      url: '/api/knowledge/file/upload',
+      filePath,
+      name: 'files',
+      formData: {
+        uploadPlatform: 'uniapp',
+        ...(knowledgeBaseId ? { knowledgeBaseId: String(knowledgeBaseId) } : {})
+      },
+      success: (res) => {
+        try {
+          resolve(JSON.parse(res.data))
+        } catch (e) {
+          reject(e)
+        }
+      },
+      fail: reject
+    })
+  })
+}
+
 // ========== 成员管理API ==========
 export function getMemberList(knowledgeBaseId: number) {
   return request.get({ url: '/knowledge/base-member/list', data: { knowledgeBaseId } })

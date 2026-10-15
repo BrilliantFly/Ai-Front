@@ -62,6 +62,18 @@
             }
         },
         {
+            "path": "pages/knowledge/file-upload/index",
+            "style": {
+                "navigationStyle": "custom"
+            }
+        },
+        {
+            "path": "pages/knowledge/file-preview/index",
+            "style": {
+                "navigationStyle": "custom"
+            }
+        },
+        {
             "path": "pages/index/index-v1",
             "style": {
                 // #ifndef H5
