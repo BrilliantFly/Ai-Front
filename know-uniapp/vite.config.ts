@@ -61,9 +61,9 @@ export default defineConfig({
                 target: 'http://localhost:8082',
                 changeOrigin: true
             },
-// 知识库模块 (由 know-boot-knowledge/8086 提供服务)
+// 知识库模块 (standalone 模式由 know-boot-system/8082 提供服务)
             '/api/knowledge': {
-                target: 'http://localhost:8086',
+                target: 'http://localhost:8082',
                 changeOrigin: true
             },
             // Python AI服务 (如有)
