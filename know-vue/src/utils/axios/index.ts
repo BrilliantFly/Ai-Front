@@ -55,7 +55,17 @@ service.interceptors.request.use((config: InternalAxiosRequestConfig) => {
     ;(config as Recordable).headers['X-Tenant-Id'] = tenant.id
   }
 
-  ;(config as Recordable).headers['Content-Type'] = 'application/json'
+  // 仅对普通 JSON 请求设置 Content-Type。
+  // 文件上传使用 FormData，绝不能强制 application/json：否则 axios 的 transformRequest
+  // 会把 FormData 序列化成 JSON 发送，后端收到非 multipart 请求即报
+  // "Current request is not a multipart request"。此时应留空，让浏览器自动带上
+  // multipart/form-data 及其 boundary。
+  const payload: unknown = config.data
+  const isFormDataPayload =
+    typeof FormData !== 'undefined' && payload instanceof FormData
+  if (!isFormDataPayload) {
+    ;(config as Recordable).headers['Content-Type'] = 'application/json'
+  }
   return config
 }, handleError)
 

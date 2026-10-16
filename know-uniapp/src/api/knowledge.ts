@@ -155,22 +155,17 @@ export function clearSearchHistory() {
 
 // ========== 图片API ==========
 export function uploadImage(filePath: string) {
-  return new Promise((resolve, reject) => {
-    uni.uploadFile({
-      url: '/api/knowledge/image/upload',
+  // 走 request.uploadFile：自动注入 token 头与 /api 前缀。
+  // 直接调用 uni.uploadFile 会绕过拦截器，导致缺少 token 被后端判定为未登录。
+  // isTransformResponse:false 保持返回原始 AjaxResult，兼容调用方 uploadRes.data 的用法。
+  return request.uploadFile(
+    {
+      url: '/knowledge/image/upload',
       filePath,
-      name: 'file',
-      success: (res) => {
-        try {
-          const data = JSON.parse(res.data)
-          resolve(data)
-        } catch (e) {
-          reject(e)
-        }
-      },
-      fail: reject
-    })
-  })
+      name: 'file'
+    },
+    { isTransformResponse: false }
+  )
 }
 export function getImageUrl(id: number) {
   return request.get({ url: `/knowledge/image/url/${id}` })
@@ -190,24 +185,16 @@ export function deleteUploadedFile(id: number) {
   return request.delete({ url: `/knowledge/file/${id}` })
 }
 export function uploadKnowledgeFile(filePath: string, knowledgeBaseId?: number) {
-  return new Promise((resolve, reject) => {
-    uni.uploadFile({
-      url: '/api/knowledge/file/upload',
-      filePath,
-      name: 'files',
-      formData: {
-        uploadPlatform: 'uniapp',
-        ...(knowledgeBaseId ? { knowledgeBaseId: String(knowledgeBaseId) } : {})
-      },
-      success: (res) => {
-        try {
-          resolve(JSON.parse(res.data))
-        } catch (e) {
-          reject(e)
-        }
-      },
-      fail: reject
-    })
+  // 走 request.uploadFile：自动注入 token 头与 /api 前缀，并保证 multipart/form-data 编码。
+  // 直接调用 uni.uploadFile 会绕过拦截器导致缺少 token（后端 8082 需登录态）。
+  return request.uploadFile({
+    url: '/knowledge/file/upload',
+    filePath,
+    name: 'files',
+    formData: {
+      uploadPlatform: 'uniapp',
+      ...(knowledgeBaseId ? { knowledgeBaseId: String(knowledgeBaseId) } : {})
+    }
   })
 }
 
