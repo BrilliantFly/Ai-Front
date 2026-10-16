@@ -235,8 +235,8 @@ export function uploadKnowledgeFiles(formData) {
   return service({
     url: '/api/knowledge/file/upload',
     method: 'post',
-    data: formData,
-    headers: { 'Content-Type': 'multipart/form-data' }
+    data: formData
+    // Don't manually set Content-Type; let browser/axios add correct multipart boundary
   })
 }
 
