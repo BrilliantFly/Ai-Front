@@ -50,8 +50,8 @@
             </a-tag>
           </template>
           <template v-if="column.key === 'visibility'">
-            <a-tag :color="record.visibility === 'public' ? 'blue' : 'orange'">
-              {{ record.visibility === 'public' ? '公开' : '私密' }}
+            <a-tag :color="record.visibility === 1 ? 'blue' : 'orange'">
+              {{ record.visibility === 1 ? '公开' : '私密' }}
             </a-tag>
           </template>
           <template v-if="column.key === 'action'">
@@ -81,8 +81,8 @@
         </a-form-item>
         <a-form-item label="可见性">
           <a-select v-model:value="formData.visibility">
-            <a-select-option value="public">公开</a-select-option>
-            <a-select-option value="private">私密</a-select-option>
+            <a-select-option :value="1">公开</a-select-option>
+            <a-select-option :value="0">私密</a-select-option>
           </a-select>
         </a-form-item>
         <a-form-item label="状态">
@@ -122,7 +122,7 @@ const formData = reactive({
   name: '',
   icon: '',
   description: '',
-  visibility: 'public',
+  visibility: 1,
   status: 1,
   sort: 0
 })
@@ -167,7 +167,7 @@ const showAddModal = () => {
     name: '',
     icon: '',
     description: '',
-    visibility: 'public',
+    visibility: 1,
     status: 1,
     sort: 0
   })

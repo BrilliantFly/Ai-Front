@@ -39,6 +39,14 @@ export function deleteKnowledgeBase(id) {
   })
 }
 
+// 当前用户的知识库列表（下拉选项，非分页）
+export function getKnowledgeBaseOptions() {
+  return service({
+    url: '/api/knowledge/base/list',
+    method: 'get'
+  })
+}
+
 // 目录API
 export function getDirectoryList(params) {
   return service({

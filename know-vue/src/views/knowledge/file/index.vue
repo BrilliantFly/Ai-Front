@@ -31,18 +31,34 @@
     <!-- 表格区域 -->
     <a-card :bordered="false" class="table-wrapper">
       <a-space class="table-toolbar">
+        <a-select
+          v-model:value="selectedKbId"
+          placeholder="请选择知识库"
+          style="width: 220px"
+          :options="kbOptions"
+          :loading="kbLoading"
+          allow-clear
+          show-search
+          :filter-option="filterKbOption"
+        />
         <a-upload
           multiple
           accept=".html,.htm,.md,.markdown"
           :show-upload-list="false"
+          :disabled="!selectedKbId"
           :custom-request="handleUpload"
         >
-          <a-button type="primary">
+          <a-button type="primary" :disabled="!selectedKbId">
             <template #icon><UploadOutlined /></template>
             上传文件
           </a-button>
         </a-upload>
-        <span class="upload-tip">支持 .html / .htm / .md / .markdown，单个 ≤ 5MB</span>
+        <span v-if="kbOptions.length === 0" class="upload-tip">
+          暂无知识库，请先到「知识库管理」创建后再上传
+        </span>
+        <span v-else class="upload-tip">
+          支持 .html / .htm / .md / .markdown，单个 ≤ 5MB；上传后将解析到所选知识库
+        </span>
       </a-space>
 
       <a-table
@@ -123,7 +139,8 @@ import {
   getKnowledgeFilePage,
   getKnowledgeFile,
   parseKnowledgeFile,
-  deleteKnowledgeFile
+  deleteKnowledgeFile,
+  getKnowledgeBaseOptions
 } from '@/api/knowledge'
 
 const loading = ref(false)
@@ -131,6 +148,11 @@ const list = ref([])
 const previewVisible = ref(false)
 const previewRecord = ref<any>(null)
 const theme = ref<'light' | 'dark'>('light')
+
+// 知识库下拉
+const kbLoading = ref(false)
+const kbOptions = ref<{ label: string; value: number }[]>([])
+const selectedKbId = ref<number | undefined>(undefined)
 
 const queryParams = reactive({
   originalName: '',
@@ -153,6 +175,29 @@ const columns = [
   { title: '上传时间', dataIndex: 'createTime', key: 'createTime', width: 180 },
   { title: '操作', key: 'action', width: 240, fixed: 'right' as const }
 ]
+
+const filterKbOption = (input: string, option: any) =>
+  String(option?.label ?? '').toLowerCase().indexOf(input.toLowerCase()) >= 0
+
+const fetchKnowledgeBases = async () => {
+  kbLoading.value = true
+  try {
+    const res = await getKnowledgeBaseOptions()
+    const arr = res?.data || res || []
+    kbOptions.value = (Array.isArray(arr) ? arr : []).map((kb: any) => ({
+      label: kb.name,
+      value: kb.id
+    }))
+    // 默认选中第一个知识库，方便直接上传
+    if (selectedKbId.value === undefined && kbOptions.value.length > 0) {
+      selectedKbId.value = kbOptions.value[0].value
+    }
+  } catch (e: any) {
+    console.error('获取知识库列表失败', e)
+  } finally {
+    kbLoading.value = false
+  }
+}
 
 const fetchData = async () => {
   loading.value = true
@@ -189,21 +234,30 @@ const handleTableChange = (pag: any) => {
 }
 
 const handleUpload = async (options: any) => {
+  if (!selectedKbId.value) {
+    message.warning('请先选择知识库')
+    options?.onError?.(new Error('未选择知识库'))
+    return
+  }
   const formData = new FormData()
   formData.append('files', options.file)
   formData.append('uploadPlatform', 'vue')
+  formData.append('knowledgeBaseId', String(selectedKbId.value))
   try {
     const res = await uploadKnowledgeFiles(formData)
     const data = res?.data || res || {}
     if (data.successCount > 0) {
       message.success(`上传成功 ${data.successCount} 个文件`)
       fetchData()
+      options?.onSuccess?.(res)
     } else {
       const failItem = data.items?.[0]
       message.error(failItem?.parseError || '上传失败')
+      options?.onError?.(new Error(failItem?.parseError || '上传失败'))
     }
   } catch (e: any) {
     message.error(e.message || '上传失败')
+    options?.onError?.(e)
   }
 }
 
@@ -268,7 +322,10 @@ const formatTime = (timestamp: number) => {
   return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}`
 }
 
-onMounted(fetchData)
+onMounted(() => {
+  fetchKnowledgeBases()
+  fetchData()
+})
 </script>
 
 <style scoped lang="less">

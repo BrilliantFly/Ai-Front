@@ -5,3 +5,8 @@ server/
 
 # Keystore / secrets
 *.keystore
+
+# Debug / build artifacts (logs, stderr dumps, vite temp files)
+*.err
+*.log
+vite.config.ts.timestamp-*.mjs
