@@ -17,6 +17,11 @@ export function deleteKnowledgeBase(id: number) {
   return request.delete({ url: `/knowledge/base/${id}` })
 }
 
+// 当前用户的知识库列表（下拉选项，非分页）
+export function getKnowledgeBaseOptions() {
+  return request.get({ url: '/knowledge/base/list' })
+}
+
 // ========== 目录API ==========
 export function getDirectoryTree(knowledgeBaseId: number) {
   return request.get({ url: '/knowledge/directory/tree', data: { knowledgeBaseId } })

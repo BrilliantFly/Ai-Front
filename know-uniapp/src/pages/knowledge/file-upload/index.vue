@@ -9,6 +9,26 @@
       <view class="placeholder"></view>
     </view>
 
+    <!-- 目标知识库选择 -->
+    <view class="kb-section">
+      <text class="kb-label">目标知识库</text>
+      <picker
+        mode="selector"
+        :range="kbNames"
+        :value="kbIndex"
+        :disabled="kbList.length === 0"
+        @change="onKbChange"
+      >
+        <view class="kb-picker" :class="{ 'kb-picker-empty': kbList.length === 0 }">
+          <text class="kb-picker-text">
+            {{ kbList.length > 0 ? kbList[kbIndex]?.name : '暂无知识库，请先在「知识库」中创建' }}
+          </text>
+          <text v-if="kbList.length > 0" class="kb-picker-arrow">›</text>
+        </view>
+      </picker>
+      <text v-if="kbList.length > 0" class="kb-tip">上传的 .html / .md 将解析到该知识库</text>
+    </view>
+
     <!-- 上传区域 -->
     <view class="upload-section">
       <view class="upload-card" @tap="chooseFile">
@@ -80,7 +100,7 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
 import { onPullDownRefresh } from '@dcloudio/uni-app'
-import { getUploadedFilePage, uploadKnowledgeFile } from '@/api/knowledge'
+import { getUploadedFilePage, uploadKnowledgeFile, getKnowledgeBaseOptions } from '@/api/knowledge'
 
 const uploading = ref(false)
 const currentFileName = ref('')
@@ -88,8 +108,35 @@ const progressPercent = ref(0)
 const result = ref<any>(null)
 const list = ref<any[]>([])
 
+// 目标知识库
+const kbList = ref<any[]>([])
+const kbNames = ref<string[]>([])
+const kbIndex = ref(0)
+
+const loadKnowledgeBases = async () => {
+  try {
+    const res: any = await getKnowledgeBaseOptions()
+    const arr = Array.isArray(res) ? res : res?.records || []
+    kbList.value = arr
+    kbNames.value = arr.map((kb: any) => kb.name)
+    if (kbIndex.value >= arr.length) kbIndex.value = 0
+  } catch (e) {
+    console.error('加载知识库列表失败', e)
+  }
+}
+
+const onKbChange = (e: any) => {
+  kbIndex.value = Number(e.detail.value)
+}
+
+const currentKbId = () => kbList.value[kbIndex.value]?.id as number | undefined
+
 const chooseFile = () => {
-  // #ifdef H5 || APP-PLUS
+  if (kbList.value.length === 0) {
+    uni.showToast({ title: '请先在「知识库」中创建知识库', icon: 'none', duration: 2500 })
+    return
+  }
+  // #ifdef H5
   uni.chooseFile({
     count: 9,
     extension: ['.html', '.htm', '.md', '.markdown'],
@@ -118,7 +165,103 @@ const chooseFile = () => {
     }
   })
   // #endif
+  // #ifdef APP-PLUS
+  chooseFileOnApp()
+  // #endif
 }
+
+// #ifdef APP-PLUS
+const ACCEPT_EXTS = ['.html', '.htm', '.md', '.markdown']
+
+interface AppFileItem {
+  name: string
+  url: string
+}
+
+// App 端无 uni.chooseFile，用 plus.io 扫描常用目录后通过 ActionSheet 选择
+const chooseFileOnApp = async () => {
+  try {
+    uni.showLoading({ title: '扫描文件中...', mask: true })
+    const files = await scanAppFiles()
+    if (files.length === 0) {
+      uni.showToast({
+        title: '未找到可导入文件，请将 .html/.md 放入下载目录',
+        icon: 'none',
+        duration: 3000
+      })
+      return
+    }
+    const picked = await new Promise<AppFileItem | null>((resolve) => {
+      uni.showActionSheet({
+        itemList: files.map((f) => f.name),
+        success: (res) => resolve(files[res.tapIndex]),
+        fail: () => resolve(null)
+      })
+    })
+    if (picked) {
+      uploadSequentially([{ name: picked.name, path: picked.url }], 0)
+    }
+  } catch (e) {
+    console.error('App 端选择文件失败', e)
+    uni.showToast({ title: '选择文件失败', icon: 'none' })
+  } finally {
+    uni.hideLoading()
+  }
+}
+
+const scanAppFiles = (): Promise<AppFileItem[]> => {
+  const dirs = ['_downloads/', '_documents/', '/storage/emulated/0/Download/']
+  return new Promise((resolve) => {
+    const plusObj = (window as any).plus
+    if (!plusObj?.io) {
+      resolve([])
+      return
+    }
+    const collected: AppFileItem[] = []
+    const seen = new Set<string>()
+    let pending = dirs.length
+    const finish = () => {
+      pending--
+      if (pending === 0) resolve(collected.slice(0, 6))
+    }
+    dirs.forEach((dir) => {
+      plusObj.io.resolveLocalFileSystemURL(
+        dir,
+        (entry: any) => {
+          const reader = entry.createReader()
+          const readAll = () => {
+            reader.readEntries(
+              (entries: any[]) => {
+                if (!entries.length) {
+                  finish()
+                  return
+                }
+                entries
+                  .filter(
+                    (it) =>
+                      it.isFile &&
+                      ACCEPT_EXTS.some((ext) => it.name.toLowerCase().endsWith(ext))
+                  )
+                  .forEach((it) => {
+                    const url = it.toURL()
+                    if (!seen.has(url)) {
+                      seen.add(url)
+                      collected.push({ name: it.name, url })
+                    }
+                  })
+                readAll()
+              },
+              () => finish()
+            )
+          }
+          readAll()
+        },
+        () => finish()
+      )
+    })
+  })
+}
+// #endif
 
 const uploadSequentially = (files: any[], index: number) => {
   if (index >= files.length) {
@@ -133,7 +276,7 @@ const uploadSequentially = (files: any[], index: number) => {
   progressPercent.value = Math.round((index / files.length) * 100)
 
   const filePath = file.path || file.tempFilePath
-  uploadKnowledgeFile(filePath)
+  uploadKnowledgeFile(filePath, currentKbId())
     .then((res: any) => {
       const data = res?.data || res || {}
       if (data.successCount > 0) {
@@ -188,10 +331,13 @@ const formatTime = (timestamp: number) => {
   return `${d.getMonth() + 1}/${d.getDate()} ${pad(d.getHours())}:${pad(d.getMinutes())}`
 }
 
-onMounted(loadHistory)
+onMounted(() => {
+  loadKnowledgeBases()
+  loadHistory()
+})
 
 onPullDownRefresh(() => {
-  loadHistory().finally(() => uni.stopPullDownRefresh())
+  Promise.all([loadKnowledgeBases(), loadHistory()]).finally(() => uni.stopPullDownRefresh())
 })
 </script>
 
@@ -233,10 +379,48 @@ onPullDownRefresh(() => {
   .placeholder { width: 72rpx; }
 }
 
+.kb-section {
+  padding: 32rpx 24rpx 0;
+  .kb-label {
+    display: block;
+    font-size: 26rpx;
+    color: var(--color-text-secondary, #4E5969);
+    margin-bottom: 12rpx;
+  }
+  .kb-picker {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: var(--color-surface, #fff);
+    border-radius: 16rpx;
+    padding: 24rpx 32rpx;
+    &:active { background: var(--color-surface-soft, #F8FAF9); }
+    &.kb-picker-empty .kb-picker-text { color: var(--color-text-tertiary, #8F959E); }
+    .kb-picker-text {
+      font-size: 28rpx;
+      color: var(--color-text, #1F2329);
+      flex: 1;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    .kb-picker-arrow {
+      font-size: 40rpx;
+      color: var(--color-text-tertiary, #C9CDD4);
+      margin-left: 16rpx;
+    }
+  }
+  .kb-tip {
+    display: block;
+    font-size: 22rpx;
+    color: var(--color-text-tertiary, #8F959E);
+    margin-top: 12rpx;
+  }
+}
+
 .upload-section {
   padding: 32rpx 24rpx 16rpx;
-}
-.upload-card {
+}.upload-card {
   background: var(--color-surface, #fff);
   border-radius: 24rpx;
   padding: 60rpx 32rpx;
