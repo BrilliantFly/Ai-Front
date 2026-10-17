@@ -72,7 +72,13 @@ export default class HttpRequest {
                 ...mergeOptions,
                 success: async (response) => {
                     if (response.statusCode == 200) {
-                        response.data = JSON.parse(response.data)
+                        try {
+                            response.data = JSON.parse(response.data)
+                        } catch (error) {
+                            // 服务端返回非 JSON（如网关错误页）时不能抛异常，否则会中断上传流程
+                            reject({ errMsg: '上传响应解析失败', data: response.data })
+                            return
+                        }
                         if (responseInterceptorsHook && isFunction(responseInterceptorsHook)) {
                             try {
                                 response = await responseInterceptorsHook(response, mergeConfig)
@@ -83,6 +89,9 @@ export default class HttpRequest {
                             return
                         }
                         resolve(response)
+                    } else {
+                        // 非 200 也要结束 Promise，否则上传页会一直停留在“上传中”
+                        reject({ errMsg: `上传失败（${response.statusCode}）`, data: response.data })
                     }
                 },
                 fail: async (err) => {
@@ -125,8 +134,10 @@ export default class HttpRequest {
                     resolve(response)
                 },
                 fail: async (err) => {
-                    // 静默忽略由防重复请求机制触发的取消
+                    // 防重复请求机制触发的取消：必须让 Promise 结束，
+                    // 否则调用方的 await 会永久挂起，页面一直停在“加载中”。
                     if (err.errMsg == RequestErrMsgEnum.ABORT) {
+                        reject(err)
                         return
                     }
                     if (err.errMsg == RequestErrMsgEnum.TIMEOUT) {
