@@ -43,7 +43,7 @@
         />
         <a-upload
           multiple
-          accept=".html,.htm,.md,.markdown"
+          accept=".html,.htm,.md,.markdown,.pdf"
           :show-upload-list="false"
           :disabled="!selectedKbId"
           :custom-request="handleUpload"
@@ -57,7 +57,7 @@
           暂无知识库，请先到「知识库管理」创建后再上传
         </span>
         <span v-else class="upload-tip">
-          支持 .html / .htm / .md / .markdown，单个 ≤ 5MB；上传后将解析到所选知识库
+          支持 .html / .htm / .md / .markdown / .pdf，文本类 ≤ 5MB、PDF ≤ 10MB；上传后将解析到所选知识库
         </span>
       </a-space>
 
@@ -117,12 +117,19 @@
           <span class="meta-text">大小: {{ formatFileSize(previewRecord.fileSize) }}</span>
           <span v-if="previewRecord.parseError" class="meta-error">解析失败: {{ previewRecord.parseError }}</span>
         </div>
+        <!-- PDF 用 iframe 直接渲染(nginx /uploads 静态资源, 无鉴权) -->
+        <div v-if="isPdf(previewRecord.fileExt)" class="pdf-preview-wrapper">
+          <div class="pdf-toolbar">
+            <a :href="pdfUrl(previewRecord)" target="_blank" rel="noopener">在新窗口打开</a>
+          </div>
+          <iframe :src="pdfUrl(previewRecord)" class="pdf-frame" frameborder="0" />
+        </div>
         <!-- Markdown 用 md-editor-v3 预览 -->
-        <div v-if="isMarkdown(previewRecord.fileExt)" class="md-preview-wrapper">
+        <div v-else-if="isMarkdown(previewRecord.fileExt)" class="md-preview-wrapper">
           <MdPreview :modelValue="previewRecord.fileContent" :theme="theme" />
         </div>
         <!-- HTML 直接渲染 -->
-        <div v-else class="html-preview-wrapper" v-html="previewRecord.fileContent"></div>
+        <div v-else class="html-preview-wrapper" v-html="previewRecord.fileContent" />
       </div>
     </a-modal>
   </div>
@@ -292,7 +299,7 @@ const handleDelete = async (id: number) => {
 }
 
 const getExtColor = (ext: string) => {
-  const map: Record<string, string> = { html: 'blue', htm: 'blue', md: 'orange', markdown: 'orange' }
+  const map: Record<string, string> = { html: 'blue', htm: 'blue', md: 'orange', markdown: 'orange', pdf: 'red' }
   return map[ext] || 'default'
 }
 
@@ -307,6 +314,8 @@ const getParseStatusText = (status: number) => {
 }
 
 const isMarkdown = (ext: string) => ext === 'md' || ext === 'markdown'
+const isPdf = (ext: string) => (ext || '').toLowerCase() === 'pdf'
+const pdfUrl = (record: any) => '/uploads/' + (record?.filePath || '')
 
 const formatFileSize = (size: number) => {
   if (!size) return '0 B'
@@ -373,6 +382,23 @@ onMounted(() => {
     border: 1px solid #f0f0f0;
     border-radius: 8px;
     padding: 16px;
+  }
+  .pdf-preview-wrapper {
+    border: 1px solid #f0f0f0;
+    border-radius: 8px;
+    overflow: hidden;
+    .pdf-toolbar {
+      padding: 6px 12px;
+      font-size: 12px;
+      border-bottom: 1px solid #f0f0f0;
+      background: #fafafa;
+    }
+    .pdf-frame {
+      width: 100%;
+      height: 70vh;
+      border: none;
+      display: block;
+    }
   }
 }
 </style>

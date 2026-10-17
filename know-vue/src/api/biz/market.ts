@@ -26,6 +26,8 @@ export interface BizIndustryMarket {
   grossMargin?: number
   netProfit?: number
   netMargin?: number
+  /** 关联知识库ID */
+  knowledgeBaseId?: number
 }
 
 // 获取行业市场信息(该行业关联的首个市场)

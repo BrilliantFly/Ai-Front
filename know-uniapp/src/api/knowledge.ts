@@ -181,6 +181,10 @@ export function getUploadedFile(id: number) {
 export function parseUploadedFile(fileId: number) {
   return request.post({ url: '/knowledge/file/parse', data: { fileId } })
 }
+// PDF 分页预览：后端逐页渲染为图片，返回图片地址数组（App/小程序内嵌预览用）
+export function getPdfPages(fileId: number) {
+  return request.get({ url: `/knowledge/file/${fileId}/pages` })
+}
 export function deleteUploadedFile(id: number) {
   return request.delete({ url: `/knowledge/file/${id}` })
 }

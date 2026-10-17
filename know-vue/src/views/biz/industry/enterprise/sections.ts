@@ -19,7 +19,8 @@ export const enterpriseSections: SectionDef[] = [
             { label: '平台', value: '平台' },
             { label: 'SaaS服务商', value: 'SaaS服务商' }
           ], placeholder: '请选择企业/平台类型(可多选)', span: 12 },
-          { label: '企业/平台名称', key: 'enterpriseName', span: 12 }
+          { label: '企业/平台名称', key: 'enterpriseName', span: 12 },
+          { label: '关联知识库', key: 'knowledgeBaseId', type: 'select', span: 12, placeholder: '选择关联的知识库(可空)' }
         ]
       },
       {

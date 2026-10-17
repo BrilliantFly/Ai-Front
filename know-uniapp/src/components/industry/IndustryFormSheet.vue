@@ -124,6 +124,28 @@
                             </view>
                         </SectionCard>
                     </view>
+
+                    <!-- 关联知识库（不在 industrySections 配置内，单独追加） -->
+                    <SectionCard title="关联知识库" :collapsible="true" :default-collapsed="false">
+                        <view class="form-field">
+                            <view class="field-label-row">
+                                <text class="field-label">关联知识库</text>
+                            </view>
+                            <view
+                                class="field-select"
+                                hover-class="field-select-hover"
+                                @tap="openKbPicker"
+                            >
+                                <text
+                                    class="field-select-value"
+                                    :class="{ placeholder: !kbSelectLabel }"
+                                    >{{ kbSelectLabel || '请选择知识库' }}</text
+                                >
+                                <text class="field-select-arrow">›</text>
+                            </view>
+                        </view>
+                    </SectionCard>
+
                     <view class="sheet-bottom-space"></view>
                 </view>
             </scroll-view>
@@ -162,6 +184,34 @@
             </scroll-view>
         </view>
     </view>
+
+    <!-- 知识库单选弹层 -->
+    <view v-if="kbPickerVisible" class="select-mask">
+        <view class="select-panel">
+            <view class="select-panel-header">
+                <text class="select-panel-title">选择知识库</text>
+                <text class="select-panel-close" @tap="kbPickerVisible = false">×</text>
+            </view>
+            <scroll-view scroll-y class="select-options-wrap">
+                <view
+                    v-for="opt in kbOptions"
+                    :key="String(opt.value)"
+                    class="select-option"
+                    @tap="pickKbOption(opt)"
+                >
+                    <text class="select-option-text">{{ opt.label }}</text>
+                    <text
+                        v-if="String(formData.knowledgeBaseId) === String(opt.value)"
+                        class="select-option-check"
+                        >✓</text
+                    >
+                </view>
+                <view v-if="!kbOptions.length" class="select-option">
+                    <text class="select-option-text">暂无可选知识库</text>
+                </view>
+            </scroll-view>
+        </view>
+    </view>
 </template>
 
 <script setup lang="ts">
@@ -180,6 +230,7 @@ import {
     type BizIndustry
 } from '@/api/biz/industry'
 import { getIndustryTypeTree } from '@/api/system/cascadeDict'
+import { getKnowledgeBaseOptions } from '@/api/knowledge'
 
 const props = withDefaults(
     defineProps<{
@@ -271,12 +322,44 @@ const onPopupChange = async (e: { show: boolean }) => {
         resetForm()
         await loadParentOptions()
         await loadIndustryTypeTree()
+        await loadKbOptions()
         if (isEdit.value && props.recordId) {
             await fillForm()
         }
     } else {
         emit('close')
     }
+}
+
+/* ---------- 关联知识库（追加字段，不在配置内） ---------- */
+const kbOptions = ref<{ label: string; value: string | number }[]>([])
+const kbPickerVisible = ref(false)
+
+const loadKbOptions = async () => {
+    try {
+        const res: any = await getKnowledgeBaseOptions()
+        const arr = Array.isArray(res) ? res : res?.records || res?.data || []
+        kbOptions.value = (arr || []).map((kb: any) => ({ label: kb.name, value: kb.id }))
+    } catch (error) {
+        console.error('加载知识库选项失败', error)
+        kbOptions.value = []
+    }
+}
+
+const kbSelectLabel = computed(() => {
+    const v = formData.value.knowledgeBaseId
+    if (v === undefined || v === null || v === '') return ''
+    const opt = kbOptions.value.find((o) => String(o.value) === String(v))
+    return opt ? opt.label : ''
+})
+
+const openKbPicker = () => {
+    kbPickerVisible.value = true
+}
+
+const pickKbOption = (opt: { label: string; value: string | number }) => {
+    formData.value.knowledgeBaseId = opt.value
+    kbPickerVisible.value = false
 }
 
 /* 上级行业选项（树形缩进；编辑时排除自身及其下级） */
@@ -370,6 +453,7 @@ const resetForm = () => {
             field.type === 'selectMultiple' || field.type === 'industryPicker' ? [] : ''
     }
     formData.value = base
+    formData.value.knowledgeBaseId = ''
     expanded.value = false
 }
 
@@ -381,6 +465,8 @@ const fillForm = async () => {
             const raw = (detail as any)[field.key]
             next[field.key] = raw === undefined || raw === null ? '' : raw
         }
+        const kbId = (detail as any).knowledgeBaseId
+        next.knowledgeBaseId = kbId === undefined || kbId === null ? '' : kbId
         formData.value = next
     } catch (error) {
         console.error('加载行业资料失败', error)

@@ -49,6 +49,10 @@
               {{ record.visibility === 1 ? '可见' : '隐藏' }}
             </a-tag>
           </template>
+          <template v-if="column.key === 'knowledgeBaseId'">
+            <a v-if="record.knowledgeBaseId" @click="viewKnowledgeBase(record)">查看知识库</a>
+            <span v-else>-</span>
+          </template>
           <template v-if="column.key === 'action'">
             <a-space style="white-space: nowrap">
               <a @click="openDetailModal(record)">行业详情</a>
@@ -58,6 +62,10 @@
               <a-popconfirm title="确定删除该行业吗？" @confirm="handleDelete(record)">
                 <a style="color: red">删除</a>
               </a-popconfirm>
+              <template v-if="record.knowledgeBaseId">
+                <a-divider type="vertical" />
+                <a @click="viewKnowledgeBase(record)">知识库</a>
+              </template>
             </a-space>
           </template>
         </template>
@@ -176,11 +184,13 @@
 
 <script setup lang="ts">
 import { ref, reactive, computed, onMounted } from 'vue'
+import { useRouter } from 'vue-router'
 import { message } from 'ant-design-vue'
 import type { FormInstance } from 'ant-design-vue'
 import { PlusOutlined, SearchOutlined, RedoOutlined } from '@ant-design/icons-vue'
 import { getIndustryTree, getIndustryDetail, addIndustry, updateIndustry, deleteIndustry, type BizIndustry, type BizIndustryQuery } from '@/api/biz/industry'
 import { getIndustryTypeTree } from '@/api/system/cascadeDict'
+import { getKnowledgeBaseOptions } from '@/api/knowledge'
 import type { BizIndustryMarket } from '@/api/biz/market'
 import MatrixTable from '../../components/MatrixTable.vue'
 import BizFullscreenModal from '@/components/BizFullscreenModal.vue'
@@ -190,9 +200,12 @@ import { productSections } from '../product/sections'
 import { enterpriseSections } from '../enterprise/sections'
 import type { SectionDef } from '../../components/types'
 
+const router = useRouter()
+
 // 表格列定义
 const columns = [
   { title: '行业名称', dataIndex: 'industryName', key: 'industryName', width: 220 },
+  { title: '关联知识库', dataIndex: 'knowledgeBaseId', key: 'knowledgeBaseId', width: 120 },
   { title: '上级行业', dataIndex: 'parentName', key: 'parentName', width: 140 },
   { title: '行业代码', dataIndex: 'industryCode', key: 'industryCode', width: 140 },
   { title: '行业标签', dataIndex: 'tags', key: 'tags', width: 180 },
@@ -242,6 +255,25 @@ const loadIndustryTypeTree = async () => {
     console.error('加载行业类型级联字典失败', e)
     industryTypeTree.value = []
   }
+}
+
+// 知识库下拉选项
+const kbOptions = ref<{ label: string; value: number }[]>([])
+const loadKnowledgeBaseOptions = async () => {
+  try {
+    const res: any = await getKnowledgeBaseOptions()
+    const arr = res?.data || res || []
+    kbOptions.value = (Array.isArray(arr) ? arr : []).map((kb: any) => ({ label: kb.name, value: kb.id }))
+  } catch (e) {
+    console.error('加载知识库列表失败', e)
+    kbOptions.value = []
+  }
+}
+
+// 跳转到该行业关联的知识库文档列表
+const viewKnowledgeBase = (record: BizIndustry) => {
+  if (!record.knowledgeBaseId) return
+  router.push({ path: '/knowledge/document', query: { knowledgeBaseId: String(record.knowledgeBaseId) } })
 }
 
 // 行业详情弹窗状态
@@ -316,13 +348,14 @@ const detailOptionsMap = computed<Record<string, { label: string; value: any }[]
     }
   }
   walk(industryList.value, '')
-  return { parentId: opts, industryType: industryTypeOptions.value }
+  return { parentId: opts, industryType: industryTypeOptions.value, knowledgeBaseId: kbOptions.value }
 })
 
 // 表单弹窗上级行业选项
 const formOptionsMap = computed<Record<string, { label: string; value: any }[]>>(() => ({
   parentId: parentOptions.value,
-  industryType: industryTypeOptions.value
+  industryType: industryTypeOptions.value,
+  knowledgeBaseId: kbOptions.value
 }))
 
 // 加载行业树
@@ -392,7 +425,8 @@ const formData = reactive<Partial<BizIndustry>>({
   dynamicInfo: '',
   valueInfo: '',
   industryResources: '',
-  strategy: ''
+  strategy: '',
+  knowledgeBaseId: undefined,
 })
 
 // 表单校验规则
@@ -431,6 +465,7 @@ const handleAdd = () => {
   formData.valueInfo = ''
   formData.industryResources = ''
   formData.strategy = ''
+  formData.knowledgeBaseId = undefined
   modalVisible.value = true
 }
 
@@ -568,6 +603,7 @@ const openEnterpriseDetail = (record: any) => {
 onMounted(() => {
   loadData()
   loadIndustryTypeTree()
+  loadKnowledgeBaseOptions()
 })
 </script>
 

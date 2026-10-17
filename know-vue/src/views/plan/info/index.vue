@@ -78,6 +78,10 @@
           <template v-if="column.key === 'industryId'">
             {{ resolveIndustryName(record.industryId) || '-' }}
           </template>
+          <template v-if="column.key === 'knowledgeBaseId'">
+            <a v-if="record.knowledgeBaseId" @click="viewKnowledgeBase(record)">查看知识库</a>
+            <span v-else>-</span>
+          </template>
           <template v-if="column.key === 'status'">
             <a-tag :color="statusColors[record.status]">
               {{ statusLabels[record.status] || '未知' }}
@@ -95,6 +99,9 @@
               <a-popconfirm title="确定删除?" @confirm="handleDelete(record.id)">
                 <a-button type="link" danger size="small">删除</a-button>
               </a-popconfirm>
+              <template v-if="record.knowledgeBaseId">
+                <a-button type="link" size="small" @click="viewKnowledgeBase(record)">知识库</a-button>
+              </template>
             </a-space>
           </template>
         </template>
@@ -137,6 +144,11 @@
             style="width: 100%"
           />
         </a-form-item>
+        <a-form-item label="关联知识库">
+          <a-select v-model:value="form.knowledgeBaseId" placeholder="选择关联的知识库(可空)" allow-clear style="width: 100%">
+            <a-select-option v-for="kb in kbOptions" :key="kb.value" :value="kb.value">{{ kb.label }}</a-select-option>
+          </a-select>
+        </a-form-item>
         <a-form-item label="优先级">
           <a-input-number v-model:value="form.priority" :min="0" :max="10" />
         </a-form-item>
@@ -163,6 +175,7 @@ import { SearchOutlined, ReloadOutlined, PlusOutlined, BarChartOutlined } from '
 import { getPlanInfoPage, addPlanInfo, updatePlanInfo, deletePlanInfo } from '@/api/plan/info'
 import { getPlanTypeTree } from '@/api/system/cascadeDict'
 import { getIndustryTree } from '@/api/biz/industry'
+import { getKnowledgeBaseOptions } from '@/api/knowledge'
 import { buildCascaderOptions, resolveCascadePath, resolveCascadeValuePath } from '@/utils/cascadeDict'
 
 const router = useRouter()
@@ -173,6 +186,23 @@ const modalVisible = ref(false)
 const isEdit = ref(false)
 const plans = ref<any[]>([])
 const editId = ref<number | null>(null)
+
+// 知识库下拉
+const kbOptions = ref<{ label: string; value: number }[]>([])
+const loadKnowledgeBaseOptions = async () => {
+  try {
+    const res: any = await getKnowledgeBaseOptions()
+    const arr = res?.data || res || []
+    kbOptions.value = (Array.isArray(arr) ? arr : []).map((kb: any) => ({ label: kb.name, value: kb.id }))
+  } catch (e) {
+    console.error('加载知识库列表失败', e)
+    kbOptions.value = []
+  }
+}
+const viewKnowledgeBase = (record: any) => {
+  if (!record.knowledgeBaseId) return
+  router.push({ path: '/knowledge/document', query: { knowledgeBaseId: String(record.knowledgeBaseId) } })
+}
 
 // 计划类型级联字典
 const planTypeTree = ref<any[]>([])
@@ -260,6 +290,7 @@ const columns = [
   { title: '计划名称', dataIndex: 'planName', key: 'planName' },
   { title: '类型', dataIndex: 'planType', key: 'planType' },
   { title: '行业', dataIndex: 'industryId', key: 'industryId' },
+  { title: '关联知识库', dataIndex: 'knowledgeBaseId', key: 'knowledgeBaseId' },
   { title: '优先级', dataIndex: 'priority', key: 'priority' },
   { title: '进度', key: 'progress' },
   { title: '状态', key: 'status' },
@@ -274,6 +305,7 @@ const form = reactive({
   planName: '',
   planType: undefined,
   industryId: undefined,
+  knowledgeBaseId: undefined,
   targetEffect: '',
   priority: 0,
   planStartTime: undefined,
@@ -315,6 +347,7 @@ const resetForm = () => {
   form.planName = ''
   form.planType = undefined
   form.industryId = undefined
+  form.knowledgeBaseId = undefined
   form.targetEffect = ''
   form.priority = 0
   form.planStartTime = undefined
@@ -373,6 +406,7 @@ const handleEdit = (record: any) => {
   form.planName = record.planName || record.title
   form.planType = record.planType
   form.industryId = record.industryId
+  form.knowledgeBaseId = record.knowledgeBaseId
   form.targetEffect = record.targetEffect || ''
   form.priority = record.priority || 0
   form.planStartTime = record.planStartTime
@@ -423,6 +457,7 @@ onMounted(() => {
   fetchData()
   fetchPlanTypeTree()
   fetchIndustryTree()
+  loadKnowledgeBaseOptions()
 })
 </script>
 

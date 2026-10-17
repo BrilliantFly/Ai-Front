@@ -65,6 +65,10 @@
               {{ record.isListed === 1 ? '已上市' : '未上市' }}
             </a-tag>
           </template>
+          <template v-if="column.key === 'knowledgeBaseId'">
+            <a v-if="record.knowledgeBaseId" @click="viewKnowledgeBase(record)">查看知识库</a>
+            <span v-else>-</span>
+          </template>
           <template v-if="column.key === 'action'">
             <a-space style="white-space: nowrap">
               <a @click="openDetail(record)">详情</a>
@@ -74,6 +78,10 @@
               <a-popconfirm title="确定删除该企业吗？" @confirm="handleDelete(record)">
                 <a style="color: red">删除</a>
               </a-popconfirm>
+              <template v-if="record.knowledgeBaseId">
+                <a-divider type="vertical" />
+                <a @click="viewKnowledgeBase(record)">知识库</a>
+              </template>
             </a-space>
           </template>
         </template>
@@ -117,6 +125,7 @@
 
 <script setup lang="ts">
 import { ref, reactive, computed, onMounted } from 'vue'
+import { useRouter } from 'vue-router'
 import { message } from 'ant-design-vue'
 import dayjs from 'dayjs'
 import type { FormInstance } from 'ant-design-vue'
@@ -124,15 +133,19 @@ import { PlusOutlined, SearchOutlined, RedoOutlined } from '@ant-design/icons-vu
 import { getIndustryList, type BizIndustry, type BizIndustryEnterprise } from '@/api/biz/industry'
 import { getEnterprisePage, addEnterprise, updateEnterprise, deleteEnterprise, type BizEnterpriseQuery } from '@/api/biz/enterprise'
 import { getProductPage, type BizIndustryProduct } from '@/api/biz/product'
+import { getKnowledgeBaseOptions } from '@/api/knowledge'
 import MatrixTable from '../../components/MatrixTable.vue'
 import BizFullscreenModal from '@/components/BizFullscreenModal.vue'
 import { enterpriseSections } from '../enterprise/sections'
+
+const router = useRouter()
 
 // 表格列定义
 const columns = [
   { title: '关联行业', dataIndex: 'industryNames', key: 'industryNames', width: 180 },
   { title: '关联产品', dataIndex: 'productNames', key: 'productNames', width: 180 },
   { title: '企业名称', dataIndex: 'enterpriseName', key: 'enterpriseName', width: 200 },
+  { title: '关联知识库', dataIndex: 'knowledgeBaseId', key: 'knowledgeBaseId', width: 120 },
   { title: '企业类型', dataIndex: 'enterpriseType', key: 'enterpriseType', width: 120 },
   { title: '规模', dataIndex: 'scale', key: 'scale', width: 100 },
   { title: '是否上市', dataIndex: 'isListed', key: 'isListed', width: 100 },
@@ -168,6 +181,23 @@ const loadProductOptions = async () => {
     console.error('加载产品列表失败', e)
     productOptions.value = []
   }
+}
+
+// 知识库下拉
+const kbOptions = ref<{ label: string; value: number }[]>([])
+const loadKnowledgeBaseOptions = async () => {
+  try {
+    const res: any = await getKnowledgeBaseOptions()
+    const arr = res?.data || res || []
+    kbOptions.value = (Array.isArray(arr) ? arr : []).map((kb: any) => ({ label: kb.name, value: kb.id }))
+  } catch (e) {
+    console.error('加载知识库列表失败', e)
+    kbOptions.value = []
+  }
+}
+const viewKnowledgeBase = (record: any) => {
+  if (!record.knowledgeBaseId) return
+  router.push({ path: '/knowledge/document', query: { knowledgeBaseId: String(record.knowledgeBaseId) } })
 }
 
 // 查询参数
@@ -226,7 +256,8 @@ const formData = reactive<Partial<BizIndustryEnterprise>>({
   dynamicInfo: '',
   valueInfo: '',
   industryResources: '',
-  strategy: ''
+  strategy: '',
+  knowledgeBaseId: undefined,
 })
 
 // 动态下拉选项(关联行业/关联产品)
@@ -236,7 +267,8 @@ const optionsMap = computed<Record<string, { label: string; value: any }[]>>(() 
     .map((item) => ({ label: item.industryName || '', value: item.id as number })),
   productIds: productOptions.value
     .filter((item) => item.id != null)
-    .map((item) => ({ label: item.productName || '', value: item.id as number }))
+    .map((item) => ({ label: item.productName || '', value: item.id as number })),
+  knowledgeBaseId: kbOptions.value
 }))
 
 // 表单校验规则
@@ -323,6 +355,7 @@ const handleAdd = () => {
   formData.valueInfo = ''
   formData.industryResources = ''
   formData.strategy = ''
+  formData.knowledgeBaseId = undefined
   modalVisible.value = true
 }
 
@@ -364,7 +397,8 @@ const handleEdit = (record: BizIndustryEnterprise) => {
     dynamicInfo: record.dynamicInfo || '',
     valueInfo: record.valueInfo || '',
     industryResources: record.industryResources || '',
-    strategy: record.strategy || ''
+    strategy: record.strategy || '',
+    knowledgeBaseId: record.knowledgeBaseId
   })
   modalVisible.value = true
 }
@@ -435,6 +469,7 @@ onMounted(() => {
   loadData()
   loadIndustryOptions()
   loadProductOptions()
+  loadKnowledgeBaseOptions()
 })
 </script>
 

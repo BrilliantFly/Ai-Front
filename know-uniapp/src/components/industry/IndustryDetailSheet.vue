@@ -263,6 +263,17 @@
                     </view>
                 </view>
 
+                <!-- 关联知识库 -->
+                <view v-if="detail.knowledgeBaseId" class="kb-card">
+                    <view class="kb-head">
+                        <text class="kb-title">📚 关联知识库</text>
+                        <view class="action-inline" @tap="goKnowledgeBase">
+                            <text class="action-text">查看知识库</text>
+                        </view>
+                    </view>
+                    <text class="kb-name">{{ knowledgeBaseName || '已关联知识库' }}</text>
+                </view>
+
                 <!-- 客户分布 -->
                 <view class="dist-card">
                     <view class="dist-head">
@@ -347,6 +358,7 @@ import { industrySections, type UniFieldDef, type UniSectionDef } from '@/config
 import { maskPhone } from '@/utils/format'
 import { getIndustryTypeTree } from '@/api/system/cascadeDict'
 import { resolveCascadePath } from '@/utils/cascade'
+import { getKnowledgeBase } from '@/api/knowledge'
 import IndustryFormSheet from '@/components/industry/IndustryFormSheet.vue'
 import ProductFormSheet from '@/components/industry/ProductFormSheet.vue'
 import EnterpriseFormSheet from '@/components/industry/EnterpriseFormSheet.vue'
@@ -432,6 +444,9 @@ const market = ref<MarketView | null>(null)
 const customers = ref<CustomerItem[]>([])
 const customerCount = ref(0)
 const activeTab = ref('overview')
+
+/** 关联知识库名称 */
+const knowledgeBaseName = ref('')
 
 /** 行业类型级联字典（sys_cascade_dict type_code=industry_type），用于详情展示名称路径 */
 const industryTypeTree = ref<any[]>([])
@@ -613,10 +628,33 @@ const loadDetail = async () => {
         const res = await getIndustryDetail(id)
         detail.value = res || ({} as BizIndustryDetail)
         market.value = (res?.market || null) as MarketView | null
+        loadKnowledgeBaseName()
     } catch (error) {
         console.error('加载行业详情失败', error)
         uni.showToast({ title: '加载失败', icon: 'none' })
     }
+}
+
+/** 关联知识库名称（有 knowledgeBaseId 时才请求） */
+const loadKnowledgeBaseName = async () => {
+    knowledgeBaseName.value = ''
+    const kbId = detail.value.knowledgeBaseId
+    if (!kbId) return
+    try {
+        const res: any = await getKnowledgeBase(kbId as number)
+        const kb = res?.data || res || {}
+        knowledgeBaseName.value = kb.name || ''
+    } catch (error) {
+        console.error('加载关联知识库失败', error)
+    }
+}
+
+/** 跳转知识库详情 */
+const goKnowledgeBase = () => {
+    const kbId = detail.value.knowledgeBaseId
+    if (!kbId) return
+    close()
+    router.navigateTo(`/pages/knowledge/detail/index?id=${kbId}`)
 }
 
 /** 客户分布（CustomerDistPanel 内联占位实现） */
@@ -1279,6 +1317,36 @@ const goCustomerDetail = (item: CustomerItem) => {
     color: var(--color-btn-text);
     background: var(--color-primary);
     box-shadow: var(--shadow-glow);
+}
+
+/* ===== 关联知识库 ===== */
+.kb-card {
+    margin: 20rpx 32rpx 0;
+    padding: 26rpx 28rpx 24rpx;
+    border-radius: 24rpx;
+    background: var(--color-surface);
+    box-shadow: var(--shadow-sm);
+}
+
+.kb-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16rpx;
+}
+
+.kb-title {
+    font-size: 30rpx;
+    font-weight: 600;
+    color: var(--color-text);
+}
+
+.kb-name {
+    display: block;
+    margin-top: 14rpx;
+    font-size: 26rpx;
+    line-height: 1.6;
+    color: var(--color-text-secondary);
 }
 
 /* ===== 客户分布 ===== */

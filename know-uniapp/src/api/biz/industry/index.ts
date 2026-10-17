@@ -52,6 +52,8 @@ export interface BizIndustry {
     grossMargin?: number
     netProfit?: number
     netMargin?: number
+    /** 关联知识库ID */
+    knowledgeBaseId?: number | string
     createTime?: number | string
     /** 下级行业列表（树接口返回） */
     children?: BizIndustry[]
@@ -120,6 +122,8 @@ export interface IndustryFormData {
     grossMargin?: number
     netProfit?: number
     netMargin?: number
+    /** 关联知识库ID */
+    knowledgeBaseId?: number | string
 }
 
 /* ==================== API 函数 ==================== */

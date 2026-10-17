@@ -31,6 +31,8 @@ export interface BizIndustryProduct {
   dynamicInfo?: string
   valueInfo?: string
   strategy?: string
+  /** 关联知识库ID */
+  knowledgeBaseId?: number
 }
 
 export interface BizIndustryEnterprise {
@@ -66,6 +68,8 @@ export interface BizIndustryEnterprise {
   valueInfo?: string
   industryResources?: string
   strategy?: string
+  /** 关联知识库ID */
+  knowledgeBaseId?: number
 }
 
 export interface BizIndustry {
@@ -92,6 +96,8 @@ export interface BizIndustry {
   valueInfo?: string
   industryResources?: string
   strategy?: string
+  /** 关联知识库ID */
+  knowledgeBaseId?: number
   grossProfit?: number
   grossMargin?: number
   netProfit?: number

@@ -153,7 +153,7 @@
 import { ref, computed } from 'vue'
 import { onLoad, onPullDownRefresh, onReachBottom } from '@dcloudio/uni-app'
 import { useRouter } from 'uniapp-router-next'
-import { getKnowledgeBase, getDirectoryTree, getDocumentList, addDirectory, updateDirectory, deleteDirectory, deleteDocument, deleteKnowledgeBase } from '@/api/knowledge'
+import { getKnowledgeBase, getDirectoryTree, getDocumentList, getDocument, addDirectory, updateDirectory, deleteDirectory, deleteDocument, deleteKnowledgeBase } from '@/api/knowledge'
 
 const router = useRouter()
 
@@ -305,8 +305,22 @@ const flatTree = computed(() => {
 
 const goBack = () => uni.navigateBack()
 
-const goToDocument = (id: number) => {
-  router.navigateTo(`/pages/knowledge/document-view/index?id=${id}`)
+// 按文档类型决定预览入口：有上传文件且为 html/md/pdf → 文件预览；否则 → 文档详情
+const goToDocument = async (id: number) => {
+  try {
+    const res: any = await getDocument(id)
+    const d = res?.data || res || {}
+    const ext = (d.fileExt || '').toLowerCase()
+    const hasFile = !!d.hasUploadedFile && !!d.uploadedFileId
+    if (hasFile && ['pdf', 'html', 'htm', 'md', 'markdown'].includes(ext)) {
+      router.navigateTo(`/pages/knowledge/file-preview/index?id=${d.uploadedFileId}&documentId=${id}`)
+    } else {
+      router.navigateTo(`/pages/knowledge/document-view/index?id=${id}`)
+    }
+  } catch (e) {
+    console.error('获取文档类型失败，回退到文档详情', e)
+    router.navigateTo(`/pages/knowledge/document-view/index?id=${id}`)
+  }
 }
 
 const handleCreateDoc = () => {

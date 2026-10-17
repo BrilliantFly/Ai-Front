@@ -12,7 +12,8 @@ export const productSections: SectionDef[] = [
         title: '归属与分类',
         fields: [
           { label: '所属行业', key: 'industryIds', type: 'selectMultiple', span: 12, placeholder: '请选择关联行业(可多选)' },
-          { label: '分类', key: 'category', span: 12 }
+          { label: '分类', key: 'category', span: 12 },
+          { label: '关联知识库', key: 'knowledgeBaseId', type: 'select', span: 12, placeholder: '选择关联的知识库(可空)' }
         ]
       },
       {

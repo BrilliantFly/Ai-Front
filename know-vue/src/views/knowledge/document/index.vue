@@ -51,6 +51,9 @@
         row-key="id"
       >
         <template #bodyCell="{ column, record }">
+          <template v-if="column.key === 'contentType'">
+            <a-tag :color="getContentTypeColor(record.contentType)">{{ getContentTypeText(record.contentType) }}</a-tag>
+          </template>
           <template v-if="column.key === 'status'">
             <a-tag :color="record.status === 1 ? 'green' : 'orange'">
               {{ record.status === 1 ? '已发布' : '草稿' }}
@@ -106,16 +109,56 @@
         </a-form-item>
       </a-form>
     </BizFullscreenModal>
+
+    <!-- 文档预览弹窗: 按内容类型决定预览入口 -->
+    <a-modal
+      v-model:open="previewVisible"
+      :title="previewRecord?.title || '文档预览'"
+      :width="900"
+      :footer="null"
+    >
+      <div v-if="previewRecord" class="doc-preview">
+        <div class="doc-preview-meta">
+          <a-tag :color="getContentTypeColor(previewRecord.contentType)">
+            {{ getContentTypeText(previewRecord.contentType) }}
+          </a-tag>
+          <a-tag v-if="previewRecord.fileExt" color="red">{{ previewRecord.fileExt }}</a-tag>
+          <span class="meta-text">
+            来源: {{ previewRecord.hasUploadedFile ? '文件上传' : '在线编辑' }}
+          </span>
+          <a
+            v-if="isFilePreview(previewRecord)"
+            :href="filePreviewUrl(previewRecord)"
+            target="_blank"
+            rel="noopener"
+          >在新窗口打开</a>
+        </div>
+        <!-- 有上传文件且为 html/htm/pdf: iframe 渲染原始文件 -->
+        <div v-if="isFilePreview(previewRecord)" class="file-preview-wrapper">
+          <iframe :src="filePreviewUrl(previewRecord)" class="preview-frame" frameborder="0" />
+        </div>
+        <!-- Markdown -->
+        <div v-else-if="isMarkdownDoc(previewRecord)" class="md-preview-wrapper">
+          <MdPreview :modelValue="previewRecord.content" :theme="theme" />
+        </div>
+        <!-- 富文本(HTML) -->
+        <div v-else class="html-preview-wrapper" v-html="previewRecord.content" />
+      </div>
+    </a-modal>
   </div>
 </template>
 
 <script setup lang="ts">
 import BizFullscreenModal from '@/components/BizFullscreenModal.vue'
 import { ref, reactive, onMounted } from 'vue'
+import { useRoute } from 'vue-router'
 import { message } from 'ant-design-vue'
 import { SearchOutlined, ReloadOutlined, PlusOutlined } from '@ant-design/icons-vue'
-import { getDocumentList, addDocument, updateDocument, deleteDocument, getKnowledgeBaseList, getDirectoryList } from '@/api/knowledge'
+import { MdPreview } from 'md-editor-v3'
+import 'md-editor-v3/lib/preview.css'
+import { getDocumentList, addDocument, updateDocument, deleteDocument, getDocument, getKnowledgeBaseList, getDirectoryList } from '@/api/knowledge'
 
+const route = useRoute()
 const loading = ref(false)
 const list = ref([])
 const knowledgeBases = ref([])
@@ -123,6 +166,9 @@ const directories = ref([])
 const modalVisible = ref(false)
 const modalTitle = ref('新增文档')
 const confirmLoading = ref(false)
+const previewVisible = ref(false)
+const previewRecord = ref<any>(null)
+const theme = ref<'light' | 'dark'>('light')
 
 const queryParams = reactive({
   title: '',
@@ -143,6 +189,7 @@ const formData = reactive({
 const columns = [
   { title: 'ID', dataIndex: 'id', key: 'id', width: 80 },
   { title: '标题', dataIndex: 'title', key: 'title', width: 250 },
+  { title: '内容类型', dataIndex: 'contentType', key: 'contentType', width: 110 },
   { title: '浏览次数', dataIndex: 'viewCount', key: 'viewCount', width: 100 },
   { title: '点赞数', dataIndex: 'likeCount', key: 'likeCount', width: 100 },
   { title: '状态', dataIndex: 'status', key: 'status', width: 100 },
@@ -215,10 +262,31 @@ const handleEdit = (record) => {
   modalVisible.value = true
 }
 
-const handleView = (record) => {
-  // TODO: 跳转到文档详情页
-  console.log('查看文档', record)
+const handleView = async (record) => {
+  try {
+    const res = await getDocument(record.id)
+    previewRecord.value = res?.data || res
+    previewVisible.value = true
+  } catch (error) {
+    message.error('加载文档失败')
+  }
 }
+
+// 内容类型: 1=富文本(HTML) 2=Markdown 3=PDF
+const getContentTypeText = (t) => {
+  const map = { 1: '富文本', 2: 'Markdown', 3: 'PDF' }
+  return map[t] ?? map[Number(t)] ?? '富文本'
+}
+const getContentTypeColor = (t) => {
+  const n = Number(t)
+  const map = { 1: 'blue', 2: 'orange', 3: 'red' }
+  return map[n] || 'default'
+}
+const isMarkdownDoc = (r) => Number(r?.contentType) === 2
+// 有上传文件且为 html/htm/pdf → 走原始文件预览(iframe)
+const isFilePreview = (r) =>
+  !!r?.hasUploadedFile && ['html', 'htm', 'pdf'].includes((r?.fileExt || '').toLowerCase())
+const filePreviewUrl = (r) => '/uploads/' + (r?.filePath || '')
 
 const handleOk = async () => {
   if (!formData.title) {
@@ -259,6 +327,11 @@ const handleDelete = async (id) => {
 }
 
 onMounted(() => {
+  // 支持从行业/计划页面跳转: /knowledge/document?knowledgeBaseId=x
+  const kbId = route.query.knowledgeBaseId
+  if (kbId !== undefined && kbId !== null && kbId !== '') {
+    queryParams.knowledgeBaseId = Number(kbId)
+  }
   fetchKnowledgeBases()
   fetchData()
 })
@@ -279,5 +352,37 @@ onMounted(() => {
 
 .table-toolbar {
   margin-bottom: 16px;
+}
+
+.doc-preview {
+  .doc-preview-meta {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 12px;
+    .meta-text {
+      font-size: 12px;
+      color: #999;
+    }
+  }
+  .file-preview-wrapper {
+    border: 1px solid #f0f0f0;
+    border-radius: 8px;
+    overflow: hidden;
+    .preview-frame {
+      width: 100%;
+      height: 70vh;
+      border: none;
+      display: block;
+    }
+  }
+  .md-preview-wrapper,
+  .html-preview-wrapper {
+    max-height: 65vh;
+    overflow-y: auto;
+    border: 1px solid #f0f0f0;
+    border-radius: 8px;
+    padding: 16px;
+  }
 }
 </style>

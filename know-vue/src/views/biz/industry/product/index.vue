@@ -48,6 +48,10 @@
             </template>
             <span v-else>-</span>
           </template>
+          <template v-if="column.key === 'knowledgeBaseId'">
+            <a v-if="record.knowledgeBaseId" @click="viewKnowledgeBase(record)">查看知识库</a>
+            <span v-else>-</span>
+          </template>
           <template v-if="column.key === 'action'">
             <a-space style="white-space: nowrap">
               <a @click="openDetail(record)">详情</a>
@@ -57,6 +61,10 @@
               <a-popconfirm title="确定删除该产品吗？" @confirm="handleDelete(record)">
                 <a style="color: red">删除</a>
               </a-popconfirm>
+              <template v-if="record.knowledgeBaseId">
+                <a-divider type="vertical" />
+                <a @click="viewKnowledgeBase(record)">知识库</a>
+              </template>
             </a-space>
           </template>
         </template>
@@ -103,16 +111,21 @@ import { ref, reactive, computed, onMounted } from 'vue'
 import { message } from 'ant-design-vue'
 import type { FormInstance } from 'ant-design-vue'
 import { PlusOutlined, SearchOutlined, RedoOutlined } from '@ant-design/icons-vue'
+import { useRouter } from 'vue-router'
 import { getIndustryList, type BizIndustry, type BizIndustryProduct } from '@/api/biz/industry'
 import { getProductPage, addProduct, updateProduct, deleteProduct, type BizProductQuery } from '@/api/biz/product'
+import { getKnowledgeBaseOptions } from '@/api/knowledge'
 import MatrixTable from '../../components/MatrixTable.vue'
 import BizFullscreenModal from '@/components/BizFullscreenModal.vue'
 import { productSections } from '../product/sections'
+
+const router = useRouter()
 
 // 表格列定义
 const columns = [
   { title: '关联行业', dataIndex: 'industryNames', key: 'industryNames', width: 180 },
   { title: '产品名称', dataIndex: 'productName', key: 'productName', width: 180 },
+  { title: '关联知识库', dataIndex: 'knowledgeBaseId', key: 'knowledgeBaseId', width: 120 },
   { title: '品类', dataIndex: 'category', key: 'category', width: 150 },
   { title: '生命周期', dataIndex: 'lifeCycle', key: 'lifeCycle', width: 120 },
   { title: '操作', key: 'action', width: 160, fixed: 'right' }
@@ -132,6 +145,23 @@ const loadIndustryOptions = async () => {
     console.error('加载行业列表失败', e)
     industryOptions.value = []
   }
+}
+
+// 知识库下拉
+const kbOptions = ref<{ label: string; value: number }[]>([])
+const loadKnowledgeBaseOptions = async () => {
+  try {
+    const res: any = await getKnowledgeBaseOptions()
+    const arr = res?.data || res || []
+    kbOptions.value = (Array.isArray(arr) ? arr : []).map((kb: any) => ({ label: kb.name, value: kb.id }))
+  } catch (e) {
+    console.error('加载知识库列表失败', e)
+    kbOptions.value = []
+  }
+}
+const viewKnowledgeBase = (record: any) => {
+  if (!record.knowledgeBaseId) return
+  router.push({ path: '/knowledge/document', query: { knowledgeBaseId: String(record.knowledgeBaseId) } })
 }
 
 // 查询参数
@@ -179,14 +209,16 @@ const formData = reactive<Partial<BizIndustryProduct>>({
   downstreamMarketing: '',
   dynamicInfo: '',
   valueInfo: '',
-  strategy: ''
+  strategy: '',
+  knowledgeBaseId: undefined
 })
 
 // 动态下拉选项(关联行业)
 const optionsMap = computed<Record<string, { label: string; value: any }[]>>(() => ({
   industryIds: industryOptions.value
     .filter((item) => item.id != null)
-    .map((item) => ({ label: item.industryName || '', value: item.id as number }))
+    .map((item) => ({ label: item.industryName || '', value: item.id as number })),
+  knowledgeBaseId: kbOptions.value
 }))
 
 // 表单校验规则
@@ -262,6 +294,7 @@ const handleAdd = () => {
   formData.dynamicInfo = ''
   formData.valueInfo = ''
   formData.strategy = ''
+  formData.knowledgeBaseId = undefined
   modalVisible.value = true
 }
 
@@ -352,6 +385,7 @@ const handleDelete = async (record: BizIndustryProduct) => {
 onMounted(() => {
   loadData()
   loadIndustryOptions()
+  loadKnowledgeBaseOptions()
 })
 </script>
 

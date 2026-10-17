@@ -26,7 +26,7 @@
           <text v-if="kbList.length > 0" class="kb-picker-arrow">›</text>
         </view>
       </picker>
-      <text v-if="kbList.length > 0" class="kb-tip">上传的 .html / .md 将解析到该知识库</text>
+      <text v-if="kbList.length > 0" class="kb-tip">上传的 .html / .md / .pdf 将解析到该知识库</text>
     </view>
 
     <!-- 上传区域 -->
@@ -34,8 +34,8 @@
       <view class="upload-card" @tap="chooseFile">
         <text class="upload-icon">📤</text>
         <text class="upload-title">点击选择文件</text>
-        <text class="upload-desc">支持 .html / .htm / .md / .markdown</text>
-        <text class="upload-limit">单个文件 ≤ 5MB</text>
+        <text class="upload-desc">支持 .html / .htm / .md / .markdown / .pdf</text>
+        <text class="upload-limit">单个文件 ≤ 10MB（PDF≤10MB，文本≤5MB）</text>
       </view>
     </view>
 
@@ -139,7 +139,7 @@ const chooseFile = () => {
   // #ifdef H5
   uni.chooseFile({
     count: 9,
-    extension: ['.html', '.htm', '.md', '.markdown'],
+    extension: ['.html', '.htm', '.md', '.markdown', '.pdf'],
     success: (res) => {
       const tempFiles = res.tempFiles || []
       if (tempFiles.length === 0) return
@@ -154,7 +154,7 @@ const chooseFile = () => {
   uni.chooseMessageFile({
     count: 9,
     type: 'file',
-    extension: ['html', 'htm', 'md', 'markdown'],
+    extension: ['html', 'htm', 'md', 'markdown', 'pdf'],
     success: (res) => {
       const tempFiles = res.tempFiles || []
       if (tempFiles.length === 0) return
@@ -171,94 +171,167 @@ const chooseFile = () => {
 }
 
 // #ifdef APP-PLUS
-const ACCEPT_EXTS = ['.html', '.htm', '.md', '.markdown']
+const ACCEPT_EXTS = ['.html', '.htm', '.md', '.markdown', '.pdf']
 
-interface AppFileItem {
+interface PickedFile {
   name: string
-  url: string
+  path: string
 }
 
-// App 端无 uni.chooseFile，用 plus.io 扫描常用目录后通过 ActionSheet 选择
+// App 端无法使用 uni.chooseFile（仅支持 H5），改为调用系统文件选择器。
+// 说明：旧实现用 plus.io 扫描 /storage/emulated/0/Download/，在未授予存储权限时会
+// 触发原生 SecurityException 导致 App 崩溃；系统文件选择器（ACTION_GET_CONTENT）由
+// 系统授予所选文件的访问权限，无需存储权限，最稳妥。
 const chooseFileOnApp = async () => {
+  const platform = uni.getSystemInfoSync().platform
+  if (platform !== 'android') {
+    uni.showToast({ title: 'iOS 端暂请使用网页版导入文件', icon: 'none', duration: 3000 })
+    return
+  }
+  let picked: PickedFile | null = null
   try {
-    uni.showLoading({ title: '扫描文件中...', mask: true })
-    const files = await scanAppFiles()
-    if (files.length === 0) {
-      uni.showToast({
-        title: '未找到可导入文件，请将 .html/.md 放入下载目录',
-        icon: 'none',
-        duration: 3000
-      })
-      return
-    }
-    const picked = await new Promise<AppFileItem | null>((resolve) => {
-      uni.showActionSheet({
-        itemList: files.map((f) => f.name),
-        success: (res) => resolve(files[res.tapIndex]),
-        fail: () => resolve(null)
-      })
-    })
-    if (picked) {
-      uploadSequentially([{ name: picked.name, path: picked.url }], 0)
-    }
+    picked = await pickDocumentAndroid()
   } catch (e) {
     console.error('App 端选择文件失败', e)
-    uni.showToast({ title: '选择文件失败', icon: 'none' })
-  } finally {
-    uni.hideLoading()
+    uni.showToast({ title: '打开文件选择器失败', icon: 'none' })
+    return
   }
+  if (!picked) return // 用户取消或无结果，保持静默
+  uploadSequentially([{ name: picked.name, path: picked.path }], 0)
 }
 
-const scanAppFiles = (): Promise<AppFileItem[]> => {
-  const dirs = ['_downloads/', '_documents/', '/storage/emulated/0/Download/']
+// 调起 Android 系统文件选择器，返回所选文件
+const pickDocumentAndroid = (): Promise<PickedFile | null> => {
   return new Promise((resolve) => {
-    const plusObj = (window as any).plus
-    if (!plusObj?.io) {
-      resolve([])
-      return
+    let settled = false
+    const done = (v: PickedFile | null) => {
+      if (settled) return
+      settled = true
+      resolve(v)
     }
-    const collected: AppFileItem[] = []
-    const seen = new Set<string>()
-    let pending = dirs.length
-    const finish = () => {
-      pending--
-      if (pending === 0) resolve(collected.slice(0, 6))
-    }
-    dirs.forEach((dir) => {
-      plusObj.io.resolveLocalFileSystemURL(
-        dir,
-        (entry: any) => {
-          const reader = entry.createReader()
-          const readAll = () => {
-            reader.readEntries(
-              (entries: any[]) => {
-                if (!entries.length) {
-                  finish()
-                  return
-                }
-                entries
-                  .filter(
-                    (it) =>
-                      it.isFile &&
-                      ACCEPT_EXTS.some((ext) => it.name.toLowerCase().endsWith(ext))
-                  )
-                  .forEach((it) => {
-                    const url = it.toURL()
-                    if (!seen.has(url)) {
-                      seen.add(url)
-                      collected.push({ name: it.name, url })
-                    }
-                  })
-                readAll()
-              },
-              () => finish()
-            )
+    try {
+      const main = plus.android.runtimeMainActivity()
+      const Intent = plus.android.importClass('android.content.Intent')
+      const intent = new Intent(Intent.ACTION_GET_CONTENT)
+      intent.setType('*/*')
+      intent.addCategory(Intent.CATEGORY_OPENABLE)
+      const REQ_CODE = 10021
+
+      main.onActivityResult = (requestCode: number, resultCode: number, data: any) => {
+        if (requestCode !== REQ_CODE) return
+        if (resultCode !== -1 || !data) {
+          done(null) // 用户取消
+          return
+        }
+        try {
+          const uri = data.getData()
+          if (!uri) {
+            done(null)
+            return
           }
-          readAll()
-        },
-        () => finish()
-      )
-    })
+          copyUriToAppDir(main, uri)
+            .then(done)
+            .catch((e: any) => {
+              console.error('复制所选文件失败', e)
+              done(null)
+            })
+        } catch (e) {
+          console.error('读取所选文件失败', e)
+          done(null)
+        }
+      }
+      main.startActivityForResult(intent, REQ_CODE)
+    } catch (e) {
+      console.error('打开系统文件选择器失败', e)
+      done(null)
+    }
+  })
+}
+
+// 将 content:// 指向的文件复制到应用私有目录 _doc/，返回可上传的路径
+const copyUriToAppDir = (main: any, uri: any): Promise<PickedFile | null> => {
+  return new Promise((resolve) => {
+    try {
+      const resolver = main.getContentResolver()
+
+      // 1. 取原始文件名
+      let displayName = ''
+      try {
+        const cursor = resolver.query(uri, null, null, null, null)
+        if (cursor && cursor.moveToFirst()) {
+          const idx = cursor.getColumnIndex('_display_name')
+          if (idx >= 0) displayName = cursor.getString(idx) || ''
+          cursor.close()
+        }
+      } catch (e) {
+        /* 拿不到名字时用兜底名 */
+      }
+
+      let ext = ''
+      const dot = displayName.lastIndexOf('.')
+      if (dot > 0) ext = displayName.substring(dot).toLowerCase()
+      if (ACCEPT_EXTS.indexOf(ext) < 0) ext = '.md'
+      const base = (dot > 0 ? displayName.substring(0, dot) : displayName) || `import_${Date.now()}`
+      const targetName = `${base}${ext}`
+
+      // 2. 读取内容（PDF 为二进制，其他文本）
+      const isPdf = ext === '.pdf'
+      const inputStream = resolver.openInputStream(uri)
+      if (!isPdf) {
+        const InputStreamReader = plus.android.importClass('java.io.InputStreamReader')
+        const BufferedReader = plus.android.importClass('java.io.BufferedReader')
+        const reader = new BufferedReader(new InputStreamReader(inputStream, 'UTF-8'))
+        let text = ''
+        let line: any
+        while ((line = reader.readLine()) !== null) {
+          text += line + '\n'
+        }
+        reader.close()
+        // 3. 写入 _doc/
+        plus.io.resolveLocalFileSystemURL(
+          '_doc/',
+          (dirEntry: any) => {
+            dirEntry.getFile(
+              targetName,
+              { create: true },
+              (fileEntry: any) => {
+                fileEntry.createWriter(
+                  (writer: any) => {
+                    writer.onwrite = () => resolve({ name: targetName, path: `_doc/${targetName}` })
+                    writer.onerror = () => resolve(null)
+                    writer.write(text)
+                  },
+                  () => resolve(null)
+                )
+              },
+              () => resolve(null)
+            )
+          },
+          () => resolve(null)
+        )
+      } else {
+        // PDF 二进制复制：字节读写全部在 Java 层完成，避免 JS 处理二进制导致文件损坏
+        const Byte = plus.android.importClass('java.lang.Byte')
+        const ReflectArray = plus.android.importClass('java.lang.reflect.Array')
+        const FileOutputStream = plus.android.importClass('java.io.FileOutputStream')
+        let docDir = plus.io.convertLocalFileSystemURL('_doc/')
+        if (docDir.indexOf('file://') === 0) docDir = docDir.substring(7)
+        if (docDir.charAt(docDir.length - 1) !== '/') docDir += '/'
+        const outputStream = new FileOutputStream(docDir + targetName)
+        const buffer = ReflectArray.newInstance(Byte.TYPE, 8192)
+        let len = 0
+        while ((len = inputStream.read(buffer)) !== -1) {
+          outputStream.write(buffer, 0, len)
+        }
+        outputStream.flush()
+        outputStream.close()
+        inputStream.close()
+        resolve({ name: targetName, path: `_doc/${targetName}` })
+      }
+    } catch (e) {
+      console.error('复制文件到应用目录失败', e)
+      resolve(null)
+    }
   })
 }
 // #endif
@@ -276,6 +349,23 @@ const uploadSequentially = (files: any[], index: number) => {
   progressPercent.value = Math.round((index / files.length) * 100)
 
   const filePath = file.path || file.tempFilePath
+  // 文件大小校验：PDF<=10MB，文本类<=5MB
+  const fileSize = file.size || 0
+  const fileName = file.name || ''
+  const ext = (fileName.substring(fileName.lastIndexOf('.')) || '').toLowerCase()
+  if (ext === '.pdf') {
+    if (fileSize > 10 * 1024 * 1024) {
+      uni.showToast({ title: 'PDF 文件大小不能超过10MB', icon: 'none' })
+      uploadSequentially(files, index + 1)
+      return
+    }
+  } else {
+    if (fileSize > 5 * 1024 * 1024) {
+      uni.showToast({ title: fileName + ' 超过 5MB，暂不支持大文件', icon: 'none' })
+      uploadSequentially(files, index + 1)
+      return
+    }
+  }
   uploadKnowledgeFile(filePath, currentKbId())
     .then((res: any) => {
       const data = res?.data || res || {}
@@ -508,9 +598,11 @@ onPullDownRefresh(() => {
     flex-shrink: 0;
     &.icon-html, &.icon-htm { background: #E8F3FF; }
     &.icon-md, &.icon-markdown { background: #FFF7E8; }
+    &.icon-pdf { background: #FFF1F0; }
     .icon-text { font-size: 22rpx; font-weight: 700; text-transform: uppercase;
       .icon-html &, .icon-htm & { color: #1677ff; }
       .icon-md &, .icon-markdown & { color: #fa8c16; }
+      .icon-pdf & { color: #ff4d4f; }
     }
   }
   .history-info { flex: 1; min-width: 0;

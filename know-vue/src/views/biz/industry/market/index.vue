@@ -52,6 +52,10 @@
             </template>
             <span v-else>-</span>
           </template>
+          <template v-if="column.key === 'knowledgeBaseId'">
+            <a v-if="record.knowledgeBaseId" @click="viewKnowledgeBase(record)">查看知识库</a>
+            <span v-else>-</span>
+          </template>
           <template v-if="column.key === 'action'">
             <a-space style="white-space: nowrap">
               <a @click="openDetail(record)">详情</a>
@@ -61,6 +65,10 @@
               <a-popconfirm title="确定删除该市场吗？" @confirm="handleDelete(record)">
                 <a style="color: red">删除</a>
               </a-popconfirm>
+              <template v-if="record.knowledgeBaseId">
+                <a-divider type="vertical" />
+                <a @click="viewKnowledgeBase(record)">知识库</a>
+              </template>
             </a-space>
           </template>
         </template>
@@ -114,15 +122,20 @@ import { ref, reactive, computed, onMounted } from 'vue'
 import { message } from 'ant-design-vue'
 import type { FormInstance } from 'ant-design-vue'
 import { PlusOutlined, SearchOutlined, RedoOutlined } from '@ant-design/icons-vue'
+import { useRouter } from 'vue-router'
 import { getIndustryTree, type BizIndustry } from '@/api/biz/industry'
 import { getMarketPage, addMarket, saveMarket, deleteMarket, type BizIndustryMarket, type BizMarketQuery } from '@/api/biz/market'
+import { getKnowledgeBaseOptions } from '@/api/knowledge'
 import MatrixTable from '../../components/MatrixTable.vue'
 import BizFullscreenModal from '@/components/BizFullscreenModal.vue'
 import { marketSections } from '../market/sections'
 
+const router = useRouter()
+
 // 表格列定义
 const columns = [
   { title: '所属行业', dataIndex: 'industryNames', key: 'industryNames', width: 180 },
+  { title: '关联知识库', dataIndex: 'knowledgeBaseId', key: 'knowledgeBaseId', width: 120 },
   { title: '市场需求', dataIndex: 'demand', key: 'demand', ellipsis: true },
   { title: '市场机会', dataIndex: 'opportunity', key: 'opportunity', ellipsis: true },
   { title: '价值主张', dataIndex: 'valueProposition', key: 'valueProposition', ellipsis: true },
@@ -189,6 +202,23 @@ const loadIndustryOptions = async () => {
   }
 }
 
+// 知识库下拉
+const kbOptions = ref<{ label: string; value: number }[]>([])
+const loadKnowledgeBaseOptions = async () => {
+  try {
+    const res: any = await getKnowledgeBaseOptions()
+    const arr = res?.data || res || []
+    kbOptions.value = (Array.isArray(arr) ? arr : []).map((kb: any) => ({ label: kb.name, value: kb.id }))
+  } catch (e) {
+    console.error('加载知识库列表失败', e)
+    kbOptions.value = []
+  }
+}
+const viewKnowledgeBase = (record: any) => {
+  if (!record.knowledgeBaseId) return
+  router.push({ path: '/knowledge/document', query: { knowledgeBaseId: String(record.knowledgeBaseId) } })
+}
+
 /** 缩进展示名称（下级行业前加缩进，便于识别层级） */
 const indentedName = (opt: IndustrySelectOption) =>
   opt.depth > 0 ? `${'\u3000'.repeat(opt.depth)}${opt.industryName}` : opt.industryName
@@ -244,7 +274,8 @@ const formData = reactive<Partial<BizIndustryMarket>>({
   grossProfit: undefined,
   grossMargin: undefined,
   netProfit: undefined,
-  netMargin: undefined
+  netMargin: undefined,
+  knowledgeBaseId: undefined
 })
 
 // 清空表单
@@ -272,7 +303,8 @@ const resetForm = () => {
     grossProfit: undefined,
     grossMargin: undefined,
     netProfit: undefined,
-    netMargin: undefined
+    netMargin: undefined,
+    knowledgeBaseId: undefined
   })
 }
 
@@ -281,7 +313,8 @@ const optionsMap = computed<Record<string, { label: string; value: any }[]>>(() 
   industryIds: industryOptions.value.map((item) => ({
     label: indentedName(item),
     value: item.id
-  }))
+  })),
+  knowledgeBaseId: kbOptions.value
 }))
 
 // 加载市场列表
@@ -366,7 +399,8 @@ const handleEdit = (record: BizIndustryMarket) => {
     grossProfit: record.grossProfit ?? undefined,
     grossMargin: record.grossMargin ?? undefined,
     netProfit: record.netProfit ?? undefined,
-    netMargin: record.netMargin ?? undefined
+    netMargin: record.netMargin ?? undefined,
+    knowledgeBaseId: record.knowledgeBaseId ?? undefined
   })
   modalVisible.value = true
 }
@@ -424,6 +458,7 @@ const handleDelete = async (record: BizIndustryMarket) => {
 onMounted(() => {
   loadData()
   loadIndustryOptions()
+  loadKnowledgeBaseOptions()
 })
 </script>
 

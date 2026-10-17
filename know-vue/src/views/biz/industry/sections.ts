@@ -15,6 +15,7 @@ export const industrySections: SectionDef[] = [
           { label: '行业名称', key: 'industryName', span: 12 },
           { label: '行业代码', key: 'industryCode', span: 12 },
           { label: '行业类型', key: 'industryType', type: 'cascader', span: 12, placeholder: '请选择行业类型' },
+          { label: '关联知识库', key: 'knowledgeBaseId', type: 'select', span: 12, placeholder: '选择关联的知识库(可空)' },
           { label: '行业属性', key: 'industryAttr', type: 'select', options: [{ label: '主行业', value: 1 }, { label: '竞争者', value: 2 }, { label: '依托者', value: 3 }, { label: '共利者', value: 4 }], span: 12 },
           { label: '标签', key: 'tags', placeholder: '多个标签用逗号分隔', span: 12 },
           { label: '可见性', key: 'visibility', type: 'select', options: [{ label: '可见', value: 1 }, { label: '隐藏', value: 0 }], span: 12 },

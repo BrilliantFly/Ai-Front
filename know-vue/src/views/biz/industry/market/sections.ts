@@ -13,7 +13,8 @@ export const marketSections: SectionDef[] = [
         fields: [
           { label: '所属行业', key: 'industryIds', type: 'selectMultiple', span: 24, placeholder: '请选择关联行业(可多选)', required: true },
           { label: '市场需求', key: 'demand', type: 'textarea', span: 12, placeholder: '客群规模/痛点', required: true },
-          { label: '商机', key: 'opportunity', type: 'textarea', span: 12, placeholder: '可切入的机会点' }
+          { label: '商机', key: 'opportunity', type: 'textarea', span: 12, placeholder: '可切入的机会点' },
+          { label: '关联知识库', key: 'knowledgeBaseId', type: 'select', span: 12, placeholder: '选择关联的知识库(可空)' }
         ]
       },
       {
