@@ -94,7 +94,7 @@
         :pagination="false"
         row-key="id"
         size="small"
-        :expandable="{ defaultExpandAllRows: true }"
+        v-model:expandedRowKeys="dataExpandedKeys"
       >
         <template #bodyCell="{ column, record }">
           <template v-if="column.key === 'icon'">
@@ -219,7 +219,21 @@ const currentTypeId = ref<number>()
 const currentTypeName = ref('')
 const dataTree = ref<CascadeDictNode[]>([])
 
-const dataColumns = [
+// 树展开 keys（新增下级后自动展开父级，避免新节点不显示）
+const dataExpandedKeys = ref<(string | number)[]>([])
+const collectDataExpandKeys = (nodes: CascadeDictNode[]): (string | number)[] => {
+  const keys: (string | number)[] = []
+  const walk = (list: CascadeDictNode[]) => {
+    for (const n of list || []) {
+      if (n.children && n.children.length) {
+        if (n.id != null) keys.push(n.id)
+        walk(n.children)
+      }
+    }
+  }
+  walk(nodes)
+  return keys
+}
   { title: '名称', dataIndex: 'name', key: 'name' },
   { title: '编码', dataIndex: 'value', key: 'value' },
   { title: '图标', key: 'icon', width: 80 },
@@ -382,6 +396,7 @@ const loadDataTree = async () => {
     const res = await getCascadeDictTree({ typeId: currentTypeId.value })
     const responseData = res?.data
     dataTree.value = Array.isArray(responseData) ? responseData : []
+    dataExpandedKeys.value = collectDataExpandKeys(dataTree.value)
   } catch (error) {
     console.error('加载级联数据失败:', error)
     message.error('加载级联数据失败')
@@ -452,7 +467,15 @@ const handleDataModalOk = async () => {
       message.success('编辑成功')
     }
     dataModalVisible.value = false
-    loadDataTree()
+    await loadDataTree()
+    if (dataModalType.value === 'add') {
+      const pid = dataForm.parentId
+      if (pid != null) {
+        if (!dataExpandedKeys.value.includes(pid)) {
+          dataExpandedKeys.value = [...dataExpandedKeys.value, pid]
+        }
+      }
+    }
   } catch (error) {
     console.error('保存失败:', error)
   }

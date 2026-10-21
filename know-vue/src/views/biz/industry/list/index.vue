@@ -41,7 +41,7 @@
         :loading="loading"
         :pagination="false"
         :row-key="(record: BizIndustry) => record.id!"
-        :expandable="{ defaultExpandAllRows: true }"
+        v-model:expandedRowKeys="expandedRowKeys"
       >
         <template #bodyCell="{ column, record }: { column: any; record: BizIndustry }">
           <template v-if="column.key === 'visibility'">
@@ -55,6 +55,8 @@
           </template>
           <template v-if="column.key === 'action'">
             <a-space style="white-space: nowrap">
+              <a @click="handleAddChild(record)">新增下级</a>
+              <a-divider type="vertical" />
               <a @click="openDetailModal(record)">行业详情</a>
               <a-divider type="vertical" />
               <a @click="handleEdit(record)">编辑</a>
@@ -211,7 +213,7 @@ const columns = [
   { title: '行业标签', dataIndex: 'tags', key: 'tags', width: 180 },
   { title: '可见性', dataIndex: 'visibility', key: 'visibility', width: 90 },
   { title: '排序', dataIndex: 'sort', key: 'sort', width: 80 },
-  { title: '操作', key: 'action', width: 160, fixed: 'right' }
+  { title: '操作', key: 'action', width: 230, fixed: 'right' }
 ]
 
 // 行业产品表格列
@@ -299,7 +301,24 @@ const queryParams = reactive(<BizIndustryQuery>{
 const industryList = ref<BizIndustry[]>([])
 const loading = ref(false)
 
-// 上级行业选项（树形缩进展示）
+// 树展开 keys（新增子节点后需展开父级，否则子节点不显示）
+const expandedRowKeys = ref<(string | number)[]>([])
+const collectExpandKeys = (nodes: BizIndustry[]): (string | number)[] => {
+  const keys: (string | number)[] = []
+  const walk = (list: BizIndustry[]) => {
+    for (const node of list) {
+      if (node.children && node.children.length) {
+        if (node.id != null) keys.push(node.id)
+        walk(node.children)
+      }
+    }
+  }
+  walk(nodes || [])
+  return keys
+}
+const expandAll = (nodes: BizIndustry[]) => {
+  expandedRowKeys.value = collectExpandKeys(nodes)
+}
 const parentOptions = computed<{ label: string; value: any }[]>(() => {
   const excludeId = editId.value
   const collect = (nodes: BizIndustry[]): { label: string; value: any }[] => {
@@ -370,6 +389,7 @@ const loadData = async () => {
     // 响应格式: 树形数组（行业 -> 下级行业）
     const resData = res?.data || res
     industryList.value = Array.isArray(resData) ? resData : []
+    expandAll(industryList.value)
   } catch (e) {
     console.error('加载行业树失败', e)
     industryList.value = []
@@ -469,6 +489,40 @@ const handleAdd = () => {
   modalVisible.value = true
 }
 
+// 新增下级
+const handleAddChild = (record: BizIndustry) => {
+  isEdit.value = false
+  editId.value = undefined
+  modalTitle.value = `新增下级 - ${record.industryName || ''}`
+  formData.industryName = ''
+  formData.industryCode = ''
+  formData.tags = ''
+  formData.industryType = record.industryType || ''
+  formData.industryAttr = record.industryAttr
+  formData.visibility = record.visibility ?? 1
+  formData.sort = 0
+  formData.parentId = record.id
+  formData.definition = ''
+  formData.technology = ''
+  formData.upstreamChain = ''
+  formData.midstreamChain = ''
+  formData.downstreamChannel = ''
+  formData.downstreamMarketing = ''
+  formData.developmentOverview = ''
+  formData.marketSize = ''
+  formData.growthPotential = ''
+  formData.grossProfit = undefined
+  formData.grossMargin = undefined
+  formData.netProfit = undefined
+  formData.netMargin = undefined
+  formData.dynamicInfo = ''
+  formData.valueInfo = ''
+  formData.industryResources = ''
+  formData.strategy = ''
+  formData.knowledgeBaseId = undefined
+  modalVisible.value = true
+}
+
 // 编辑(直接回填,不调详情接口)
 const handleEdit = (record: BizIndustry) => {
   isEdit.value = true
@@ -504,7 +558,13 @@ const handleSubmit = async () => {
       message.success('新增成功')
     }
     modalVisible.value = false
-    loadData()
+    await loadData()
+    // 新增子级后强制展开父级，避免新增后不显示
+    if (!isEdit.value && formData.parentId != null) {
+      if (!expandedRowKeys.value.includes(formData.parentId)) {
+        expandedRowKeys.value = [...expandedRowKeys.value, formData.parentId]
+      }
+    }
   } catch (e: any) {
     message.error(e?.message || '操作失败')
   } finally {
